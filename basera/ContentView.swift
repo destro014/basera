@@ -1,21 +1,9 @@
-//
-//  ContentView.swift
-//  basera
-//
-//  Created by Pramod Paudel on 10/03/2026.
-//
-
 import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, Basera!")
-        }
-        .padding()
+        AppRootView()
+            .environmentObject(AppEnvironment.bootstrap())
     }
 }
 
