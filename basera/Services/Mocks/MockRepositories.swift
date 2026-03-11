@@ -51,7 +51,7 @@ struct MockAuthRepository: AuthRepositoryProtocol {
 }
 
 struct MockListingsRepository: ListingsRepositoryProtocol {
-    func fetchFeaturedListings() async throws -> [Listing] {
+    func fetchExploreListings() async throws -> [Listing] {
         PreviewData.featuredListings
     }
 }
