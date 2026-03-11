@@ -2,11 +2,12 @@ import SwiftUI
 
 struct SettingsView: View {
     let user: AppUser
+    let profileRepository: ProfileRepositoryProtocol
     let onSwitchRole: (UserRole) -> Void
     let onSignOut: () -> Void
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 Section("Account") {
                     HStack {
@@ -17,6 +18,14 @@ struct SettingsView: View {
                                 .font(AppTheme.Typography.caption)
                                 .foregroundStyle(AppTheme.Colors.textSecondary)
                         }
+                    }
+
+                    NavigationLink("Profile and Verification") {
+                        ProfileHubView(
+                            user: user,
+                            repository: profileRepository,
+                            onSwitchRole: onSwitchRole
+                        )
                     }
                 }
 
@@ -37,7 +46,6 @@ struct SettingsView: View {
             }
             .navigationTitle("Settings")
         }
-        .navigationViewStyle(StackNavigationViewStyle())
     }
 
     private var initials: String {
@@ -53,6 +61,7 @@ struct SettingsView: View {
 #Preview {
     SettingsView(
         user: PreviewData.user(activeRole: .owner),
+        profileRepository: MockProfileRepository(),
         onSwitchRole: { _ in },
         onSignOut: {}
     )
