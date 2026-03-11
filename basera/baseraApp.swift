@@ -1,17 +1,13 @@
-//
-//  baseraApp.swift
-//  basera
-//
-//  Created by Pramod Paudel on 10/03/2026.
-//
-
 import SwiftUI
 
 @main
 struct baseraApp: App {
+    @StateObject private var environment = AppEnvironment.bootstrap()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            AppRootView()
+                .environmentObject(environment)
         }
     }
 }
