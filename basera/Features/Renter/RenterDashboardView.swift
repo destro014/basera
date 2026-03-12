@@ -3,6 +3,7 @@ import SwiftUI
 struct RenterDashboardView: View {
     @EnvironmentObject private var environment: AppEnvironment
     @StateObject private var viewModel = RenterDashboardViewModel()
+    @State private var isFilterSheetPresented = false
 
     var body: some View {
         NavigationView {
@@ -18,7 +19,35 @@ struct RenterDashboardView: View {
                     exploreContent
                 }
             }
-            .navigationTitle("Explore")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Image("logo-horizontal")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 160)
+                        .accessibilityHidden(true)
+                }
+            }
+            .sheet(isPresented: $isFilterSheetPresented) {
+                NavigationView {
+                    ScrollView {
+                        filterControls
+                            .padding()
+                    }
+                    .navigationTitle("Filters")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("Done") {
+                                isFilterSheetPresented = false
+                            }
+                        }
+                    }
+                }
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+            }
             .task {
                 guard viewModel.state == .idle else { return }
                 await viewModel.load(using: environment.listingsRepository)
@@ -40,93 +69,105 @@ struct RenterDashboardView: View {
     }
 
     private var searchAndFilters: some View {
-        BaseraCard {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
+        HStack(spacing: AppTheme.Spacing.small) {
+            BaseraCard {
                 TextField("Search by area or title", text: $viewModel.searchText)
                     .baseraTextStyle(AppTheme.Typography.bodyLarge)
                     .foregroundStyle(AppTheme.Colors.textPrimary)
                     .tint(AppTheme.Colors.brandPrimary)
-                    .padding(.horizontal, AppTheme.Spacing.medium)
-                    .padding(.vertical, AppTheme.Spacing.medium)
+                    .padding(.horizontal, AppTheme.Spacing.small)
+            }
+
+            Button {
+                isFilterSheetPresented = true
+            } label: {
+                Image(systemName: "line.3.horizontal.decrease.circle")
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundStyle(AppTheme.Colors.brandPrimary)
+                    .frame(width: 44, height: 44)
                     .background(AppTheme.Colors.surfacePrimary)
+                    .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.medium, style: .continuous))
                     .overlay {
                         RoundedRectangle(cornerRadius: AppTheme.Radius.medium, style: .continuous)
                             .stroke(AppTheme.Colors.borderSecondary, lineWidth: 1)
                     }
-                    .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.medium, style: .continuous))
+            }
+        }
+    }
 
-                VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
-                    Text("Price Range (NPR \(Int(viewModel.filters.minPrice)) - \(Int(viewModel.filters.maxPrice)))")
-                        .baseraTextStyle(AppTheme.Typography.bodySmall)
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+    private var filterControls: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+                Text("Price Range (NPR \(Int(viewModel.filters.minPrice)) - \(Int(viewModel.filters.maxPrice)))")
+                    .baseraTextStyle(AppTheme.Typography.bodySmall)
+                    .foregroundStyle(AppTheme.Colors.textSecondary)
 
-                    HStack {
-                        Slider(value: $viewModel.filters.minPrice, in: 8_000...50_000, step: 1_000)
-                            .tint(AppTheme.Colors.brandPrimary)
-                        Slider(value: $viewModel.filters.maxPrice, in: 8_000...50_000, step: 1_000)
-                            .tint(AppTheme.Colors.brandPrimary)
-                    }
+                HStack {
+                    Slider(value: $viewModel.filters.minPrice, in: 8_000...50_000, step: 1_000)
+                        .tint(AppTheme.Colors.brandPrimary)
+                    Slider(value: $viewModel.filters.maxPrice, in: 8_000...50_000, step: 1_000)
+                        .tint(AppTheme.Colors.brandPrimary)
                 }
+            }
 
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: AppTheme.Spacing.small) {
-                        ForEach(Listing.PropertyType.allCases) { type in
-                            filterChip(
-                                title: type.rawValue,
-                                isSelected: viewModel.filters.selectedPropertyTypes.contains(type)
-                            ) {
-                                if viewModel.filters.selectedPropertyTypes.contains(type) {
-                                    viewModel.filters.selectedPropertyTypes.remove(type)
-                                } else {
-                                    viewModel.filters.selectedPropertyTypes.insert(type)
-                                }
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: AppTheme.Spacing.small) {
+                    ForEach(Listing.PropertyType.allCases) { type in
+                        filterChip(
+                            title: type.rawValue,
+                            isSelected: viewModel.filters.selectedPropertyTypes.contains(type)
+                        ) {
+                            if viewModel.filters.selectedPropertyTypes.contains(type) {
+                                viewModel.filters.selectedPropertyTypes.remove(type)
+                            } else {
+                                viewModel.filters.selectedPropertyTypes.insert(type)
                             }
                         }
                     }
                 }
+            }
 
-                dashboardToggle(title: "Parking required", isOn: $viewModel.filters.parkingRequired)
-                dashboardToggle(title: "Wi-Fi required", isOn: $viewModel.filters.wifiRequired)
-                dashboardToggle(title: "Pet allowed only", isOn: $viewModel.filters.petsAllowedOnly)
+            dashboardToggle(title: "Parking required", isOn: $viewModel.filters.parkingRequired)
+            dashboardToggle(title: "Wi-Fi required", isOn: $viewModel.filters.wifiRequired)
+            dashboardToggle(title: "Pet allowed only", isOn: $viewModel.filters.petsAllowedOnly)
 
-                Picker(selection: $viewModel.filters.furnishing) {
-                    segmentedOption("Any").tag(Optional<Listing.Furnishing>.none)
-                    ForEach(Listing.Furnishing.allCases) { furnishing in
-                        segmentedOption(furnishing.rawValue).tag(Optional(furnishing))
-                    }
-                } label: {
-                    controlLabel("Furnishing")
+            Picker(selection: $viewModel.filters.furnishing) {
+                segmentedOption("Any").tag(Optional<Listing.Furnishing>.none)
+                ForEach(Listing.Furnishing.allCases) { furnishing in
+                    segmentedOption(furnishing.rawValue).tag(Optional(furnishing))
                 }
-                .pickerStyle(.segmented)
-                .tint(AppTheme.Colors.brandPrimary)
+            } label: {
+                controlLabel("Furnishing")
+            }
+            .pickerStyle(.segmented)
+            .tint(AppTheme.Colors.brandPrimary)
 
-                Picker(selection: $viewModel.filters.tenantPreference) {
-                    segmentedOption("Any").tag(Optional<Listing.TenantPreference>.none)
-                    ForEach(Listing.TenantPreference.allCases) { preference in
-                        segmentedOption(preference.rawValue).tag(Optional(preference))
-                    }
-                } label: {
-                    controlLabel("Tenant Preference")
+            Picker(selection: $viewModel.filters.tenantPreference) {
+                segmentedOption("Any").tag(Optional<Listing.TenantPreference>.none)
+                ForEach(Listing.TenantPreference.allCases) { preference in
+                    segmentedOption(preference.rawValue).tag(Optional(preference))
                 }
-                .tint(AppTheme.Colors.brandPrimary)
+            } label: {
+                controlLabel("Tenant Preference")
+            }
+            .tint(AppTheme.Colors.brandPrimary)
 
-                Stepper(value: $viewModel.filters.maximumRadiusInKM, in: 1...12) {
-                    Text("Location radius: \(viewModel.filters.maximumRadiusInKM) KM")
-                        .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                        .foregroundStyle(AppTheme.Colors.textPrimary)
-                }
-                .tint(AppTheme.Colors.brandPrimary)
+            Stepper(value: $viewModel.filters.maximumRadiusInKM, in: 1...12) {
+                Text("Location radius: \(viewModel.filters.maximumRadiusInKM) KM")
+                    .baseraTextStyle(AppTheme.Typography.bodyLarge)
+                    .foregroundStyle(AppTheme.Colors.textPrimary)
+            }
+            .tint(AppTheme.Colors.brandPrimary)
 
-                DatePicker(selection: $viewModel.filters.availableFrom, displayedComponents: .date) {
-                    controlLabel("Available by")
-                }
-                .tint(AppTheme.Colors.brandPrimary)
+            DatePicker(selection: $viewModel.filters.availableFrom, displayedComponents: .date) {
+                controlLabel("Available by")
+            }
+            .tint(AppTheme.Colors.brandPrimary)
 
-                Group {
-                    dashboardToggle(title: "Electricity included", isOn: $viewModel.filters.includeElectricity)
-                    dashboardToggle(title: "Water included", isOn: $viewModel.filters.includeWater)
-                    dashboardToggle(title: "Internet included", isOn: $viewModel.filters.includeInternet)
-                }
+            Group {
+                dashboardToggle(title: "Electricity included", isOn: $viewModel.filters.includeElectricity)
+                dashboardToggle(title: "Water included", isOn: $viewModel.filters.includeWater)
+                dashboardToggle(title: "Internet included", isOn: $viewModel.filters.includeInternet)
             }
         }
     }
@@ -142,6 +183,7 @@ struct RenterDashboardView: View {
         .pickerStyle(.segmented)
         .tint(AppTheme.Colors.brandPrimary)
     }
+
 
     @ViewBuilder
     private var resultsSection: some View {
@@ -180,6 +222,7 @@ struct RenterDashboardView: View {
             }
         }
     }
+
 
     private var mapPlaceholderView: some View {
         BaseraCard {
@@ -238,6 +281,7 @@ struct RenterDashboardView: View {
             }
         }
     }
+
 
     private func listingCard(for listing: Listing) -> some View {
         BaseraCard {
