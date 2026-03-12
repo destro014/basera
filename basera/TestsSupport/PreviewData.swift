@@ -331,7 +331,8 @@ extension PreviewData {
             monthlyRent: 28000,
             startDate: Calendar.current.date(byAdding: .month, value: -2, to: now) ?? now,
             endDate: Calendar.current.date(byAdding: .month, value: 10, to: now) ?? now,
-            status: .active,
+            status: .moveOutRequested,
+            closureState: .requestedByRenter(requestedAt: Calendar.current.date(byAdding: .day, value: -2, to: now) ?? now),
             billSummary: .init(
                 currentInvoiceID: "INV-300",
                 dueDate: Calendar.current.date(byAdding: .day, value: 5, to: now) ?? now,
@@ -351,6 +352,12 @@ extension PreviewData {
                 .init(id: "CHK-2", title: "Kitchen sink and tap", category: .appliance, isCompleted: true, note: "No leakage at move-in.", photoPlaceholders: ["Sink photo"]),
                 .init(id: "CHK-3", title: "Electricity meter opening", category: .meterReading, isCompleted: false, note: "Need clear meter close-up.", photoPlaceholders: ["Meter photo pending"])
             ],
+            moveOutRequest: nil,
+            moveOutChecklist: [],
+            finalMeterReading: nil,
+            depositSettlement: nil,
+            historicalAccess: .init(agreementAvailable: true, invoicesAvailable: true, paymentsAvailable: true),
+            listingReactivation: .init(isReady: false, pendingItems: ["Move-out approval pending", "Final inspection pending", "Deposit settlement pending"]),
             ownerContact: .init(fullName: "Sita Basera", phoneNumber: "+9779800000000"),
             renterContact: .init(fullName: "Sita Basera", phoneNumber: "+9779800000000")
         )
@@ -369,6 +376,7 @@ extension PreviewData {
             startDate: Calendar.current.date(byAdding: .month, value: -1, to: now) ?? now,
             endDate: Calendar.current.date(byAdding: .month, value: 11, to: now) ?? now,
             status: .moveInPending,
+            closureState: .none,
             billSummary: .init(
                 currentInvoiceID: "INV-301",
                 dueDate: Calendar.current.date(byAdding: .day, value: 12, to: now) ?? now,
@@ -387,6 +395,12 @@ extension PreviewData {
                 .init(id: "CHK-4", title: "Living room floor", category: .roomCondition, isCompleted: false, note: "Pending tenant confirmation.", photoPlaceholders: ["Floor photo pending"]),
                 .init(id: "CHK-5", title: "Sofa set", category: .furniture, isCompleted: false, note: "Upload armrest photo.", photoPlaceholders: ["Furniture photo pending"])
             ],
+            moveOutRequest: nil,
+            moveOutChecklist: [],
+            finalMeterReading: nil,
+            depositSettlement: nil,
+            historicalAccess: .init(agreementAvailable: true, invoicesAvailable: true, paymentsAvailable: true),
+            listingReactivation: .init(isReady: false, pendingItems: ["Tenancy not yet closed"]),
             ownerContact: .init(fullName: "Sita Basera", phoneNumber: "+9779800000000"),
             renterContact: .init(fullName: "Bikash Gurung", phoneNumber: "+9779811111111")
         )
@@ -405,9 +419,30 @@ extension PreviewData {
             startDate: Calendar.current.date(byAdding: .year, value: -2, to: now) ?? now,
             endDate: Calendar.current.date(byAdding: .year, value: -1, to: now) ?? now,
             status: .archived,
+            closureState: .closed(closedAt: Calendar.current.date(byAdding: .year, value: -1, to: now) ?? now),
             billSummary: .init(currentInvoiceID: "INV-210", dueDate: now, amountDue: 0, carryForward: 0, allowsPartialPayment: true, allowsAdvancePayment: true),
             depositSummary: .init(totalDeposit: 52000, heldAmount: 0, plannedRefundAmount: 48000, deductionNotes: "NPR 4,000 deducted for repainting."),
             moveInChecklist: [],
+            moveOutRequest: .init(
+                requestedByRenterAt: Calendar.current.date(byAdding: .year, value: -1, to: now) ?? now,
+                requestedMoveOutDate: Calendar.current.date(byAdding: .year, value: -1, to: now) ?? now,
+                reason: "Relocated for work",
+                conditionNotes: "No major damage at handover.",
+                photoPlaceholders: ["Final condition photos archived"],
+                ownerDecision: .approved(approvedAt: Calendar.current.date(byAdding: .year, value: -1, to: now) ?? now, note: "Approved after final inspection")
+            ),
+            moveOutChecklist: [
+                .init(id: "MOC-100", title: "Collect keys", isCompleted: true, notes: "All keys returned", photoPlaceholders: ["Key handover"])
+            ],
+            finalMeterReading: .init(electricity: "1580", water: "403", internet: "Closed", capturedAt: Calendar.current.date(byAdding: .year, value: -1, to: now)),
+            depositSettlement: .init(
+                refundType: .partial,
+                deductions: [.init(id: "DED-1", title: "Repainting", amount: 4000, note: "Bedroom wall repaint")],
+                refundAmount: 48000,
+                summaryNote: "NPR 4,000 deducted for repainting."
+            ),
+            historicalAccess: .init(agreementAvailable: true, invoicesAvailable: true, paymentsAvailable: true),
+            listingReactivation: .init(isReady: true, pendingItems: []),
             ownerContact: .init(fullName: "Sita Basera", phoneNumber: "+9779800000000"),
             renterContact: .init(fullName: "Rabin Tamang", phoneNumber: "+9779822222222")
         )

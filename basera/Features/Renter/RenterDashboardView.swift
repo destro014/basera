@@ -249,9 +249,24 @@ struct RenterDashboardView: View {
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
                     Text("Archived Tenancies")
                         .baseraTextStyle(AppTheme.Typography.titleSmall)
-                    Text("Archive access placeholder for post move-out agreements, invoices, and payment history.")
-                        .baseraTextStyle(AppTheme.Typography.bodySmall)
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                    ForEach(tenancyViewModel.archivedTenancies) { archived in
+                        VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+                            Text(archived.listingTitle)
+                                .baseraTextStyle(AppTheme.Typography.labelLarge)
+                            HStack {
+                                NavigationLink("Agreement") {
+                                    AgreementHubView(currentUserID: "preview-user-001", party: .renter)
+                                }
+                                NavigationLink("Invoices") {
+                                    InvoiceListView(tenancy: archived, userID: "preview-user-001", actor: .renter)
+                                }
+                                NavigationLink("Payments") {
+                                    PaymentsHubView(tenancy: archived, userID: "preview-user-001", actor: .renter)
+                                }
+                            }
+                            .baseraTextStyle(AppTheme.Typography.bodySmall)
+                        }
+                    }
                 }
             }
         }

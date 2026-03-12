@@ -54,9 +54,27 @@ struct OwnerDashboardView: View {
                         VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
                             Text("Archived Tenancies")
                                 .baseraTextStyle(AppTheme.Typography.titleMedium)
-                            Text("Archive placeholders are ready for post move-out access to agreement, invoices, and payments.")
-                                .baseraTextStyle(AppTheme.Typography.bodySmall)
-                                .foregroundStyle(AppTheme.Colors.textSecondary)
+                            ForEach(viewModel.archivedTenancies) { archived in
+                                VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+                                    Text(archived.listingTitle)
+                                        .baseraTextStyle(AppTheme.Typography.labelLarge)
+                                    HStack {
+                                        NavigationLink("Agreement") {
+                                            AgreementHubView(currentUserID: ownerID, party: .owner)
+                                        }
+                                        NavigationLink("Invoices") {
+                                            InvoiceListView(tenancy: archived, userID: ownerID, actor: .owner)
+                                        }
+                                        NavigationLink("Payments") {
+                                            PaymentsHubView(tenancy: archived, userID: ownerID, actor: .owner)
+                                        }
+                                        NavigationLink("Review renter") {
+                                            ReviewHubView(userID: ownerID, role: .owner)
+                                        }
+                                    }
+                                    .baseraTextStyle(AppTheme.Typography.bodySmall)
+                                }
+                            }
                         }
                     }
                 }
