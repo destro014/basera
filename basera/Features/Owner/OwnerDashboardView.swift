@@ -17,6 +17,19 @@ struct OwnerDashboardView: View {
             }
             .padding(.horizontal)
 
+            BaseraCard {
+                HStack {
+                    NavigationLink("Interested Renters") {
+                        OwnerInterestedRentersView(listingID: "OL-200", ownerID: ownerID)
+                    }
+                    NavigationLink("Owner Conversations") {
+                        ConversationListView(userID: ownerID)
+                    }
+                }
+                .baseraTextStyle(AppTheme.Typography.bodyMedium)
+            }
+            .padding(.horizontal)
+
             MyListingsView(ownerID: ownerID)
         }
     }

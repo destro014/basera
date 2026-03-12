@@ -4,6 +4,7 @@ struct RenterDashboardView: View {
     @EnvironmentObject private var environment: AppEnvironment
     @StateObject private var viewModel = RenterDashboardViewModel()
     @State private var isFilterSheetPresented = false
+    @State private var selectedListingForInterest: Listing?
 
     var body: some View {
         NavigationView {
@@ -51,15 +52,27 @@ struct RenterDashboardView: View {
             .task {
                 guard viewModel.state == .idle else { return }
                 await viewModel.load(using: environment.listingsRepository)
+                await viewModel.refreshInterestStates(renterID: "preview-user-001", using: environment.interestsRepository)
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())
+        .sheet(item: $selectedListingForInterest) { listing in
+            NavigationView {
+                InterestSubmissionView(
+                    listing: listing,
+                    renterID: "preview-user-001",
+                    renterSnapshot: .init(renterID: "preview-user-001", fullName: "Sita Basera", occupation: "Software Engineer", familySize: 3, hasPets: false, smokingStatus: "Non-smoker")
+                )
+            }
+            .environmentObject(environment)
+        }
     }
 
     private var exploreContent: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.large) {
                 searchAndFilters
+                renterWorkflowLinks
                 favoritesSection
                 listingModePicker
                 resultsSection
@@ -203,6 +216,18 @@ struct RenterDashboardView: View {
         }
     }
 
+    private var renterWorkflowLinks: some View {
+        HStack {
+            NavigationLink("My Interest Requests") {
+                RenterInterestsView(renterID: "preview-user-001")
+            }
+            NavigationLink("Conversations") {
+                ConversationListView(userID: "preview-user-001")
+            }
+        }
+        .baseraTextStyle(AppTheme.Typography.bodyMedium)
+    }
+
     private var listingsGrid: some View {
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 280), spacing: AppTheme.Spacing.medium)], spacing: AppTheme.Spacing.medium) {
             ForEach(viewModel.filteredListings) { listing in
@@ -213,7 +238,7 @@ struct RenterDashboardView: View {
                         isFavorite: viewModel.isFavorite(listingID: listing.id),
                         interestState: viewModel.interestState(for: listing.id),
                         onFavoriteTapped: { viewModel.toggleFavorite(listingID: listing.id) },
-                        onInterestedTapped: { viewModel.sendInterest(for: listing.id) }
+                        onInterestedTapped: { selectedListingForInterest = listing }
                     )
                 } label: {
                     listingCard(for: listing)

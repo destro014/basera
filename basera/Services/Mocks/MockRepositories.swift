@@ -183,3 +183,140 @@ actor MockProfileRepository: ProfileRepositoryProtocol {
         bundlesByUserID[userID] = UserProfileBundle(renterProfile: current.renterProfile, ownerProfile: profile)
     }
 }
+
+actor MockInterestsRepository: InterestsRepositoryProtocol {
+    private var interests: [InterestRequest]
+    private var conversations: [ChatConversation]
+    private var messagesByConversationID: [String: [ChatMessage]]
+
+    init(
+        interests: [InterestRequest] = PreviewData.mockInterests,
+        conversations: [ChatConversation] = PreviewData.mockConversations,
+        messagesByConversationID: [String: [ChatMessage]] = PreviewData.mockMessagesByConversationID
+    ) {
+        self.interests = interests
+        self.conversations = conversations
+        self.messagesByConversationID = messagesByConversationID
+    }
+
+    func submitInterest(_ draft: InterestSubmissionDraft) async throws -> InterestRequest {
+        let request = InterestRequest(
+            id: "INT-\(UUID().uuidString.prefix(8))",
+            listingID: draft.listingID,
+            ownerID: draft.ownerID,
+            renterID: draft.renterID,
+            renterSnapshot: draft.renterSnapshot,
+            submittedMessage: draft.optionalMessage,
+            submittedAt: .now,
+            status: .pending,
+            chatApproval: .unavailable
+        )
+        interests.insert(request, at: 0)
+        return request
+    }
+
+    func fetchInterests(for listingID: String, ownerID: String) async throws -> [InterestRequest] {
+        interests
+            .filter { $0.listingID == listingID && $0.ownerID == ownerID }
+            .sorted { $0.submittedAt > $1.submittedAt }
+    }
+
+    func fetchInterests(for renterID: String) async throws -> [InterestRequest] {
+        interests
+            .filter { $0.renterID == renterID }
+            .sorted { $0.submittedAt > $1.submittedAt }
+    }
+
+    func updateInterestStatus(interestID: String, ownerID: String, status: InterestRequest.Status) async throws {
+        guard let idx = interests.firstIndex(where: { $0.id == interestID && $0.ownerID == ownerID }) else { return }
+        interests[idx].status = status
+        if status == .rejected {
+            interests[idx].chatApproval = .unavailable
+        }
+        if status == .accepted, interests[idx].chatApproval == .unavailable {
+            interests[idx].chatApproval = .awaitingOwnerApproval
+        }
+    }
+
+    func approveChat(interestID: String, ownerID: String) async throws {
+        guard let idx = interests.firstIndex(where: { $0.id == interestID && $0.ownerID == ownerID }) else { return }
+        guard interests[idx].status == .accepted else { return }
+
+        interests[idx].chatApproval = .approved
+        let interest = interests[idx]
+
+        guard !conversations.contains(where: { $0.interestID == interestID }) else { return }
+
+        let conversation = ChatConversation(
+            id: "CHAT-\(UUID().uuidString.prefix(6))",
+            listingID: interest.listingID,
+            ownerID: interest.ownerID,
+            renterID: interest.renterID,
+            participantName: interest.renterSnapshot.fullName,
+            listingTitle: "Listing \(interest.listingID)",
+            interestID: interest.id,
+            lastMessagePreview: "Chat approved. You can now coordinate visit details.",
+            lastUpdatedAt: .now,
+            unreadCount: 1
+        )
+        conversations.insert(conversation, at: 0)
+        messagesByConversationID[conversation.id] = [
+            ChatMessage(
+                id: "MSG-\(UUID().uuidString.prefix(6))",
+                conversationID: conversation.id,
+                senderID: ownerID,
+                body: "Hi, chat is now approved. Let us coordinate a visit.",
+                sentAt: .now
+            )
+        ]
+    }
+
+    func fetchConversations(for userID: String) async throws -> [ChatConversation] {
+        conversations
+            .filter { $0.ownerID == userID || $0.renterID == userID }
+            .sorted { $0.lastUpdatedAt > $1.lastUpdatedAt }
+    }
+
+    func fetchMessages(conversationID: String, userID: String) async throws -> [ChatMessage] {
+        guard let conversation = conversations.first(where: { $0.id == conversationID }) else { return [] }
+        guard conversation.ownerID == userID || conversation.renterID == userID else { return [] }
+        return messagesByConversationID[conversationID, default: []].sorted { $0.sentAt < $1.sentAt }
+    }
+
+    func sendMessage(conversationID: String, senderID: String, body: String) async throws {
+        guard !body.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        guard let idx = conversations.firstIndex(where: { $0.id == conversationID }) else { return }
+        guard conversations[idx].ownerID == senderID || conversations[idx].renterID == senderID else { return }
+
+        let message = ChatMessage(
+            id: "MSG-\(UUID().uuidString.prefix(6))",
+            conversationID: conversationID,
+            senderID: senderID,
+            body: body,
+            sentAt: .now
+        )
+        messagesByConversationID[conversationID, default: []].append(message)
+
+        let existing = conversations[idx]
+        conversations[idx] = ChatConversation(
+            id: existing.id,
+            listingID: existing.listingID,
+            ownerID: existing.ownerID,
+            renterID: existing.renterID,
+            participantName: existing.participantName,
+            listingTitle: existing.listingTitle,
+            interestID: existing.interestID,
+            lastMessagePreview: body,
+            lastUpdatedAt: .now,
+            unreadCount: existing.unreadCount + 1
+        )
+    }
+
+    func fetchNotificationBadges(userID: String) async throws -> InterestNotificationBadge {
+        InterestNotificationBadge(
+            ownerPendingInterests: interests.filter { $0.ownerID == userID && $0.status == .pending }.count,
+            renterPendingResponses: interests.filter { $0.renterID == userID && $0.status == .pending }.count,
+            renterChatApprovals: interests.filter { $0.renterID == userID && $0.chatApproval == .approved }.count
+        )
+    }
+}

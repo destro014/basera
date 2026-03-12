@@ -111,3 +111,86 @@ enum PreviewData {
         )
     }
 }
+
+extension PreviewData {
+    static let mockInterests: [InterestRequest] = [
+        InterestRequest(
+            id: "INT-100",
+            listingID: "OL-200",
+            ownerID: "preview-user-001",
+            renterID: "renter-100",
+            renterSnapshot: .init(renterID: "renter-100", fullName: "Nima Sherpa", occupation: "Teacher", familySize: 2, hasPets: false, smokingStatus: "Non-smoker"),
+            submittedMessage: "We can move in next month and prefer a long-term stay.",
+            submittedAt: Calendar.current.date(byAdding: .hour, value: -10, to: .now) ?? .now,
+            status: .pending,
+            chatApproval: .unavailable
+        ),
+        InterestRequest(
+            id: "INT-101",
+            listingID: "OL-200",
+            ownerID: "preview-user-001",
+            renterID: "renter-101",
+            renterSnapshot: .init(renterID: "renter-101", fullName: "Aarav Karki", occupation: "Bank Officer", familySize: 3, hasPets: true, smokingStatus: "Non-smoker"),
+            submittedMessage: "Can we discuss parking and utility split?",
+            submittedAt: Calendar.current.date(byAdding: .hour, value: -18, to: .now) ?? .now,
+            status: .accepted,
+            chatApproval: .awaitingOwnerApproval
+        ),
+        InterestRequest(
+            id: "INT-102",
+            listingID: "OL-200",
+            ownerID: "preview-user-001",
+            renterID: "renter-102",
+            renterSnapshot: .init(renterID: "renter-102", fullName: "Riya Lama", occupation: "Designer", familySize: 1, hasPets: false, smokingStatus: "Occasional smoker"),
+            submittedMessage: "Interested, but my timeline is flexible.",
+            submittedAt: Calendar.current.date(byAdding: .day, value: -2, to: .now) ?? .now,
+            status: .rejected,
+            chatApproval: .unavailable
+        ),
+        InterestRequest(
+            id: "INT-104",
+            listingID: "OL-200",
+            ownerID: "preview-user-001",
+            renterID: "renter-103",
+            renterSnapshot: .init(renterID: "renter-103", fullName: "Bikash Gurung", occupation: "Photographer", familySize: 2, hasPets: false, smokingStatus: "Non-smoker"),
+            submittedMessage: "Chat already approved. Ready to confirm visit.",
+            submittedAt: Calendar.current.date(byAdding: .hour, value: -6, to: .now) ?? .now,
+            status: .accepted,
+            chatApproval: .approved
+        ),
+        InterestRequest(
+            id: "INT-103",
+            listingID: "L-100",
+            ownerID: "owner-xyz",
+            renterID: "preview-user-001",
+            renterSnapshot: .init(renterID: "preview-user-001", fullName: "Sita Basera", occupation: "Software Engineer", familySize: 3, hasPets: false, smokingStatus: "Non-smoker"),
+            submittedMessage: "We need nearby school access.",
+            submittedAt: Calendar.current.date(byAdding: .hour, value: -14, to: .now) ?? .now,
+            status: .accepted,
+            chatApproval: .approved
+        )
+    ]
+
+    static let mockConversations: [ChatConversation] = [
+        ChatConversation(
+            id: "CHAT-100",
+            listingID: "L-100",
+            ownerID: "owner-xyz",
+            renterID: "preview-user-001",
+            participantName: "Owner: Prakash Shrestha",
+            listingTitle: "Sunny Family Flat in Jawalakhel",
+            interestID: "INT-103",
+            lastMessagePreview: "Please bring your citizenship copy for verification.",
+            lastUpdatedAt: Calendar.current.date(byAdding: .hour, value: -1, to: .now) ?? .now,
+            unreadCount: 2
+        )
+    ]
+
+    static let mockMessagesByConversationID: [String: [ChatMessage]] = [
+        "CHAT-100": [
+            ChatMessage(id: "MSG-1", conversationID: "CHAT-100", senderID: "owner-xyz", body: "Namaste! Your interest is accepted and chat is approved.", sentAt: Calendar.current.date(byAdding: .hour, value: -5, to: .now) ?? .now),
+            ChatMessage(id: "MSG-2", conversationID: "CHAT-100", senderID: "preview-user-001", body: "Thank you. Can we schedule a visit on Saturday?", sentAt: Calendar.current.date(byAdding: .hour, value: -4, to: .now) ?? .now),
+            ChatMessage(id: "MSG-3", conversationID: "CHAT-100", senderID: "owner-xyz", body: "Yes, Saturday 11 AM works.", sentAt: Calendar.current.date(byAdding: .hour, value: -3, to: .now) ?? .now)
+        ]
+    ]
+}
