@@ -233,7 +233,7 @@ struct RenterDashboardView: View {
                         ActiveTenancyDetailView(tenancyID: tenancy.id, userID: "preview-user-001", party: .renter)
                     }
                     NavigationLink("Payment history") {
-                        BaseraEmptyStateView(title: "Payment history", message: "Payment history screen is connected as a placeholder.")
+                        PaymentsHubView(tenancy: tenancy, userID: "preview-user-001", actor: .renter)
                     }
                 }
                 Text("Owner contact: \(tenancy.ownerContact.fullName) • \(tenancy.ownerContact.phoneNumber)")

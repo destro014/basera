@@ -505,3 +505,107 @@ extension PreviewData {
         ]
     }()
 }
+
+extension PreviewData {
+    static let mockPaymentMethodsByTenancyID: [String: [PaymentRecord.Method]] = [
+        "TEN-300": [.eSewa, .fonepay, .cash],
+        "TEN-301": [.eSewa, .fonepay, .cash],
+        "TEN-210": [.cash]
+    ]
+
+    static let mockPayments: [PaymentRecord] = [
+        .init(
+            id: "PAY-301",
+            tenancyID: "TEN-300",
+            invoiceID: "INV-299",
+            payerUserID: "preview-user-001",
+            receiverUserID: "owner-100",
+            method: .eSewa,
+            state: .completed,
+            kind: .invoice,
+            amount: 27200,
+            offlineMarkedByOwner: false,
+            note: "Partially paid via eSewa",
+            createdAt: Calendar.current.date(byAdding: .day, value: -12, to: .now) ?? .now,
+            updatedAt: Calendar.current.date(byAdding: .day, value: -12, to: .now) ?? .now
+        ),
+        .init(
+            id: "PAY-302",
+            tenancyID: "TEN-300",
+            invoiceID: nil,
+            payerUserID: "preview-user-001",
+            receiverUserID: "owner-100",
+            method: .fonepay,
+            state: .completed,
+            kind: .advance,
+            amount: 3000,
+            offlineMarkedByOwner: false,
+            note: "Advance for next invoice",
+            createdAt: Calendar.current.date(byAdding: .day, value: -3, to: .now) ?? .now,
+            updatedAt: Calendar.current.date(byAdding: .day, value: -3, to: .now) ?? .now
+        ),
+        .init(
+            id: "PAY-303",
+            tenancyID: "TEN-301",
+            invoiceID: "INV-301",
+            payerUserID: "renter-103",
+            receiverUserID: "preview-user-001",
+            method: .cash,
+            state: .completed,
+            kind: .invoice,
+            amount: 15000,
+            offlineMarkedByOwner: true,
+            note: "Owner marked offline cash received",
+            createdAt: Calendar.current.date(byAdding: .day, value: -1, to: .now) ?? .now,
+            updatedAt: Calendar.current.date(byAdding: .day, value: -1, to: .now) ?? .now
+        )
+    ]
+
+    static let mockPaymentReceipts: [PaymentReceipt] = [
+        .init(
+            id: "RCT-301",
+            paymentID: "PAY-301",
+            tenancyID: "TEN-300",
+            invoiceID: "INV-299",
+            amount: 27200,
+            method: .eSewa,
+            issuedToUserID: "preview-user-001",
+            issuedByUserID: "owner-100",
+            issuedAt: Calendar.current.date(byAdding: .day, value: -12, to: .now) ?? .now,
+            lineItems: ["Invoice partial payment", "eSewa placeholder confirmation"]
+        ),
+        .init(
+            id: "RCT-302",
+            paymentID: "PAY-302",
+            tenancyID: "TEN-300",
+            invoiceID: nil,
+            amount: 3000,
+            method: .fonepay,
+            issuedToUserID: "preview-user-001",
+            issuedByUserID: "owner-100",
+            issuedAt: Calendar.current.date(byAdding: .day, value: -3, to: .now) ?? .now,
+            lineItems: ["Advance payment", "Will be adjusted in next combined invoice"]
+        )
+    ]
+
+    static let mockDepositLedgersByTenancyID: [String: SecurityDepositLedger] = [
+        "TEN-300": .init(
+            tenancyID: "TEN-300",
+            totalDeposit: 56000,
+            heldAmount: 56000,
+            deductions: [],
+            plannedRefundAmount: 56000,
+            refundPaidAmount: 0
+        ),
+        "TEN-210": .init(
+            tenancyID: "TEN-210",
+            totalDeposit: 52000,
+            heldAmount: 52000,
+            deductions: [
+                .init(id: "DED-1", title: "Repainting", amount: 4000, note: "Bedroom wall repaint")
+            ],
+            plannedRefundAmount: 48000,
+            refundPaidAmount: 48000
+        )
+    ]
+}
