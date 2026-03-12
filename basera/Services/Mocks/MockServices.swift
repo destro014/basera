@@ -168,9 +168,22 @@ struct MockStorageService: StorageServiceProtocol {
     }
 }
 
-struct MockNotificationsService: NotificationsServiceProtocol {
+actor MockNotificationsService: NotificationsServiceProtocol {
+    private var pendingPayloadsByUserID: [String: [PushNotificationPayload]]
+
+    init(seedPayloadsByUserID: [String: [PushNotificationPayload]] = PreviewData.mockPushPayloadsByUserID) {
+        self.pendingPayloadsByUserID = seedPayloadsByUserID
+    }
+
     func registerForPushNotifications() async {}
+
     func updateDeviceToken(_ token: String) async {}
+
+    func fetchPendingPayloads(for userID: String) async -> [PushNotificationPayload] {
+        let payloads = pendingPayloadsByUserID[userID, default: []]
+        pendingPayloadsByUserID[userID] = []
+        return payloads
+    }
 }
 
 final class MockRemoteConfigService: RemoteConfigServiceProtocol {

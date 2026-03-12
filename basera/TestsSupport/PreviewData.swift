@@ -609,3 +609,148 @@ extension PreviewData {
         )
     ]
 }
+
+extension PreviewData {
+    static let mockNotificationsByUserID: [String: [AppNotification]] = {
+        let now = Date()
+        return [
+            "preview-user-001": [
+                AppNotification(
+                    id: "NOTIF-100",
+                    userID: "preview-user-001",
+                    audience: .owner,
+                    type: .interestReceived,
+                    title: "New interest received",
+                    message: "Nima Sherpa sent interest for Tulsi Apartment - Full Unit.",
+                    createdAt: Calendar.current.date(byAdding: .minute, value: -8, to: now) ?? now,
+                    readAt: nil,
+                    route: .interests(listingID: "OL-200"),
+                    metadata: ["listingID": "OL-200", "interestID": "INT-100"]
+                ),
+                AppNotification(
+                    id: "NOTIF-101",
+                    userID: "preview-user-001",
+                    audience: .renter,
+                    type: .interestAccepted,
+                    title: "Interest accepted",
+                    message: "Your interest for Modern Flat near Chabahil was accepted.",
+                    createdAt: Calendar.current.date(byAdding: .hour, value: -3, to: now) ?? now,
+                    readAt: nil,
+                    route: .interests(listingID: "OL-203"),
+                    metadata: ["listingID": "OL-203"]
+                ),
+                AppNotification(
+                    id: "NOTIF-102",
+                    userID: "preview-user-001",
+                    audience: .renter,
+                    type: .interestRejected,
+                    title: "Interest not accepted",
+                    message: "Your interest for Tulsi Apartment - Room 2 was not accepted this time.",
+                    createdAt: Calendar.current.date(byAdding: .day, value: -1, to: now) ?? now,
+                    readAt: Calendar.current.date(byAdding: .hour, value: -22, to: now),
+                    route: .interests(listingID: "OL-202"),
+                    metadata: ["listingID": "OL-202"]
+                ),
+                AppNotification(
+                    id: "NOTIF-103",
+                    userID: "preview-user-001",
+                    audience: .both,
+                    type: .agreementReady,
+                    title: "Agreement ready",
+                    message: "Agreement AGR-200 is ready for review before signing.",
+                    createdAt: Calendar.current.date(byAdding: .hour, value: -10, to: now) ?? now,
+                    readAt: nil,
+                    route: .agreement(agreementID: "AGR-200"),
+                    metadata: ["agreementID": "AGR-200"]
+                ),
+                AppNotification(
+                    id: "NOTIF-104",
+                    userID: "preview-user-001",
+                    audience: .both,
+                    type: .agreementSigned,
+                    title: "Agreement signed",
+                    message: "Agreement AGR-300 is now locked and active.",
+                    createdAt: Calendar.current.date(byAdding: .day, value: -4, to: now) ?? now,
+                    readAt: Calendar.current.date(byAdding: .day, value: -3, to: now),
+                    route: .agreement(agreementID: "AGR-300"),
+                    metadata: ["agreementID": "AGR-300"]
+                ),
+                AppNotification(
+                    id: "NOTIF-105",
+                    userID: "preview-user-001",
+                    audience: .both,
+                    type: .billGenerated,
+                    title: "Bill generated",
+                    message: "May invoice generated with rent and utility totals combined.",
+                    createdAt: Calendar.current.date(byAdding: .day, value: -2, to: now) ?? now,
+                    readAt: nil,
+                    route: .billing(invoiceID: "INV-501"),
+                    metadata: ["invoiceID": "INV-501"]
+                ),
+                AppNotification(
+                    id: "NOTIF-106",
+                    userID: "preview-user-001",
+                    audience: .renter,
+                    type: .paymentDueReminder,
+                    title: "Payment reminder",
+                    message: "Invoice INV-501 is due in 2 days.",
+                    createdAt: Calendar.current.date(byAdding: .hour, value: -6, to: now) ?? now,
+                    readAt: nil,
+                    route: .payments(invoiceID: "INV-501"),
+                    metadata: ["invoiceID": "INV-501"]
+                ),
+                AppNotification(
+                    id: "NOTIF-107",
+                    userID: "preview-user-001",
+                    audience: .owner,
+                    type: .paymentReceived,
+                    title: "Payment received",
+                    message: "Partial payment of NPR 15,000 was received for INV-501.",
+                    createdAt: Calendar.current.date(byAdding: .hour, value: -12, to: now) ?? now,
+                    readAt: nil,
+                    route: .payments(invoiceID: "INV-501"),
+                    metadata: ["invoiceID": "INV-501", "amount": "15000", "paymentMode": "partial"]
+                ),
+                AppNotification(
+                    id: "NOTIF-108",
+                    userID: "preview-user-001",
+                    audience: .owner,
+                    type: .moveOutRequest,
+                    title: "Move-out request",
+                    message: "A renter requested move-out. Start checklist and inspection flow.",
+                    createdAt: Calendar.current.date(byAdding: .minute, value: -45, to: now) ?? now,
+                    readAt: nil,
+                    route: .moveOut(tenancyID: "TEN-300"),
+                    metadata: ["tenancyID": "TEN-300"]
+                ),
+                AppNotification(
+                    id: "NOTIF-109",
+                    userID: "preview-user-001",
+                    audience: .both,
+                    type: .reviewReminder,
+                    title: "Leave a review",
+                    message: "You can now leave a review for the completed tenancy.",
+                    createdAt: Calendar.current.date(byAdding: .day, value: -5, to: now) ?? now,
+                    readAt: nil,
+                    route: .review(tenancyID: "TEN-300"),
+                    metadata: ["tenancyID": "TEN-300"]
+                )
+            ]
+        ]
+    }()
+
+    static let mockPushPayloadsByUserID: [String: [PushNotificationPayload]] = [
+        "preview-user-001": [
+            PushNotificationPayload(
+                id: "PUSH-900",
+                userID: "preview-user-001",
+                type: .paymentDueReminder,
+                title: "Upcoming due date",
+                message: "Invoice INV-502 is due tomorrow.",
+                route: .payments(invoiceID: "INV-502"),
+                metadata: ["invoiceID": "INV-502"],
+                createdAt: Date()
+            )
+        ]
+    ]
+}
