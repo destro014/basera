@@ -269,7 +269,149 @@ extension PreviewData {
                 ],
                 createdAt: Calendar.current.date(byAdding: .day, value: -1, to: now) ?? now,
                 updatedAt: now
+            ),
+            AgreementRecord(
+                id: "AGR-300",
+                tenancyID: "TEN-300",
+                previousAgreementID: nil,
+                version: 1,
+                owner: .init(userID: "owner-100", fullName: "Sujan Karki", phoneNumber: "+9779844444444", email: "sujan@example.com"),
+                renter: .init(userID: "preview-user-001", fullName: "Sita Basera", phoneNumber: "+9779800000000", email: "sita@example.com"),
+                property: .init(listingID: "OL-203", listingTitle: "Modern Flat near Chabahil", approximateLocation: "Chabahil, Kathmandu", exactAddress: "Ward 7, House 12", exactAddressVisibleToRenter: true),
+                terms: terms,
+                status: .fullySigned,
+                signatures: .init(
+                    owner: .init(typedName: "Sujan Karki", signedAt: Calendar.current.date(byAdding: .month, value: -2, to: now) ?? now),
+                    renter: .init(typedName: "Sita Basera", signedAt: Calendar.current.date(byAdding: .month, value: -2, to: now) ?? now)
+                ),
+                statusHistory: [
+                    .init(id: UUID().uuidString, title: "Agreement signed", happenedAt: Calendar.current.date(byAdding: .month, value: -2, to: now) ?? now, detail: "Both parties signed with OTP verification.")
+                ],
+                createdAt: Calendar.current.date(byAdding: .month, value: -2, to: now) ?? now,
+                updatedAt: Calendar.current.date(byAdding: .month, value: -2, to: now) ?? now
+            ),
+            AgreementRecord(
+                id: "AGR-301",
+                tenancyID: "TEN-301",
+                previousAgreementID: nil,
+                version: 1,
+                owner: .init(userID: "preview-user-001", fullName: "Sita Basera", phoneNumber: "+9779800000000", email: "sita-owner@example.com"),
+                renter: .init(userID: "renter-103", fullName: "Bikash Gurung", phoneNumber: "+9779811111111", email: "bikash@example.com"),
+                property: .init(listingID: "OL-200", listingTitle: "Tulsi Apartment - Full Unit", approximateLocation: "Bhaisepati, Lalitpur", exactAddress: "Ward 3, House 18", exactAddressVisibleToRenter: true),
+                terms: terms,
+                status: .fullySigned,
+                signatures: .init(
+                    owner: .init(typedName: "Sita Basera", signedAt: Calendar.current.date(byAdding: .day, value: -20, to: now) ?? now),
+                    renter: .init(typedName: "Bikash Gurung", signedAt: Calendar.current.date(byAdding: .day, value: -20, to: now) ?? now)
+                ),
+                statusHistory: [
+                    .init(id: UUID().uuidString, title: "Agreement signed", happenedAt: Calendar.current.date(byAdding: .day, value: -20, to: now) ?? now, detail: "Move-in checklist can now begin.")
+                ],
+                createdAt: Calendar.current.date(byAdding: .day, value: -21, to: now) ?? now,
+                updatedAt: Calendar.current.date(byAdding: .day, value: -20, to: now) ?? now
             )
         ]
+    }()
+}
+
+extension PreviewData {
+    static let mockTenancies: [TenancyRecord] = {
+        let now = Date()
+
+        let activeRenterTenancy = TenancyRecord(
+            id: "TEN-300",
+            listingID: "OL-203",
+            agreementID: "AGR-300",
+            ownerID: "owner-100",
+            renterID: "preview-user-001",
+            listingTitle: "Modern Flat near Chabahil",
+            approximateLocation: "Chabahil, Kathmandu",
+            exactAddress: "Ward 7, House 12",
+            exactAddressVisibleToRenter: true,
+            monthlyRent: 28000,
+            startDate: Calendar.current.date(byAdding: .month, value: -2, to: now) ?? now,
+            endDate: Calendar.current.date(byAdding: .month, value: 10, to: now) ?? now,
+            status: .active,
+            billSummary: .init(
+                currentInvoiceID: "INV-300",
+                dueDate: Calendar.current.date(byAdding: .day, value: 5, to: now) ?? now,
+                amountDue: 31500,
+                carryForward: 1500,
+                allowsPartialPayment: true,
+                allowsAdvancePayment: true
+            ),
+            depositSummary: .init(
+                totalDeposit: 56000,
+                heldAmount: 56000,
+                plannedRefundAmount: nil,
+                deductionNotes: "Deposit remains locked until formal move-out inspection."
+            ),
+            moveInChecklist: [
+                .init(id: "CHK-1", title: "Bedroom walls and paint", category: .roomCondition, isCompleted: true, note: "Minor scuff near wardrobe.", photoPlaceholders: ["Wall photo"]),
+                .init(id: "CHK-2", title: "Kitchen sink and tap", category: .appliance, isCompleted: true, note: "No leakage at move-in.", photoPlaceholders: ["Sink photo"]),
+                .init(id: "CHK-3", title: "Electricity meter opening", category: .meterReading, isCompleted: false, note: "Need clear meter close-up.", photoPlaceholders: ["Meter photo pending"])
+            ],
+            ownerContact: .init(fullName: "Sita Basera", phoneNumber: "+9779800000000"),
+            renterContact: .init(fullName: "Sita Basera", phoneNumber: "+9779800000000")
+        )
+
+        let ownerTenancy = TenancyRecord(
+            id: "TEN-301",
+            listingID: "OL-200",
+            agreementID: "AGR-301",
+            ownerID: "preview-user-001",
+            renterID: "renter-103",
+            listingTitle: "Tulsi Apartment - Full Unit",
+            approximateLocation: "Bhaisepati, Lalitpur",
+            exactAddress: "Ward 3, House 18",
+            exactAddressVisibleToRenter: true,
+            monthlyRent: 40000,
+            startDate: Calendar.current.date(byAdding: .month, value: -1, to: now) ?? now,
+            endDate: Calendar.current.date(byAdding: .month, value: 11, to: now) ?? now,
+            status: .moveInPending,
+            billSummary: .init(
+                currentInvoiceID: "INV-301",
+                dueDate: Calendar.current.date(byAdding: .day, value: 12, to: now) ?? now,
+                amountDue: 40000,
+                carryForward: 0,
+                allowsPartialPayment: true,
+                allowsAdvancePayment: true
+            ),
+            depositSummary: .init(
+                totalDeposit: 80000,
+                heldAmount: 80000,
+                plannedRefundAmount: nil,
+                deductionNotes: nil
+            ),
+            moveInChecklist: [
+                .init(id: "CHK-4", title: "Living room floor", category: .roomCondition, isCompleted: false, note: "Pending tenant confirmation.", photoPlaceholders: ["Floor photo pending"]),
+                .init(id: "CHK-5", title: "Sofa set", category: .furniture, isCompleted: false, note: "Upload armrest photo.", photoPlaceholders: ["Furniture photo pending"])
+            ],
+            ownerContact: .init(fullName: "Sita Basera", phoneNumber: "+9779800000000"),
+            renterContact: .init(fullName: "Bikash Gurung", phoneNumber: "+9779811111111")
+        )
+
+        let archivedTenancy = TenancyRecord(
+            id: "TEN-210",
+            listingID: "OL-111",
+            agreementID: "AGR-111",
+            ownerID: "preview-user-001",
+            renterID: "renter-090",
+            listingTitle: "Flat near Patan Durbar",
+            approximateLocation: "Patan, Lalitpur",
+            exactAddress: "Ward 6, House 9",
+            exactAddressVisibleToRenter: true,
+            monthlyRent: 26000,
+            startDate: Calendar.current.date(byAdding: .year, value: -2, to: now) ?? now,
+            endDate: Calendar.current.date(byAdding: .year, value: -1, to: now) ?? now,
+            status: .archived,
+            billSummary: .init(currentInvoiceID: "INV-210", dueDate: now, amountDue: 0, carryForward: 0, allowsPartialPayment: true, allowsAdvancePayment: true),
+            depositSummary: .init(totalDeposit: 52000, heldAmount: 0, plannedRefundAmount: 48000, deductionNotes: "NPR 4,000 deducted for repainting."),
+            moveInChecklist: [],
+            ownerContact: .init(fullName: "Sita Basera", phoneNumber: "+9779800000000"),
+            renterContact: .init(fullName: "Rabin Tamang", phoneNumber: "+9779822222222")
+        )
+
+        return [activeRenterTenancy, ownerTenancy, archivedTenancy]
     }()
 }

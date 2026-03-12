@@ -5,6 +5,7 @@ struct RenterDashboardView: View {
     @StateObject private var viewModel = RenterDashboardViewModel()
     @State private var isFilterSheetPresented = false
     @State private var selectedListingForInterest: Listing?
+    @StateObject private var tenancyViewModel = RenterActiveTenancyViewModel()
 
     var body: some View {
         NavigationView {
@@ -53,6 +54,7 @@ struct RenterDashboardView: View {
                 guard viewModel.state == .idle else { return }
                 await viewModel.load(using: environment.listingsRepository)
                 await viewModel.refreshInterestStates(renterID: "preview-user-001", using: environment.interestsRepository)
+                await tenancyViewModel.load(renterID: "preview-user-001", tenancyRepository: environment.tenancyRepository)
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())
@@ -72,6 +74,7 @@ struct RenterDashboardView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.large) {
                 searchAndFilters
+                activeTenancySection
                 renterWorkflowLinks
                 favoritesSection
                 listingModePicker
@@ -216,6 +219,44 @@ struct RenterDashboardView: View {
         }
     }
 
+
+
+    @ViewBuilder
+    private var activeTenancySection: some View {
+        if let tenancy = tenancyViewModel.activeTenancy {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+                Text("Active Tenancy")
+                    .baseraTextStyle(AppTheme.Typography.titleMedium)
+                TenancySummaryCard(tenancy: tenancy, party: .renter)
+                HStack {
+                    NavigationLink("Open tenancy details") {
+                        ActiveTenancyDetailView(tenancyID: tenancy.id, userID: "preview-user-001", party: .renter)
+                    }
+                    NavigationLink("Payment history") {
+                        BaseraEmptyStateView(title: "Payment history", message: "Payment history screen is connected as a placeholder.")
+                    }
+                }
+                Text("Owner contact: \(tenancy.ownerContact.fullName) • \(tenancy.ownerContact.phoneNumber)")
+                    .baseraTextStyle(AppTheme.Typography.bodySmall)
+                    .foregroundStyle(AppTheme.Colors.textSecondary)
+            }
+        } else {
+            BaseraInlineMessageView(tone: .info, message: "No active tenancy yet. It appears once your signed agreement is active.")
+        }
+
+        if tenancyViewModel.archivedTenancies.isEmpty == false {
+            BaseraCard {
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+                    Text("Archived Tenancies")
+                        .baseraTextStyle(AppTheme.Typography.titleSmall)
+                    Text("Archive access placeholder for post move-out agreements, invoices, and payment history.")
+                        .baseraTextStyle(AppTheme.Typography.bodySmall)
+                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                }
+            }
+        }
+    }
+
     private var renterWorkflowLinks: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
             HStack {
@@ -227,7 +268,7 @@ struct RenterDashboardView: View {
                 }
             }
             NavigationLink("My Agreement") {
-                AgreementHubView(currentUserID: "renter-103", party: .renter)
+                AgreementHubView(currentUserID: "preview-user-001", party: .renter)
             }
         }
         .baseraTextStyle(AppTheme.Typography.bodyMedium)
