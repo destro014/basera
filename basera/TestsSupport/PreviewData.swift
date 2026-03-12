@@ -233,3 +233,43 @@ extension PreviewData {
         )
     ]
 }
+
+extension PreviewData {
+    static let mockAgreements: [AgreementRecord] = {
+        let now = Date()
+        let terms = AgreementRecord.Terms(
+            monthlyRent: 40000,
+            securityDeposit: 40000,
+            utilityTerms: "Electricity billed by meter, water included, internet split equally.",
+            rulesAndRegulations: "Quiet hours 9PM-6AM. No illegal activity.",
+            startDate: Calendar.current.date(byAdding: .day, value: 15, to: now) ?? now,
+            endDate: Calendar.current.date(byAdding: .year, value: 1, to: now) ?? now,
+            noticePeriodDays: 30,
+            lateFeeText: "NPR 500 applies after 5th of each month.",
+            repairResponsibility: "Owner handles structural repairs. Renter handles minor wear/tear issues.",
+            guestRules: "Guests allowed until 9PM. Overnight guests require prior notice.",
+            petRules: "No aggressive pets. Small pets allowed with owner consent."
+        )
+
+        return [
+            AgreementRecord(
+                id: "AGR-200",
+                tenancyID: "TEN-200",
+                previousAgreementID: nil,
+                version: 1,
+                owner: .init(userID: "preview-user-001", fullName: "Sita Basera", phoneNumber: "+9779800000000", email: "sita-owner@example.com"),
+                renter: .init(userID: "renter-103", fullName: "Bikash Gurung", phoneNumber: "+9779811111111", email: "bikash@example.com"),
+                property: .init(listingID: "OL-200", listingTitle: "Tulsi Apartment - Full Unit", approximateLocation: "Bhaisepati, Lalitpur", exactAddress: "Ward 3, House 18", exactAddressVisibleToRenter: true),
+                terms: terms,
+                status: .pendingOwnerSignature,
+                signatures: .init(owner: nil, renter: nil),
+                statusHistory: [
+                    .init(id: UUID().uuidString, title: "Draft created", happenedAt: Calendar.current.date(byAdding: .day, value: -1, to: now) ?? now, detail: "Owner started agreement drafting"),
+                    .init(id: UUID().uuidString, title: "Sent for signing", happenedAt: now, detail: "Waiting for owner typed-name + OTP confirmation")
+                ],
+                createdAt: Calendar.current.date(byAdding: .day, value: -1, to: now) ?? now,
+                updatedAt: now
+            )
+        ]
+    }()
+}
