@@ -160,6 +160,44 @@ actor MockListingsRepository: ListingsRepositoryProtocol {
         listings.insert(duplicated, at: 0)
         return duplicated
     }
+
+    func updateListingStatus(id: String, ownerID: String, status: Listing.Status) async throws {
+        guard let index = listings.firstIndex(where: { $0.id == id && $0.ownerID == ownerID }) else { return }
+        let original = listings[index]
+        listings[index] = Listing(
+            id: original.id,
+            ownerID: original.ownerID,
+            title: original.title,
+            description: original.description,
+            approximateLocation: original.approximateLocation,
+            exactAddress: original.location.exactAddress,
+            exactAddressMasked: original.exactAddressMasked,
+            monthlyRent: original.monthlyRent,
+            securityDeposit: original.pricing.securityDeposit,
+            bedroomCount: original.roomCount,
+            floor: original.floor,
+            propertyType: original.propertyType,
+            listingScope: original.listingScope,
+            furnishing: original.furnishing,
+            parkingAvailable: original.parkingAvailable,
+            wifiAvailable: original.wifiAvailable,
+            petAllowed: original.petAllowed,
+            tenantPreference: original.tenantPreference,
+            locationRadiusInKM: original.locationRadiusInKM,
+            availableFrom: original.availableFrom,
+            minimumStayMonths: original.minimumStayMonths,
+            utilities: original.utilities,
+            smokingAllowed: original.rules.smokingAllowed,
+            visitorsAllowed: original.rules.visitorsAllowed,
+            quietHours: original.rules.quietHours,
+            latitude: original.location.latitude,
+            longitude: original.location.longitude,
+            media: original.media,
+            status: status,
+            similarListingIDs: original.similarListingIDs
+        )
+    }
+
 }
 
 actor MockProfileRepository: ProfileRepositoryProtocol {
@@ -188,15 +226,21 @@ actor MockInterestsRepository: InterestsRepositoryProtocol {
     private var interests: [InterestRequest]
     private var conversations: [ChatConversation]
     private var messagesByConversationID: [String: [ChatMessage]]
+    private var visits: [PropertyVisitSchedule]
+    private var assignmentsByListingID: [String: ListingAssignment]
 
     init(
         interests: [InterestRequest] = PreviewData.mockInterests,
         conversations: [ChatConversation] = PreviewData.mockConversations,
-        messagesByConversationID: [String: [ChatMessage]] = PreviewData.mockMessagesByConversationID
+        messagesByConversationID: [String: [ChatMessage]] = PreviewData.mockMessagesByConversationID,
+        visits: [PropertyVisitSchedule] = PreviewData.mockVisits,
+        assignmentsByListingID: [String: ListingAssignment] = PreviewData.mockAssignmentsByListingID
     ) {
         self.interests = interests
         self.conversations = conversations
         self.messagesByConversationID = messagesByConversationID
+        self.visits = visits
+        self.assignmentsByListingID = assignmentsByListingID
     }
 
     func submitInterest(_ draft: InterestSubmissionDraft) async throws -> InterestRequest {
@@ -269,6 +313,92 @@ actor MockInterestsRepository: InterestsRepositoryProtocol {
                 sentAt: .now
             )
         ]
+    }
+
+    func scheduleVisit(_ draft: VisitScheduleDraft) async throws -> PropertyVisitSchedule {
+        let visit = PropertyVisitSchedule(
+            id: "VIS-\(UUID().uuidString.prefix(8))",
+            listingID: draft.listingID,
+            ownerID: draft.ownerID,
+            renterID: draft.renterID,
+            note: draft.note,
+            scheduledAt: draft.scheduledAt,
+            status: .proposed,
+            updatedAt: .now
+        )
+        visits.removeAll { $0.listingID == draft.listingID && $0.renterID == draft.renterID && $0.status == .proposed }
+        visits.insert(visit, at: 0)
+        return visit
+    }
+
+    func fetchVisits(listingID: String, ownerID: String) async throws -> [PropertyVisitSchedule] {
+        visits
+            .filter { $0.listingID == listingID && $0.ownerID == ownerID }
+            .sorted { $0.scheduledAt < $1.scheduledAt }
+    }
+
+    func fetchVisits(renterID: String) async throws -> [PropertyVisitSchedule] {
+        visits
+            .filter { $0.renterID == renterID }
+            .sorted { $0.scheduledAt < $1.scheduledAt }
+    }
+
+    func confirmVisit(visitID: String, renterID: String) async throws {
+        guard let idx = visits.firstIndex(where: { $0.id == visitID && $0.renterID == renterID }) else { return }
+        let existing = visits[idx]
+        visits[idx] = PropertyVisitSchedule(
+            id: existing.id,
+            listingID: existing.listingID,
+            ownerID: existing.ownerID,
+            renterID: existing.renterID,
+            note: existing.note,
+            scheduledAt: existing.scheduledAt,
+            status: .confirmed,
+            updatedAt: .now
+        )
+    }
+
+    func requestAssignment(_ draft: AssignmentRequestDraft) async throws -> ListingAssignment {
+        guard assignmentsByListingID[draft.listingID] == nil || assignmentsByListingID[draft.listingID]?.status != .requested else {
+            return assignmentsByListingID[draft.listingID]!
+        }
+
+        let assignment = ListingAssignment(
+            id: "ASN-\(UUID().uuidString.prefix(8))",
+            listingID: draft.listingID,
+            ownerID: draft.ownerID,
+            renterID: draft.renterID,
+            interestID: draft.interestID,
+            requestedAt: .now,
+            status: .requested,
+            note: draft.note
+        )
+        assignmentsByListingID[draft.listingID] = assignment
+        return assignment
+    }
+
+    func fetchAssignment(listingID: String, ownerID: String) async throws -> ListingAssignment? {
+        guard let assignment = assignmentsByListingID[listingID], assignment.ownerID == ownerID else { return nil }
+        return assignment
+    }
+
+    func fetchAssignment(renterID: String) async throws -> ListingAssignment? {
+        assignmentsByListingID.values.first(where: { $0.renterID == renterID })
+    }
+
+    func respondToAssignment(assignmentID: String, renterID: String, accept: Bool) async throws {
+        guard let listingID = assignmentsByListingID.values.first(where: { $0.id == assignmentID && $0.renterID == renterID })?.listingID,
+              let assignment = assignmentsByListingID[listingID] else { return }
+        assignmentsByListingID[listingID] = ListingAssignment(
+            id: assignment.id,
+            listingID: assignment.listingID,
+            ownerID: assignment.ownerID,
+            renterID: assignment.renterID,
+            interestID: assignment.interestID,
+            requestedAt: assignment.requestedAt,
+            status: accept ? .accepted : .declined,
+            note: assignment.note
+        )
     }
 
     func fetchConversations(for userID: String) async throws -> [ChatConversation] {

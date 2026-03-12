@@ -14,6 +14,59 @@ struct RenterInterestsView: View {
                 BaseraInlineMessageView(tone: .success, message: "\(viewModel.badge.renterChatApprovals) chat request(s) approved.")
             }
 
+            if let assignment = viewModel.assignment {
+                NavigationLink("Open Assignment Request") {
+                    RenterAssignmentRequestView(
+                        assignment: assignment,
+                        onAccept: {
+                            Task {
+                                await viewModel.respondToAssignment(
+                                    accept: true,
+                                    interestsRepository: environment.interestsRepository,
+                                    listingsRepository: environment.listingsRepository
+                                )
+                            }
+                        },
+                        onDecline: {
+                            Task {
+                                await viewModel.respondToAssignment(
+                                    accept: false,
+                                    interestsRepository: environment.interestsRepository,
+                                    listingsRepository: environment.listingsRepository
+                                )
+                            }
+                        }
+                    )
+                }
+            }
+
+            Section("Visit Schedule") {
+                if viewModel.visits.isEmpty {
+                    Text("No visit requests yet.")
+                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                }
+
+                ForEach(viewModel.visits) { visit in
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+                        Text("Listing \(visit.listingID)")
+                            .baseraTextStyle(AppTheme.Typography.titleSmall)
+                        Text(visit.scheduledAt, style: .date)
+                        Text(visit.scheduledAt, style: .time)
+                        Text(visit.note)
+                            .foregroundStyle(AppTheme.Colors.textSecondary)
+                        HStack {
+                            BaseraBadge(text: visit.status.label, tone: visit.status == .confirmed ? AppTheme.Colors.successPrimary : AppTheme.Colors.warningPrimary)
+                            if visit.status == .proposed {
+                                BaseraButton(title: "Confirm", style: .primary) {
+                                    Task { await viewModel.confirmVisit(visit.id, using: environment.interestsRepository) }
+                                }
+                            }
+                        }
+                    }
+                    .padding(.vertical, AppTheme.Spacing.xSmall)
+                }
+            }
+
             ForEach(viewModel.interests) { interest in
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
                     Text("Listing \(interest.listingID)")
