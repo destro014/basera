@@ -415,3 +415,93 @@ extension PreviewData {
         return [activeRenterTenancy, ownerTenancy, archivedTenancy]
     }()
 }
+
+extension PreviewData {
+    static let mockBillingSettingsByTenancyID: [String: BillingTenancySettings] = [
+        "TEN-300": .init(allowsRenterGeneratedBillDraft: true, allowsPartialPayment: true, allowsAdvancePayment: true),
+        "TEN-301": .init(allowsRenterGeneratedBillDraft: false, allowsPartialPayment: true, allowsAdvancePayment: true)
+    ]
+
+    static let mockInvoices: [InvoiceRecord] = {
+        let calendar = Calendar.current
+        let month = calendar.date(from: calendar.dateComponents([.year, .month], from: .now)) ?? .now
+        let previousMonth = calendar.date(byAdding: .month, value: -1, to: month) ?? month
+
+        return [
+            InvoiceRecord(
+                id: "INV-300",
+                header: .init(
+                    tenancyID: "TEN-300",
+                    listingTitle: "Modern Flat near Chabahil",
+                    billingMonth: month,
+                    issueDate: .now,
+                    dueDate: calendar.date(byAdding: .day, value: 5, to: .now) ?? .now,
+                    ownerID: "owner-100",
+                    renterID: "preview-user-001"
+                ),
+                createdByRole: .owner,
+                status: .pendingPayment,
+                items: [
+                    .init(id: "IT-1", category: .rent, title: "Monthly rent", detail: nil, amount: 28000),
+                    .init(id: "IT-2", category: .electricity, title: "Electricity", detail: "Meter 1120 → 1190 × Rs. 12", amount: 840),
+                    .init(id: "IT-3", category: .water, title: "Water", detail: "Flat", amount: 500),
+                    .init(id: "IT-4", category: .internet, title: "Internet", detail: "Flat", amount: 1200),
+                    .init(id: "IT-5", category: .deduction, title: "Repair inconvenience deduction", detail: nil, amount: 540)
+                ],
+                carryForwardBalance: 1500,
+                paidAmount: 0,
+                note: "Monthly combined invoice",
+                rejectionReason: nil,
+                createdAt: .now,
+                updatedAt: .now
+            ),
+            InvoiceRecord(
+                id: "INV-299",
+                header: .init(
+                    tenancyID: "TEN-300",
+                    listingTitle: "Modern Flat near Chabahil",
+                    billingMonth: previousMonth,
+                    issueDate: calendar.date(byAdding: .month, value: -1, to: .now) ?? .now,
+                    dueDate: calendar.date(byAdding: .day, value: -20, to: .now) ?? .now,
+                    ownerID: "owner-100",
+                    renterID: "preview-user-001"
+                ),
+                createdByRole: .owner,
+                status: .partiallyPaid,
+                items: [
+                    .init(id: "IT-9", category: .rent, title: "Monthly rent", detail: nil, amount: 28000),
+                    .init(id: "IT-10", category: .electricity, title: "Electricity", detail: "Flat fee", amount: 700)
+                ],
+                carryForwardBalance: 0,
+                paidAmount: 27200,
+                note: "Previous month",
+                rejectionReason: nil,
+                createdAt: previousMonth,
+                updatedAt: previousMonth
+            ),
+            InvoiceRecord(
+                id: "INV-301",
+                header: .init(
+                    tenancyID: "TEN-301",
+                    listingTitle: "Tulsi Apartment - Full Unit",
+                    billingMonth: month,
+                    issueDate: .now,
+                    dueDate: calendar.date(byAdding: .day, value: 12, to: .now) ?? .now,
+                    ownerID: "preview-user-001",
+                    renterID: "renter-103"
+                ),
+                createdByRole: .owner,
+                status: .pendingPayment,
+                items: [
+                    .init(id: "IT-11", category: .rent, title: "Monthly rent", detail: nil, amount: 40000)
+                ],
+                carryForwardBalance: 0,
+                paidAmount: 0,
+                note: "First billing month",
+                rejectionReason: nil,
+                createdAt: .now,
+                updatedAt: .now
+            )
+        ]
+    }()
+}

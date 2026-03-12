@@ -17,6 +17,7 @@ final class AppEnvironment: ObservableObject {
     let interestsRepository: InterestsRepositoryProtocol
     let agreementsRepository: AgreementsRepositoryProtocol
     let tenancyRepository: TenancyRepositoryProtocol
+    let billingRepository: BillingRepositoryProtocol
 
     @Published var currentUser: AppUser?
 
@@ -33,7 +34,8 @@ final class AppEnvironment: ObservableObject {
         profileRepository: ProfileRepositoryProtocol,
         interestsRepository: InterestsRepositoryProtocol,
         agreementsRepository: AgreementsRepositoryProtocol,
-        tenancyRepository: TenancyRepositoryProtocol
+        tenancyRepository: TenancyRepositoryProtocol,
+        billingRepository: BillingRepositoryProtocol
     ) {
         self.authService = authService
         self.firestoreService = firestoreService
@@ -48,6 +50,7 @@ final class AppEnvironment: ObservableObject {
         self.interestsRepository = interestsRepository
         self.agreementsRepository = agreementsRepository
         self.tenancyRepository = tenancyRepository
+        self.billingRepository = billingRepository
     }
 
     static func bootstrap() -> AppEnvironment {
@@ -68,6 +71,7 @@ final class AppEnvironment: ObservableObject {
         let interestsRepository = MockInterestsRepository()
         let agreementsRepository = MockAgreementsRepository(confirmationService: agreementConfirmationService)
         let tenancyRepository = MockTenancyRepository()
+        let billingRepository = MockBillingRepository()
 
         return AppEnvironment(
             authService: authService,
@@ -82,7 +86,8 @@ final class AppEnvironment: ObservableObject {
             profileRepository: profileRepository,
             interestsRepository: interestsRepository,
             agreementsRepository: agreementsRepository,
-            tenancyRepository: tenancyRepository
+            tenancyRepository: tenancyRepository,
+            billingRepository: billingRepository
         )
     }
 }

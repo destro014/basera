@@ -27,7 +27,7 @@ struct OwnerDashboardView: View {
                             TenancySummaryCard(tenancy: tenancy, party: .owner)
                             HStack {
                                 NavigationLink("Billing") {
-                                    BaseraEmptyStateView(title: "Billing", message: "Owner billing shortcut placeholder for invoice generation and tracking.")
+                                    InvoiceListView(tenancy: tenancy, userID: ownerID, actor: .owner)
                                 }
                                 NavigationLink("Agreement") {
                                     AgreementHubView(currentUserID: ownerID, party: .owner)
