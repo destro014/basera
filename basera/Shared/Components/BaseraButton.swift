@@ -25,9 +25,7 @@ struct BaseraButton: View {
                 }
             }
             .frame(maxWidth: .infinity)
-//            .frame(minHeight: 48)
-            .padding(AppTheme.Spacing.xLarge)
-            // .padding( AppTheme.Spacing.large)
+            .padding(AppTheme.Spacing.large)
             .contentShape(RoundedRectangle(cornerRadius: AppTheme.Radius.large, style: .continuous))
             
         }

@@ -7,6 +7,8 @@ final class AuthFlowViewModel: ObservableObject {
     @Published private(set) var step: AuthFlowStep
     @Published var phoneNumber: String = ""
     @Published var otpCode: String = ""
+    @Published var fullName: String = ""
+    @Published var password: String = ""
     @Published var selectedRoles: Set<UserRole> = []
     @Published private(set) var selectedPhotoData: Data?
     @Published private(set) var challenge: AuthOTPChallenge?
@@ -37,7 +39,7 @@ final class AuthFlowViewModel: ObservableObject {
     }
 
     var resendButtonTitle: String {
-        resendSecondsRemaining == 0 ? "Resend code" : "Resend in \(resendSecondsRemaining)s"
+        resendSecondsRemaining == 0 ? "Resend code" : "Resend code in \(resendSecondsRemaining)s"
     }
 
     var selectedRoleOption: UserRoleSelectionOption? {
@@ -54,6 +56,18 @@ final class AuthFlowViewModel: ObservableObject {
 
     var otpFieldError: String? {
         step == .otpVerification && notice?.style == .error ? notice?.message : nil
+    }
+
+    var passwordFieldError: String? {
+        step == .passwordEntry && notice?.style == .error ? notice?.message : nil
+    }
+
+    var fullNameFieldError: String? {
+        step == .profileCreation && notice?.style == .error && notice?.message == AuthError.nameRequired.userMessage ? notice?.message : nil
+    }
+    
+    var profilePasswordFieldError: String? {
+        step == .profileCreation && notice?.style == .error && notice?.message == AuthError.passwordRequired.userMessage ? notice?.message : nil
     }
 
     func continueFromIntroduction() {
@@ -137,17 +151,20 @@ final class AuthFlowViewModel: ObservableObject {
         do {
             let result = try await authRepository.verifyOTP(otpCode, challengeID: challenge.id)
             switch result {
-            case .signedIn(let user):
+            case .requiresPassword(let session):
                 stopResendCountdown()
-                isLoading = false
-                return user
-            case .requiresOnboarding(let session):
                 verifiedSession = session
-                step = .roleSelection
-                navigationPath.append(AuthFlowStep.roleSelection)
+                step = .passwordEntry
+                navigationPath.append(AuthFlowStep.passwordEntry)
+                notice = nil
+            case .requiresOnboarding(let session):
+                stopResendCountdown()
+                verifiedSession = session
+                step = .profileCreation
+                navigationPath.append(AuthFlowStep.profileCreation)
                 notice = AuthStepNotice(
                     style: .success,
-                    message: "Phone verified. Finish a few onboarding steps to unlock Basera."
+                    message: "Phone verified. Create your account to unlock Basera."
                 )
             }
         } catch {
@@ -206,6 +223,47 @@ final class AuthFlowViewModel: ObservableObject {
         )
     }
 
+    func signInWithPassword() async -> AppUser? {
+        guard let verifiedSession else {
+            moveToPhoneNumberStep()
+            notice = AuthStepNotice(style: .error, message: AuthError.onboardingSessionExpired.userMessage)
+            return nil
+        }
+        
+        guard password.isEmpty == false else {
+            notice = AuthStepNotice(style: .error, message: AuthError.passwordRequired.userMessage)
+            return nil
+        }
+
+        isLoading = true
+        notice = nil
+
+        do {
+            let user = try await authRepository.signIn(withPassword: password, for: verifiedSession)
+            isLoading = false
+            return user
+        } catch {
+            notice = AuthStepNotice(style: .error, message: error.userMessage)
+            isLoading = false
+            return nil
+        }
+    }
+
+    func continueFromProfileCreation() {
+        guard fullName.isEmpty == false else {
+            notice = AuthStepNotice(style: .error, message: AuthError.nameRequired.userMessage)
+            return
+        }
+        guard password.isEmpty == false else {
+            notice = AuthStepNotice(style: .error, message: AuthError.passwordRequired.userMessage)
+            return
+        }
+        
+        step = .roleSelection
+        navigationPath.append(AuthFlowStep.roleSelection)
+        notice = nil
+    }
+
     func completeOnboarding() async -> AppUser? {
         guard let verifiedSession else {
             moveToPhoneNumberStep()
@@ -214,6 +272,8 @@ final class AuthFlowViewModel: ObservableObject {
         }
 
         let submission = AuthOnboardingSubmission(
+            fullName: fullName,
+            passwordHash: password,
             selectedRoles: selectedRoles,
             acceptsTerms: true,
             acceptsPrivacy: true,

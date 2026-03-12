@@ -51,8 +51,13 @@ actor MockAuthService: AuthServiceProtocol {
         pendingChallenges[challengeID] = nil
 
         if let existingUser = registeredUsers[challenge.phoneNumber] {
-            signedInUser = existingUser
-            return .signedIn(existingUser)
+            let session = AuthenticatedPhoneSession(
+                id: UUID().uuidString,
+                userID: existingUser.id,
+                phoneNumber: challenge.phoneNumber
+            )
+            verifiedSessions[session.id] = session
+            return .requiresPassword(session)
         }
 
         let session = AuthenticatedPhoneSession(
@@ -64,8 +69,29 @@ actor MockAuthService: AuthServiceProtocol {
         return .requiresOnboarding(session)
     }
 
+    func signIn(withPassword password: String, for session: AuthenticatedPhoneSession) async throws -> AppUser {
+        guard verifiedSessions[session.id] != nil else {
+            throw AuthError.onboardingSessionExpired
+        }
+        guard let existingUser = registeredUsers[session.phoneNumber] else {
+            throw AuthError.unexpected
+        }
+        // In a real app we would hash and check the password.
+        guard password == "password" || !password.isEmpty else {
+            throw AuthError.invalidPassword
+        }
+
+        try await simulateNetworkDelay()
+        
+        verifiedSessions[session.id] = nil
+        signedInUser = existingUser
+        return existingUser
+    }
+
     func completeOnboarding(
         for session: AuthenticatedPhoneSession,
+        fullName: String,
+        passwordHash: String,
         roles: Set<UserRole>,
         acceptsTerms: Bool,
         acceptsPrivacy: Bool,
@@ -73,6 +99,12 @@ actor MockAuthService: AuthServiceProtocol {
     ) async throws -> AppUser {
         guard verifiedSessions[session.id] != nil else {
             throw AuthError.onboardingSessionExpired
+        }
+        guard fullName.isEmpty == false else {
+            throw AuthError.nameRequired
+        }
+        guard passwordHash.isEmpty == false else {
+            throw AuthError.passwordRequired
         }
         guard roles.isEmpty == false else {
             throw AuthError.roleSelectionRequired
@@ -83,7 +115,7 @@ actor MockAuthService: AuthServiceProtocol {
         let activeRole: UserRole = roles.contains(.renter) ? .renter : .owner
         let user = AppUser(
             id: session.userID,
-            fullName: nil,
+            fullName: fullName,
             phoneNumber: session.phoneNumber,
             availableRoles: roles,
             activeRole: activeRole,

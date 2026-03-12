@@ -58,15 +58,50 @@ struct AuthFlowView: View {
                     resendButtonTitle: viewModel.resendButtonTitle,
                     onVerify: {
                         Task {
-                            if let user = await viewModel.verifyOTP() {
-                                onAuthenticated(user)
-                            }
+                            await viewModel.verifyOTP()
                         }
                     },
                     onResend: {
                         Task {
                             await viewModel.resendOTP()
                         }
+                    }
+                )
+            }
+        case .passwordEntry:
+            AuthOnboardingContainerView(step: step, notice: viewModel.notice) {
+                AuthPasswordEntryView(
+                    password: Binding(
+                        get: { viewModel.password },
+                        set: { viewModel.password = $0 }
+                    ),
+                    validationMessage: viewModel.passwordFieldError,
+                    isLoading: viewModel.isLoading,
+                    onSubmit: {
+                        Task {
+                            if let user = await viewModel.signInWithPassword() {
+                                onAuthenticated(user)
+                            }
+                        }
+                    }
+                )
+            }
+        case .profileCreation:
+            AuthOnboardingContainerView(step: step, notice: viewModel.notice) {
+                AuthProfileCreationView(
+                    fullName: Binding(
+                        get: { viewModel.fullName },
+                        set: { viewModel.fullName = $0 }
+                    ),
+                    password: Binding(
+                        get: { viewModel.password },
+                        set: { viewModel.password = $0 }
+                    ),
+                    nameValidationMessage: viewModel.fullNameFieldError,
+                    passwordValidationMessage: viewModel.profilePasswordFieldError,
+                    isLoading: viewModel.isLoading,
+                    onSubmit: {
+                        viewModel.continueFromProfileCreation()
                     }
                 )
             }

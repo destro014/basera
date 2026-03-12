@@ -8,6 +8,7 @@ struct BaseraTextField: View {
     var keyboardType: UIKeyboardType = .default
     var textContentType: UITextContentType? = nil
     var textInputAutocapitalization: TextInputAutocapitalization = .sentences
+    var isSecure: Bool = false
     var errorMessage: String? = nil
     var isDisabled: Bool = false
     var submitLabel: SubmitLabel = .done
@@ -33,22 +34,28 @@ struct BaseraTextField: View {
                             .offset(y: 12)
                     }
 
-                    TextField("", text: $text)
-                        .textInputAutocapitalization(textInputAutocapitalization)
-                        .autocorrectionDisabled()
-                        .keyboardType(keyboardType)
-                        .textContentType(textContentType)
-                        .submitLabel(submitLabel)
-                        .focused($isFocused)
-                        .onSubmit {
-                            onSubmit?()
+                    Group {
+                        if isSecure {
+                            SecureField("", text: $text)
+                        } else {
+                            TextField("", text: $text)
                         }
-                        .disabled(isDisabled)
-                        .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                        .foregroundStyle(AppTheme.Colors.textPrimary)
-                        .tint(AppTheme.Colors.brandPrimary)
-                        .offset(y: isLabelFloating ? 12 : 0)
-                        .frame(height: 40)
+                    }
+                    .textInputAutocapitalization(textInputAutocapitalization)
+                    .autocorrectionDisabled()
+                    .keyboardType(keyboardType)
+                    .textContentType(textContentType)
+                    .submitLabel(submitLabel)
+                    .focused($isFocused)
+                    .onSubmit {
+                        onSubmit?()
+                    }
+                    .disabled(isDisabled)
+                    .baseraTextStyle(AppTheme.Typography.bodyLarge)
+                    .foregroundStyle(AppTheme.Colors.textPrimary)
+                    .tint(AppTheme.Colors.brandPrimary)
+                    .offset(y: isLabelFloating ? 12 : 0)
+                    .frame(height: 40)
                 }
                 .background(alignment: .leading) {
                     Text(title)

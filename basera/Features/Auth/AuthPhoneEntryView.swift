@@ -19,12 +19,19 @@ struct AuthPhoneEntryView: View {
                 errorMessage: validationMessage
             )
 
-            BaseraButton(
-                title: "Send code",
-                style: .primary,
-                isLoading: isLoading,
-                action: onSubmit
-            )
+            VStack(spacing: AppTheme.Spacing.medium) {
+                BaseraButton(
+                    title: "Continue",
+                    style: .primary,
+                    isLoading: isLoading,
+                    action: onSubmit
+                )
+
+                Text("By tapping continue, you agree to Terms and Conditions and Privacy Policy")
+                    .baseraTextStyle(AppTheme.Typography.bodyMedium)
+                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .multilineTextAlignment(.center)
+            }
         }
     }
 }

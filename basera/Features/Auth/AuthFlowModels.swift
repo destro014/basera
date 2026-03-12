@@ -4,6 +4,8 @@ enum AuthFlowStep: Int, CaseIterable, Identifiable {
     case introduction
     case phoneNumber
     case otpVerification
+    case passwordEntry
+    case profileCreation
     case roleSelection
     case profilePhoto
 
@@ -17,6 +19,10 @@ enum AuthFlowStep: Int, CaseIterable, Identifiable {
             "Sign in with your phone"
         case .otpVerification:
             "Verify your OTP"
+        case .passwordEntry:
+            "Enter the password"
+        case .profileCreation:
+            "Lets create your account"
         case .roleSelection:
             "Choose your role"
         case .profilePhoto:
@@ -32,6 +38,10 @@ enum AuthFlowStep: Int, CaseIterable, Identifiable {
             "Use the mobile number you want attached to listings, agreements, and monthly billing."
         case .otpVerification:
             "Enter the 6-digit code we sent to keep your Basera account secure."
+        case .passwordEntry:
+            "Enter the password associated with your account."
+        case .profileCreation:
+            "Enter your legal name and create a password for next login."
         case .roleSelection:
             "Pick how you want to use Basera today. If you choose both, you can switch roles later."
         case .profilePhoto:
@@ -47,6 +57,10 @@ enum AuthFlowStep: Int, CaseIterable, Identifiable {
             "Phone"
         case .otpVerification:
             "OTP"
+        case .passwordEntry:
+            "Password"
+        case .profileCreation:
+            "Account"
         case .roleSelection:
             "Role"
         case .profilePhoto:
@@ -86,11 +100,13 @@ struct AuthenticatedPhoneSession: Equatable {
 }
 
 enum AuthVerificationResult: Equatable {
-    case signedIn(AppUser)
+    case requiresPassword(AuthenticatedPhoneSession)
     case requiresOnboarding(AuthenticatedPhoneSession)
 }
 
 struct AuthOnboardingSubmission: Equatable {
+    let fullName: String
+    let passwordHash: String
     let selectedRoles: Set<UserRole>
     let acceptsTerms: Bool
     let acceptsPrivacy: Bool
@@ -173,6 +189,9 @@ enum AuthError: LocalizedError, Equatable {
     case otpCodeRequired
     case invalidOTP
     case resendNotReady(secondsRemaining: Int)
+    case nameRequired
+    case passwordRequired
+    case invalidPassword
     case roleSelectionRequired
     case onboardingSessionExpired
     case photoSelectionFailed
@@ -188,6 +207,12 @@ enum AuthError: LocalizedError, Equatable {
             "That OTP did not match. Check the 6-digit code and try again."
         case .resendNotReady(let secondsRemaining):
             "You can request another OTP in \(secondsRemaining) seconds."
+        case .nameRequired:
+            "Enter your full name to create an account."
+        case .passwordRequired:
+            "Enter your password to continue."
+        case .invalidPassword:
+            "Incorrect password. Please try again."
         case .roleSelectionRequired:
             "Choose renter, owner, or both before continuing."
         case .onboardingSessionExpired:

@@ -22,20 +22,31 @@ struct AuthOTPVerificationView: View {
                 errorMessage: validationMessage
             )
 
-            VStack(spacing: AppTheme.Spacing.medium) {
+            VStack(spacing: AppTheme.Spacing.small) {
                 BaseraButton(
-                    title: "Verify code",
+                    title: "Continue",
                     style: .primary,
                     isLoading: isLoading,
                     action: onVerify
                 )
 
-                BaseraButton(
-                    title: resendButtonTitle,
-                    style: .subtle,
-                    isDisabled: canResendCode == false || isLoading,
-                    action: onResend
-                )
+                HStack(spacing: 4) {
+                    Text("Didn't receive the code")
+                        .baseraTextStyle(AppTheme.Typography.bodyMedium)
+                        .foregroundStyle(AppTheme.Colors.textSecondary)
+
+                    Button {
+                        if canResendCode && !isLoading {
+                            onResend()
+                        }
+                    } label: {
+                        Text(resendButtonTitle)
+                            .baseraTextStyle(AppTheme.Typography.labelLarge)
+                            .foregroundStyle(canResendCode && !isLoading ? AppTheme.Colors.brandPrimary : AppTheme.Colors.textSecondary.opacity(0.7))
+                    }
+                    .disabled(!canResendCode || isLoading)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
     }

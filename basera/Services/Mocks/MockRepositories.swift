@@ -25,6 +25,10 @@ struct MockAuthRepository: AuthRepositoryProtocol {
         try await authService.verifyOTP(code, challengeID: challengeID)
     }
 
+    func signIn(withPassword password: String, for session: AuthenticatedPhoneSession) async throws -> AppUser {
+        try await authService.signIn(withPassword: password, for: session)
+    }
+
     func completeOnboarding(_ submission: AuthOnboardingSubmission, for session: AuthenticatedPhoneSession) async throws -> AppUser {
         let profilePhotoURL: URL?
         if let profilePhotoData = submission.profilePhotoData {
@@ -38,6 +42,8 @@ struct MockAuthRepository: AuthRepositoryProtocol {
 
         return try await authService.completeOnboarding(
             for: session,
+            fullName: submission.fullName,
+            passwordHash: submission.passwordHash,
             roles: submission.selectedRoles,
             acceptsTerms: submission.acceptsTerms,
             acceptsPrivacy: submission.acceptsPrivacy,
