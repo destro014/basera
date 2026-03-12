@@ -83,8 +83,8 @@ struct ReviewHubView: View {
                             Stepper("Rating: \(viewModel.selectedRating)", value: $viewModel.selectedRating, in: 1...5)
                             BaseraTextField(
                                 title: "Comment",
-                                text: $viewModel.reviewComment,
-                                prompt: "Share your experience"
+                                prompt: "Share your experience",
+                                text: $viewModel.reviewComment
                             )
                             BaseraButton(title: "Submit Public Review", style: .primary) {
                                 Task { await viewModel.submit(using: environment.reviewsRepository) }
@@ -132,8 +132,8 @@ struct ReviewHubView: View {
 
                 BaseraTextField(
                     title: "Details",
-                    text: $viewModel.reportNote,
-                    prompt: "Optional context"
+                    prompt: "Optional context",
+                    text: $viewModel.reportNote
                 )
 
                 BaseraButton(title: "Submit Report", style: .primary) {

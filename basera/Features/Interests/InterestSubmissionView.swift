@@ -35,8 +35,8 @@ struct InterestSubmissionView: View {
 
                 BaseraTextField(
                     title: "Optional message",
-                    text: $viewModel.optionalMessage,
-                    prompt: "Share move-in timeline or requirements"
+                    prompt: "Share move-in timeline or requirements",
+                    text: $viewModel.optionalMessage
                 )
 
                 BaseraInlineMessageView(tone: .info, message: "Exact property address stays hidden until owner accepts your interest.")

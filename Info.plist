@@ -12,14 +12,7 @@
 		<string>Fonts/Rubik-Regular.ttf</string>
 		<string>Fonts/Rubik-SemiBold.ttf</string>
 	</array>
-	<key>UILaunchScreen</key>
-	<dict>
-		<key>UIColorName</key>
-		<string>backgroundPrimary</string>
-		<key>UIImageName</key>
-		<string>logo-vertical</string>
-		<key>UIImageRespectsSafeAreaInsets</key>
-		<true/>
-	</dict>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
 </dict>
 </plist>

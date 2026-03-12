@@ -16,10 +16,17 @@ struct HomeShellView: View {
     var body: some View {
         TabView(selection: $viewModel.selectedTab) {
             NavigationView {
-                rolePrimaryTab
-                    .navigationDestination(item: routedNotificationBinding) { route in
-                        notificationDestination(for: route)
+                ZStack {
+                    rolePrimaryTab
+
+                    NavigationLink(
+                        destination: routedNotificationDestination,
+                        isActive: routedNotificationIsActive
+                    ) {
+                        EmptyView()
                     }
+                    .hidden()
+                }
             }
             .tabItem {
                 Label(viewModel.user.activeRole == .renter ? "Renter" : "Owner", systemImage: viewModel.user.activeRole == .renter ? "house" : "building.2")
@@ -76,7 +83,10 @@ struct HomeShellView: View {
                 RenterInterestsView(renterID: viewModel.user.id)
             }
         case .agreement:
-            AgreementHubView(userID: viewModel.user.id, activeRole: viewModel.user.activeRole)
+            AgreementHubView(
+                currentUserID: viewModel.user.id,
+                party: viewModel.user.activeRole == .owner ? .owner : .renter
+            )
         case .billing(let invoiceID):
             ActiveTenancyDetailView(
                 tenancyID: invoiceID ?? "TEN-300",
@@ -101,11 +111,20 @@ struct HomeShellView: View {
         }
     }
 
-    private var routedNotificationBinding: Binding<NotificationRoute?> {
+    @ViewBuilder
+    private var routedNotificationDestination: some View {
+        if let route = viewModel.routedNotification {
+            notificationDestination(for: route)
+        } else {
+            EmptyView()
+        }
+    }
+
+    private var routedNotificationIsActive: Binding<Bool> {
         Binding(
-            get: { viewModel.routedNotification },
-            set: { newValue in
-                if newValue == nil {
+            get: { viewModel.routedNotification != nil },
+            set: { isActive in
+                if isActive == false {
                     viewModel.clearRoutedNotification()
                 }
             }

@@ -52,11 +52,11 @@ actor MockNotificationsRepository: NotificationsRepositoryProtocol {
 
     func markAsRead(notificationID: String, userID: String) async throws {
         guard let index = notificationsByUserID[userID]?.firstIndex(where: { $0.id == notificationID }) else { return }
-        var notification = notificationsByUserID[userID]?[index]
-        notification?.readAt = notification?.readAt ?? .now
-        if let notification {
-            notificationsByUserID[userID]?[index] = notification
+        guard var notification = notificationsByUserID[userID]?[index] else { return }
+        if notification.readAt == nil {
+            notification.readAt = .now
         }
+        notificationsByUserID[userID]?[index] = notification
     }
 
     func markAllAsRead(for userID: String) async throws {

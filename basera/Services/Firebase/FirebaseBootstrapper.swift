@@ -7,7 +7,14 @@ import FirebaseCore
 enum FirebaseBootstrapper {
     static func configureIfNeeded() {
         #if canImport(FirebaseCore)
+        guard AppRuntimeConfiguration.useFirebaseInfrastructure else { return }
         guard FirebaseApp.app() == nil else { return }
+        guard Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil else {
+            #if DEBUG
+            print("[Basera] Skipping Firebase configuration because GoogleService-Info.plist is missing.")
+            #endif
+            return
+        }
         FirebaseApp.configure()
 
         if AppRuntimeConfiguration.shouldEnableFirebaseDebugLogs {

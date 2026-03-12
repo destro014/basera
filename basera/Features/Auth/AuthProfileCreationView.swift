@@ -24,8 +24,8 @@ struct AuthProfileCreationView: View {
                     title: "Password",
                     prompt: "Password",
                     text: $password,
-                    isSecure: true,
                     textContentType: .newPassword,
+                    isSecure: true,
                     errorMessage: passwordValidationMessage
                 )
             }

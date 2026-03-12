@@ -83,7 +83,7 @@ struct PushNotificationPayload {
     let createdAt: Date
 }
 
-enum NotificationRoute: Equatable, Codable, Identifiable {
+enum NotificationRoute: Hashable, Codable, Identifiable {
     case interests(listingID: String?)
     case agreement(agreementID: String?)
     case billing(invoiceID: String?)

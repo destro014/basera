@@ -35,7 +35,7 @@ struct ConversationListView: View {
 }
 
 private struct ConversationRowView: View {
-    let conversation: ConversationSummary
+    let conversation: ChatConversation
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.xSmall) {

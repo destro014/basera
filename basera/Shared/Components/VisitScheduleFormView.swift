@@ -17,8 +17,8 @@ struct VisitScheduleFormView: View {
 
                 BaseraTextField(
                     title: "Note (optional)",
-                    text: $note,
                     prompt: "Parking instructions, landmark, etc.",
+                    text: $note,
                     keyboardType: .default,
                     textContentType: nil
                 )

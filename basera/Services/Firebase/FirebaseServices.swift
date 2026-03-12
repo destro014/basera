@@ -96,7 +96,7 @@ final class FirebaseAuthService: AuthServiceProtocol {
 
     func requestOTP(for phoneNumber: String) async throws -> AuthOTPChallenge {
         #if canImport(FirebaseAuth)
-        let verificationID = try await withCheckedThrowingContinuation { continuation in
+        let verificationID = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<String, Error>) in
             PhoneAuthProvider.provider().verifyPhoneNumber(phoneNumber, uiDelegate: nil) { verificationID, error in
                 if let error {
                     continuation.resume(throwing: error)
@@ -325,7 +325,7 @@ struct FirebaseStorageService: StorageServiceProtocol {
 actor FirebaseNotificationsService: NotificationsServiceProtocol {
     func registerForPushNotifications() async {
         #if canImport(FirebaseMessaging)
-        _ = await Messaging.messaging().token()
+        _ = try? await Messaging.messaging().token()
         #endif
     }
 
