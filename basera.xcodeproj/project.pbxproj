@@ -6,6 +6,15 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		A1B2C3010000000000000001 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3110000000000000001 /* FirebaseAuth */; };
+		A1B2C3020000000000000001 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3120000000000000001 /* FirebaseFirestore */; };
+		A1B2C3030000000000000001 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3130000000000000001 /* FirebaseStorage */; };
+		A1B2C3040000000000000001 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3140000000000000001 /* FirebaseMessaging */; };
+		A1B2C3050000000000000001 /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3150000000000000001 /* FirebaseRemoteConfig */; };
+		A1B2C3060000000000000001 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3160000000000000001 /* FirebaseCore */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		EFB584182F60579300530531 /* Basera.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Basera.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +32,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1B2C3010000000000000001 /* FirebaseAuth in Frameworks */,
+				A1B2C3020000000000000001 /* FirebaseFirestore in Frameworks */,
+				A1B2C3030000000000000001 /* FirebaseStorage in Frameworks */,
+				A1B2C3040000000000000001 /* FirebaseMessaging in Frameworks */,
+				A1B2C3050000000000000001 /* FirebaseRemoteConfig in Frameworks */,
+				A1B2C3060000000000000001 /* FirebaseCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +80,12 @@
 			);
 			name = basera;
 			packageProductDependencies = (
+				A1B2C3110000000000000001 /* FirebaseAuth */,
+				A1B2C3120000000000000001 /* FirebaseFirestore */,
+				A1B2C3130000000000000001 /* FirebaseStorage */,
+				A1B2C3140000000000000001 /* FirebaseMessaging */,
+				A1B2C3150000000000000001 /* FirebaseRemoteConfig */,
+				A1B2C3160000000000000001 /* FirebaseCore */,
 			);
 			productName = Basera;
 			productReference = EFB584182F60579300530531 /* Basera.app */;
@@ -93,6 +114,9 @@
 				Base,
 			);
 			mainGroup = EFB5840F2F60579300530531;
+			packageReferences = (
+				A1B2C3210000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
 			productRefGroup = EFB584192F60579300530531 /* Products */;
@@ -123,6 +147,50 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A1B2C3210000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A1B2C3110000000000000001 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1B2C3210000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		A1B2C3120000000000000001 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1B2C3210000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		A1B2C3130000000000000001 /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1B2C3210000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
+		};
+		A1B2C3140000000000000001 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1B2C3210000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
+		A1B2C3150000000000000001 /* FirebaseRemoteConfig */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1B2C3210000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseRemoteConfig;
+		};
+		A1B2C3160000000000000001 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1B2C3210000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		EFB584212F60579400530531 /* Debug */ = {

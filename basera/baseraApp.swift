@@ -6,6 +6,7 @@ struct BaseraApp: App {
 
     init() {
         BaseraFontRegistrar.registerIfNeeded()
+        FirebaseBootstrapper.configureIfNeeded()
     }
 
     var body: some Scene {
