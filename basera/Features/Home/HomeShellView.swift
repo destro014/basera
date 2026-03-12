@@ -96,12 +96,8 @@ struct HomeShellView: View {
                 party: viewModel.user.activeRole == .owner ? .owner : .renter
             )
         case .review:
-            SettingsView(
-                user: viewModel.user,
-                profileRepository: environment.profileRepository,
-                onSwitchRole: handleRoleSwitch,
-                onSignOut: onSignOut
-            )
+            ReviewHubView(userID: viewModel.user.id, role: viewModel.user.activeRole)
+                .environmentObject(environment)
         }
     }
 
