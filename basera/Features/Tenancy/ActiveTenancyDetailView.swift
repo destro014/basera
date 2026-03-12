@@ -16,9 +16,15 @@ struct ActiveTenancyDetailView: View {
                     dueBillCard(tenancy)
                     DepositSummaryCard(deposit: tenancy.depositSummary)
 
+                    NavigationLink("Move-out and tenancy closure") {
+                        MoveOutFlowView(tenancy: tenancy, userID: userID, party: party)
+                    }
+
                     NavigationLink("Open move-in checklist") {
                         MoveInChecklistView(tenancy: tenancy, userID: userID)
                     }
+
+                    historicalAccessCard(tenancy)
 
                     if let agreement = viewModel.agreement {
                         BaseraCard {
@@ -37,7 +43,7 @@ struct ActiveTenancyDetailView: View {
                     .padding()
             }
         }
-        .navigationTitle("Active Tenancy")
+        .navigationTitle("Tenancy Details")
         .task {
             await viewModel.load(
                 tenancyID: tenancyID,
@@ -61,6 +67,29 @@ struct ActiveTenancyDetailView: View {
                     BaseraChip(text: tenancy.billSummary.allowsPartialPayment ? "Partial payment enabled" : "Partial payment disabled")
                     BaseraChip(text: tenancy.billSummary.allowsAdvancePayment ? "Advance payment enabled" : "Advance payment disabled")
                 }
+            }
+        }
+    }
+
+    private func historicalAccessCard(_ tenancy: TenancyRecord) -> some View {
+        BaseraCard {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+                Text("Historical access")
+                    .baseraTextStyle(AppTheme.Typography.titleMedium)
+                Text("Agreement, invoice, and payment records stay available after tenancy closure.")
+                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                HStack {
+                    NavigationLink("Agreement") {
+                        AgreementHubView(currentUserID: userID, party: party)
+                    }
+                    NavigationLink("Invoices") {
+                        InvoiceListView(tenancy: tenancy, userID: userID, actor: party == .owner ? .owner : .renter)
+                    }
+                    NavigationLink("Payments") {
+                        PaymentsHubView(tenancy: tenancy, userID: userID, actor: party == .owner ? .owner : .renter)
+                    }
+                }
+                .baseraTextStyle(AppTheme.Typography.bodySmall)
             }
         }
     }
