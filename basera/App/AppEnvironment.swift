@@ -20,6 +20,7 @@ final class AppEnvironment: ObservableObject {
     let tenancyRepository: TenancyRepositoryProtocol
     let billingRepository: BillingRepositoryProtocol
     let paymentsRepository: PaymentsRepositoryProtocol
+    let notificationsRepository: NotificationsRepositoryProtocol
 
     @Published var currentUser: AppUser?
 
@@ -39,7 +40,8 @@ final class AppEnvironment: ObservableObject {
         agreementsRepository: AgreementsRepositoryProtocol,
         tenancyRepository: TenancyRepositoryProtocol,
         billingRepository: BillingRepositoryProtocol,
-        paymentsRepository: PaymentsRepositoryProtocol
+        paymentsRepository: PaymentsRepositoryProtocol,
+        notificationsRepository: NotificationsRepositoryProtocol
     ) {
         self.authService = authService
         self.firestoreService = firestoreService
@@ -57,6 +59,7 @@ final class AppEnvironment: ObservableObject {
         self.tenancyRepository = tenancyRepository
         self.billingRepository = billingRepository
         self.paymentsRepository = paymentsRepository
+        self.notificationsRepository = notificationsRepository
     }
 
     static func bootstrap() -> AppEnvironment {
@@ -80,6 +83,7 @@ final class AppEnvironment: ObservableObject {
         let tenancyRepository = MockTenancyRepository()
         let billingRepository = MockBillingRepository()
         let paymentsRepository = MockPaymentsRepository(billingRepository: billingRepository, gatewayService: paymentGatewayService)
+        let notificationsRepository = MockNotificationsRepository(service: notificationsService)
 
         return AppEnvironment(
             authService: authService,
@@ -97,7 +101,8 @@ final class AppEnvironment: ObservableObject {
             agreementsRepository: agreementsRepository,
             tenancyRepository: tenancyRepository,
             billingRepository: billingRepository,
-            paymentsRepository: paymentsRepository
+            paymentsRepository: paymentsRepository,
+            notificationsRepository: notificationsRepository
         )
     }
 }
