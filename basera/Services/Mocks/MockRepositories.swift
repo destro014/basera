@@ -622,3 +622,58 @@ enum AgreementRepositoryError: LocalizedError {
         }
     }
 }
+
+actor MockTenancyRepository: TenancyRepositoryProtocol {
+    private var tenancies: [TenancyRecord]
+    private let signedAgreementIDs: Set<String>
+
+    init(
+        seed: [TenancyRecord] = PreviewData.mockTenancies,
+        signedAgreementIDs: Set<String> = Set(PreviewData.mockAgreements.filter { $0.status == .fullySigned }.map(\.id))
+    ) {
+        self.tenancies = seed
+        self.signedAgreementIDs = signedAgreementIDs
+    }
+
+    func fetchActiveTenancy(for renterID: String) async throws -> TenancyRecord? {
+        tenancies.first { tenancy in
+            tenancy.renterID == renterID &&
+            signedAgreementIDs.contains(tenancy.agreementID) &&
+            (tenancy.status == .active || tenancy.status == .moveInPending || tenancy.status == .moveOutRequested)
+        }
+    }
+
+    func fetchActiveTenancies(ownerID: String) async throws -> [TenancyRecord] {
+        tenancies
+            .filter {
+                $0.ownerID == ownerID &&
+                signedAgreementIDs.contains($0.agreementID) &&
+                ($0.status == .active || $0.status == .moveInPending || $0.status == .moveOutRequested)
+            }
+            .sorted { $0.startDate > $1.startDate }
+    }
+
+    func fetchTenancy(id: String, userID: String) async throws -> TenancyRecord? {
+        tenancies.first { $0.id == id && ($0.ownerID == userID || $0.renterID == userID) }
+    }
+
+    func fetchArchivedTenancies(for userID: String, party: AgreementRecord.Party) async throws -> [TenancyRecord] {
+        switch party {
+        case .owner:
+            tenancies.filter { $0.ownerID == userID && $0.status == .archived }
+        case .renter:
+            tenancies.filter { $0.renterID == userID && $0.status == .archived }
+        }
+    }
+
+    func updateMoveInChecklist(tenancyID: String, userID: String, items: [TenancyRecord.MoveInChecklistItem]) async throws -> TenancyRecord {
+        guard let index = tenancies.firstIndex(where: { $0.id == tenancyID && ($0.ownerID == userID || $0.renterID == userID) }) else {
+            throw AgreementRepositoryError.notFound
+        }
+        tenancies[index].moveInChecklist = items
+        if tenancies[index].status == .moveInPending && items.allSatisfy(\.isCompleted) {
+            tenancies[index].status = .active
+        }
+        return tenancies[index]
+    }
+}
