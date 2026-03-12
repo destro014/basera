@@ -21,6 +21,7 @@ final class AppEnvironment: ObservableObject {
     let billingRepository: BillingRepositoryProtocol
     let paymentsRepository: PaymentsRepositoryProtocol
     let notificationsRepository: NotificationsRepositoryProtocol
+    let reviewsRepository: ReviewsRepositoryProtocol
 
     @Published var currentUser: AppUser?
 
@@ -41,7 +42,8 @@ final class AppEnvironment: ObservableObject {
         tenancyRepository: TenancyRepositoryProtocol,
         billingRepository: BillingRepositoryProtocol,
         paymentsRepository: PaymentsRepositoryProtocol,
-        notificationsRepository: NotificationsRepositoryProtocol
+        notificationsRepository: NotificationsRepositoryProtocol,
+        reviewsRepository: ReviewsRepositoryProtocol
     ) {
         self.authService = authService
         self.firestoreService = firestoreService
@@ -60,6 +62,7 @@ final class AppEnvironment: ObservableObject {
         self.billingRepository = billingRepository
         self.paymentsRepository = paymentsRepository
         self.notificationsRepository = notificationsRepository
+        self.reviewsRepository = reviewsRepository
     }
 
     static func bootstrap() -> AppEnvironment {
@@ -84,6 +87,7 @@ final class AppEnvironment: ObservableObject {
         let billingRepository = MockBillingRepository()
         let paymentsRepository = MockPaymentsRepository(billingRepository: billingRepository, gatewayService: paymentGatewayService)
         let notificationsRepository = MockNotificationsRepository(service: notificationsService)
+        let reviewsRepository = MockReviewsRepository()
 
         return AppEnvironment(
             authService: authService,
@@ -102,7 +106,8 @@ final class AppEnvironment: ObservableObject {
             tenancyRepository: tenancyRepository,
             billingRepository: billingRepository,
             paymentsRepository: paymentsRepository,
-            notificationsRepository: notificationsRepository
+            notificationsRepository: notificationsRepository,
+            reviewsRepository: reviewsRepository
         )
     }
 }

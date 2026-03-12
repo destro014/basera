@@ -754,3 +754,45 @@ extension PreviewData {
         ]
     ]
 }
+
+extension PreviewData {
+    static let mockReviews: [ReviewRecord] = [
+        ReviewRecord(
+            id: "REV-100",
+            tenancyID: "TEN-300",
+            stage: .duringStay,
+            reviewerID: "owner-xyz",
+            reviewerName: "Prakash Shrestha",
+            reviewerRole: .owner,
+            revieweeID: "preview-user-001",
+            revieweeName: "Sita Basera",
+            rating: 5,
+            comment: "Paid monthly invoices on time and kept the flat in excellent condition.",
+            createdAt: Calendar.current.date(byAdding: .day, value: -20, to: .now) ?? .now
+        ),
+        ReviewRecord(
+            id: "REV-101",
+            tenancyID: "TEN-301",
+            stage: .postMoveOut,
+            reviewerID: "preview-user-001",
+            reviewerName: "Sita Basera",
+            reviewerRole: .owner,
+            revieweeID: "renter-legacy-02",
+            revieweeName: "Anjali Karki",
+            rating: 4,
+            comment: "Smooth move-out process and meter readings were settled quickly.",
+            createdAt: Calendar.current.date(byAdding: .day, value: -5, to: .now) ?? .now
+        )
+    ]
+
+    static let mockReviewReports: [ReviewReportRecord] = [
+        ReviewReportRecord(
+            id: "RPT-100",
+            reviewID: "REV-101",
+            reporterID: "renter-legacy-02",
+            reason: .falseInformation,
+            note: "Please verify utility statements context.",
+            createdAt: Calendar.current.date(byAdding: .day, value: -3, to: .now) ?? .now
+        )
+    ]
+}

@@ -19,6 +19,11 @@ struct OwnerDashboardView: View {
                     }
                 }
 
+                NavigationLink("Reviews & Rating") {
+                    ReviewHubView(userID: ownerID, role: .owner)
+                }
+                .baseraTextStyle(AppTheme.Typography.bodyMedium)
+
                 if viewModel.activeTenancies.isEmpty {
                     BaseraInlineMessageView(tone: .info, message: "No active tenants yet. Signed agreements appear here as active tenancies.")
                 } else {

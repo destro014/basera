@@ -270,6 +270,9 @@ struct RenterDashboardView: View {
             NavigationLink("My Agreement") {
                 AgreementHubView(currentUserID: "preview-user-001", party: .renter)
             }
+            NavigationLink("Reviews & Rating") {
+                ReviewHubView(userID: "preview-user-001", role: .renter)
+            }
         }
         .baseraTextStyle(AppTheme.Typography.bodyMedium)
     }
