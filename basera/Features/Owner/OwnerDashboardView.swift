@@ -29,6 +29,9 @@ struct OwnerDashboardView: View {
                                 NavigationLink("Billing") {
                                     InvoiceListView(tenancy: tenancy, userID: ownerID, actor: .owner)
                                 }
+                                NavigationLink("Payments") {
+                                    PaymentsHubView(tenancy: tenancy, userID: ownerID, actor: .owner)
+                                }
                                 NavigationLink("Agreement") {
                                     AgreementHubView(currentUserID: ownerID, party: .owner)
                                 }

@@ -10,6 +10,7 @@ final class AppEnvironment: ObservableObject {
     let remoteConfigService: RemoteConfigServiceProtocol
     let agreementConfirmationService: AgreementConfirmationServiceProtocol
     let agreementPDFService: AgreementPDFServiceProtocol
+    let paymentGatewayService: PaymentGatewayServiceProtocol
 
     let authRepository: AuthRepositoryProtocol
     let listingsRepository: ListingsRepositoryProtocol
@@ -18,6 +19,7 @@ final class AppEnvironment: ObservableObject {
     let agreementsRepository: AgreementsRepositoryProtocol
     let tenancyRepository: TenancyRepositoryProtocol
     let billingRepository: BillingRepositoryProtocol
+    let paymentsRepository: PaymentsRepositoryProtocol
 
     @Published var currentUser: AppUser?
 
@@ -29,13 +31,15 @@ final class AppEnvironment: ObservableObject {
         remoteConfigService: RemoteConfigServiceProtocol,
         agreementConfirmationService: AgreementConfirmationServiceProtocol,
         agreementPDFService: AgreementPDFServiceProtocol,
+        paymentGatewayService: PaymentGatewayServiceProtocol,
         authRepository: AuthRepositoryProtocol,
         listingsRepository: ListingsRepositoryProtocol,
         profileRepository: ProfileRepositoryProtocol,
         interestsRepository: InterestsRepositoryProtocol,
         agreementsRepository: AgreementsRepositoryProtocol,
         tenancyRepository: TenancyRepositoryProtocol,
-        billingRepository: BillingRepositoryProtocol
+        billingRepository: BillingRepositoryProtocol,
+        paymentsRepository: PaymentsRepositoryProtocol
     ) {
         self.authService = authService
         self.firestoreService = firestoreService
@@ -44,6 +48,7 @@ final class AppEnvironment: ObservableObject {
         self.remoteConfigService = remoteConfigService
         self.agreementConfirmationService = agreementConfirmationService
         self.agreementPDFService = agreementPDFService
+        self.paymentGatewayService = paymentGatewayService
         self.authRepository = authRepository
         self.listingsRepository = listingsRepository
         self.profileRepository = profileRepository
@@ -51,6 +56,7 @@ final class AppEnvironment: ObservableObject {
         self.agreementsRepository = agreementsRepository
         self.tenancyRepository = tenancyRepository
         self.billingRepository = billingRepository
+        self.paymentsRepository = paymentsRepository
     }
 
     static func bootstrap() -> AppEnvironment {
@@ -61,6 +67,7 @@ final class AppEnvironment: ObservableObject {
         let remoteConfigService = MockRemoteConfigService()
         let agreementConfirmationService = MockAgreementConfirmationService()
         let agreementPDFService = MockAgreementPDFService()
+        let paymentGatewayService = MockPaymentGatewayService()
 
         let authRepository = MockAuthRepository(
             authService: authService,
@@ -72,6 +79,7 @@ final class AppEnvironment: ObservableObject {
         let agreementsRepository = MockAgreementsRepository(confirmationService: agreementConfirmationService)
         let tenancyRepository = MockTenancyRepository()
         let billingRepository = MockBillingRepository()
+        let paymentsRepository = MockPaymentsRepository(billingRepository: billingRepository, gatewayService: paymentGatewayService)
 
         return AppEnvironment(
             authService: authService,
@@ -81,13 +89,15 @@ final class AppEnvironment: ObservableObject {
             remoteConfigService: remoteConfigService,
             agreementConfirmationService: agreementConfirmationService,
             agreementPDFService: agreementPDFService,
+            paymentGatewayService: paymentGatewayService,
             authRepository: authRepository,
             listingsRepository: listingsRepository,
             profileRepository: profileRepository,
             interestsRepository: interestsRepository,
             agreementsRepository: agreementsRepository,
             tenancyRepository: tenancyRepository,
-            billingRepository: billingRepository
+            billingRepository: billingRepository,
+            paymentsRepository: paymentsRepository
         )
     }
 }

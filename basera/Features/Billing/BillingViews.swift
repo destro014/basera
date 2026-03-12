@@ -28,6 +28,13 @@ struct InvoiceListView: View {
                 }
             }
 
+
+            Section("Payments") {
+                NavigationLink(actor == .owner ? "Open payment tracking" : "Open payment center") {
+                    PaymentsHubView(tenancy: tenancy, userID: userID, actor: actor)
+                }
+            }
+
             Section("Invoices") {
                 ForEach(viewModel.invoices) { invoice in
                     NavigationLink {

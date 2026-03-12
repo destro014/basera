@@ -9,6 +9,7 @@ protocol BillingRepositoryProtocol: Sendable {
     func createInvoice(from draft: InvoiceDraftInput, userID: String) async throws -> InvoiceRecord
     func approveInvoice(invoiceID: String, ownerID: String) async throws -> InvoiceRecord
     func rejectInvoice(invoiceID: String, ownerID: String, reason: String) async throws -> InvoiceRecord
+    func applyPayment(invoiceID: String, amount: Decimal, recordedBy userID: String) async throws -> InvoiceRecord
 }
 
 enum BillingRepositoryError: LocalizedError {

@@ -214,3 +214,16 @@ struct MockAgreementPDFService: AgreementPDFServiceProtocol {
         URL(string: "https://example.com/mock/agreement/\(agreementID).pdf")!
     }
 }
+
+struct MockPaymentGatewayService: PaymentGatewayServiceProtocol {
+    func createIntent(paymentID: String, method: PaymentRecord.Method, amount: Decimal) async throws -> PaymentGatewayIntent {
+        let amountString = NSDecimalNumber(decimal: amount).stringValue
+        let route = method == .eSewa ? "esewa" : "fonepay"
+        return PaymentGatewayIntent(
+            paymentID: paymentID,
+            method: method,
+            gatewayDisplayMessage: "Redirect to \(method.title) sandbox placeholder for NPR \(amountString).",
+            deeplinkPlaceholder: URL(string: "https://sandbox.basera.app/pay/\(route)?payment=\(paymentID)")
+        )
+    }
+}
