@@ -56,9 +56,109 @@ struct MockAuthRepository: AuthRepositoryProtocol {
     }
 }
 
-struct MockListingsRepository: ListingsRepositoryProtocol {
+actor MockListingsRepository: ListingsRepositoryProtocol {
+    private var listings: [Listing]
+
+    init(seedListings: [Listing] = PreviewData.featuredListings + PreviewData.ownerListings) {
+        self.listings = seedListings
+    }
+
     func fetchExploreListings() async throws -> [Listing] {
-        PreviewData.featuredListings
+        listings.filter { $0.status == .active || $0.status == .assigned || $0.status == .agreementPending || $0.status == .occupied }
+    }
+
+    func fetchOwnerListings(ownerID: String) async throws -> [Listing] {
+        listings
+            .filter { $0.ownerID == ownerID }
+            .sorted { $0.availableFrom < $1.availableFrom }
+    }
+
+    func createListing(_ listing: Listing) async throws {
+        listings.insert(listing, at: 0)
+    }
+
+    func updateListing(_ listing: Listing) async throws {
+        guard let index = listings.firstIndex(where: { $0.id == listing.id && $0.ownerID == listing.ownerID }) else { return }
+        listings[index] = listing
+    }
+
+    func pauseListing(id: String, ownerID: String) async throws {
+        guard let index = listings.firstIndex(where: { $0.id == id && $0.ownerID == ownerID }) else { return }
+        let original = listings[index]
+        listings[index] = Listing(
+            id: original.id,
+            ownerID: original.ownerID,
+            title: original.title,
+            description: original.description,
+            approximateLocation: original.approximateLocation,
+            exactAddress: original.location.exactAddress,
+            exactAddressMasked: original.exactAddressMasked,
+            monthlyRent: original.monthlyRent,
+            securityDeposit: original.pricing.securityDeposit,
+            bedroomCount: original.roomCount,
+            floor: original.floor,
+            propertyType: original.propertyType,
+            listingScope: original.listingScope,
+            furnishing: original.furnishing,
+            parkingAvailable: original.parkingAvailable,
+            wifiAvailable: original.wifiAvailable,
+            petAllowed: original.petAllowed,
+            tenantPreference: original.tenantPreference,
+            locationRadiusInKM: original.locationRadiusInKM,
+            availableFrom: original.availableFrom,
+            minimumStayMonths: original.minimumStayMonths,
+            utilities: original.utilities,
+            smokingAllowed: original.rules.smokingAllowed,
+            visitorsAllowed: original.rules.visitorsAllowed,
+            quietHours: original.rules.quietHours,
+            latitude: original.location.latitude,
+            longitude: original.location.longitude,
+            media: original.media,
+            status: .paused,
+            similarListingIDs: original.similarListingIDs
+        )
+    }
+
+    func duplicateListing(id: String, ownerID: String) async throws -> Listing {
+        guard let listing = listings.first(where: { $0.id == id && $0.ownerID == ownerID }) else {
+            return PreviewData.ownerListings[0]
+        }
+
+        let duplicated = Listing(
+            id: "\(listing.id)-COPY-\(Int.random(in: 100...999))",
+            ownerID: ownerID,
+            title: "Copy of \(listing.title)",
+            description: listing.description,
+            approximateLocation: listing.approximateLocation,
+            exactAddress: listing.location.exactAddress,
+            exactAddressMasked: listing.exactAddressMasked,
+            monthlyRent: listing.monthlyRent,
+            securityDeposit: listing.pricing.securityDeposit,
+            bedroomCount: listing.roomCount,
+            floor: listing.floor,
+            propertyType: listing.propertyType,
+            listingScope: listing.listingScope,
+            furnishing: listing.furnishing,
+            parkingAvailable: listing.parkingAvailable,
+            wifiAvailable: listing.wifiAvailable,
+            petAllowed: listing.petAllowed,
+            tenantPreference: listing.tenantPreference,
+            locationRadiusInKM: listing.locationRadiusInKM,
+            availableFrom: listing.availableFrom,
+            minimumStayMonths: listing.minimumStayMonths,
+            utilities: listing.utilities,
+            smokingAllowed: listing.rules.smokingAllowed,
+            visitorsAllowed: listing.rules.visitorsAllowed,
+            quietHours: listing.rules.quietHours,
+            latitude: listing.location.latitude,
+            longitude: listing.location.longitude,
+            media: listing.media,
+            status: .draft,
+            similarListingIDs: listing.similarListingIDs
+        )
+
+        listings.insert(duplicated, at: 0)
+        return duplicated
     }
 }
 
