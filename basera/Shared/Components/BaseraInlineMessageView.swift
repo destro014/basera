@@ -9,11 +9,11 @@ struct BaseraInlineMessageView: View {
         var color: Color {
             switch self {
             case .info:
-                AppTheme.Colors.info
+                AppTheme.Colors.infoPrimary
             case .success:
-                AppTheme.Colors.success
+                AppTheme.Colors.successPrimary
             case .error:
-                AppTheme.Colors.danger
+                AppTheme.Colors.errorPrimary
             }
         }
 
@@ -38,7 +38,7 @@ struct BaseraInlineMessageView: View {
                 .foregroundStyle(tone.color)
 
             Text(message)
-                .font(AppTheme.Typography.caption)
+                .baseraTextStyle(AppTheme.Typography.bodySmall)
                 .foregroundStyle(AppTheme.Colors.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }

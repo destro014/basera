@@ -6,7 +6,7 @@ struct BaseraBadge: View {
 
     var body: some View {
         Text(text)
-            .font(AppTheme.Typography.caption.weight(.semibold))
+            .baseraTextStyle(AppTheme.Typography.labelMedium)
             .padding(.horizontal, AppTheme.Spacing.small)
             .padding(.vertical, AppTheme.Spacing.xSmall)
             .background(tone.opacity(0.2))
@@ -17,8 +17,8 @@ struct BaseraBadge: View {
 
 #Preview {
     HStack {
-        BaseraBadge(text: "Active", tone: AppTheme.Colors.success)
-        BaseraBadge(text: "Draft", tone: AppTheme.Colors.warning)
+        BaseraBadge(text: "Active", tone: AppTheme.Colors.successPrimary)
+        BaseraBadge(text: "Draft", tone: AppTheme.Colors.warningPrimary)
     }
     .padding()
 }

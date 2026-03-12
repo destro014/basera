@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct HomeShellView: View {
+    @EnvironmentObject private var environment: AppEnvironment
     @StateObject private var viewModel: HomeShellViewModel
 
     let onSwitchRole: (UserRole) -> Void
@@ -15,8 +16,10 @@ struct HomeShellView: View {
     var body: some View {
         TabView {
             rolePrimaryTab
+
             SettingsView(
                 user: viewModel.user,
+                profileRepository: environment.profileRepository,
                 onSwitchRole: handleRoleSwitch,
                 onSignOut: onSignOut
             )
@@ -54,4 +57,5 @@ struct HomeShellView: View {
         onSwitchRole: { _ in },
         onSignOut: {}
     )
+    .environmentObject(AppEnvironment.bootstrap())
 }

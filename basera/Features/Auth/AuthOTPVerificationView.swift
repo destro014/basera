@@ -3,7 +3,6 @@ import SwiftUI
 struct AuthOTPVerificationView: View {
     @Binding var otpCode: String
 
-    let maskedPhoneNumber: String
     let validationMessage: String?
     let isLoading: Bool
     let canResendCode: Bool
@@ -13,10 +12,6 @@ struct AuthOTPVerificationView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.large) {
-            Text("Use the latest code sent to \(maskedPhoneNumber).")
-                .font(AppTheme.Typography.body)
-                .foregroundStyle(AppTheme.Colors.textSecondary)
-
             BaseraTextField(
                 title: "Verification code",
                 prompt: "6-digit OTP",
@@ -37,7 +32,7 @@ struct AuthOTPVerificationView: View {
 
                 BaseraButton(
                     title: resendButtonTitle,
-                    style: .secondary,
+                    style: .subtle,
                     isDisabled: canResendCode == false || isLoading,
                     action: onResend
                 )
@@ -49,7 +44,6 @@ struct AuthOTPVerificationView: View {
 #Preview("Ready") {
     AuthOTPVerificationView(
         otpCode: .constant(""),
-        maskedPhoneNumber: "+977 98******00",
         validationMessage: nil,
         isLoading: false,
         canResendCode: false,
@@ -63,7 +57,6 @@ struct AuthOTPVerificationView: View {
 #Preview("Loading") {
     AuthOTPVerificationView(
         otpCode: .constant("246810"),
-        maskedPhoneNumber: "+977 98******00",
         validationMessage: nil,
         isLoading: true,
         canResendCode: false,
@@ -77,7 +70,6 @@ struct AuthOTPVerificationView: View {
 #Preview("Error") {
     AuthOTPVerificationView(
         otpCode: .constant("000000"),
-        maskedPhoneNumber: "+977 98******00",
         validationMessage: "That OTP did not match. Check the 6-digit code and try again.",
         isLoading: false,
         canResendCode: true,

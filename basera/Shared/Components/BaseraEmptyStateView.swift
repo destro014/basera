@@ -10,9 +10,9 @@ struct BaseraEmptyStateView: View {
                 .font(.system(size: 28))
                 .foregroundStyle(AppTheme.Colors.textSecondary)
             Text(title)
-                .font(AppTheme.Typography.subtitle)
+                .baseraTextStyle(AppTheme.Typography.titleMedium)
             Text(message)
-                .font(AppTheme.Typography.body)
+                .baseraTextStyle(AppTheme.Typography.bodyLarge)
                 .foregroundStyle(AppTheme.Colors.textSecondary)
                 .multilineTextAlignment(.center)
         }

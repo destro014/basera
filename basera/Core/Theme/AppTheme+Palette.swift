@@ -6,85 +6,102 @@ extension AppTheme {
             Color(name)
         }
 
-        enum Primary {
-            static let darker = Palette.color("PrimaryDarker")
-            static let dark = Palette.color("PrimaryDark")
-            static let regular = Palette.color("PrimaryRegular")
-            static let light = Palette.color("PrimaryLight")
-            static let lighter = Palette.color("PrimaryLighter")
-            static let onPrimary = Palette.color("PrimaryOnPrimary")
+        enum Brand {
+            static let primary = Palette.color("brandPrimary")
+            static let primaryHover = Palette.color("brandPrimaryHover")
+            static let secondary = Palette.color("brandSecondary")
+            static let secondaryHover = Palette.color("brandSecondaryHover")
+            static let tertiary = Palette.color("brandTertiary")
+            static let tertiaryHover = Palette.color("brandTertiaryHover")
+            static let onPrimary = Palette.color("brandOnPrimary")
+            static let onSecondary = Palette.color("brandOnSecondary")
+            static let onTertiary = Palette.color("brandOnTertiary")
         }
 
         enum Success {
-            static let darker = Palette.color("SuccessDarker")
-            static let dark = Palette.color("SuccessDark")
-            static let regular = Palette.color("SuccessRegular")
-            static let light = Palette.color("SuccessLight")
-            static let lighter = Palette.color("SuccessLighter")
-            static let onSuccess = Palette.color("SuccessOnSuccess")
-        }
-
-        enum Info {
-            static let darker = Palette.color("InfoDarker")
-            static let dark = Palette.color("InfoDark")
-            static let regular = Palette.color("InfoRegular")
-            static let light = Palette.color("InfoLight")
-            static let lighter = Palette.color("InfoLighter")
-            static let onInfo = Palette.color("InfoOnInfo")
+            static let primary = Palette.color("successPrimary")
+            static let primaryHover = Palette.color("successPrimaryHover")
+            static let secondary = Palette.color("successSecondary")
+            static let secondaryHover = Palette.color("successSecondaryHover")
+            static let tertiary = Palette.color("successTertiary")
+            static let tertiaryHover = Palette.color("successTertiaryHover")
+            static let onPrimary = Palette.color("successOnPrimary")
+            static let onSecondary = Palette.color("successOnSecondary")
+            static let onTertiary = Palette.color("successOnTertiary")
         }
 
         enum Error {
-            static let darker = Palette.color("ErrorDarker")
-            static let dark = Palette.color("ErrorDark")
-            static let regular = Palette.color("ErrorRegular")
-            static let light = Palette.color("ErrorLight")
-            static let lighter = Palette.color("ErrorLighter")
-            static let onError = Palette.color("ErrorOnError")
+            static let primary = Palette.color("errorPrimary")
+            static let primaryHover = Palette.color("errorPrimaryHover")
+            static let secondary = Palette.color("errorSecondary")
+            static let secondaryHover = Palette.color("errorSecondaryHover")
+            static let tertiary = Palette.color("errorTertiary")
+            static let tertiaryHover = Palette.color("errorTertiaryHover")
+            static let onPrimary = Palette.color("errorOnPrimary")
+            static let onSecondary = Palette.color("errorOnSecondary")
+            static let onTertiary = Palette.color("errorOnTertiary")
         }
 
         enum Warning {
-            static let darker = Palette.color("WarningDarker")
-            static let dark = Palette.color("WarningDark")
-            static let regular = Palette.color("WarningRegular")
-            static let light = Palette.color("WarningLight")
-            static let lighter = Palette.color("WarningLighter")
-            static let onWarning = Palette.color("WarningOnWarning")
+            static let primary = Palette.color("warningPrimary")
+            static let primaryHover = Palette.color("warningPrimaryHover")
+            static let secondary = Palette.color("warningSecondary")
+            static let secondaryHover = Palette.color("warningSecondaryHover")
+            static let tertiary = Palette.color("warningTertiary")
+            static let tertiaryHover = Palette.color("warningTertiaryHover")
+            static let onPrimary = Palette.color("warningOnPrimary")
+            static let onSecondary = Palette.color("warningOnSecondary")
+            static let onTertiary = Palette.color("warningOnTertiary")
+        }
+
+        enum Info {
+            static let primary = Palette.color("infoPrimary")
+            static let primaryHover = Palette.color("infoPrimaryHover")
+            static let secondary = Palette.color("infoSecondary")
+            static let secondaryHover = Palette.color("infoSecondaryHover")
+            static let tertiary = Palette.color("infoTertiary")
+            static let tertiaryHover = Palette.color("infoTertiaryHover")
+            static let onPrimary = Palette.color("infoOnPrimary")
+            static let onSecondary = Palette.color("infoOnSecondary")
+            static let onTertiary = Palette.color("infoOnTertiary")
+        }
+
+        enum Neutral {
+            static let primary = Palette.color("neutralPrimary")
+            static let primaryHover = Palette.color("neutralPrimaryHover")
+            static let secondary = Palette.color("neutralSecondary")
+            static let secondaryHover = Palette.color("neutralSecondaryHover")
+            static let tertiary = Palette.color("neutralTertiary")
+            static let tertiaryHover = Palette.color("neutralTertiaryHover")
+            static let onPrimary = Palette.color("neutralOnPrimary")
+            static let onSecondary = Palette.color("neutralOnSecondary")
+            static let onTertiary = Palette.color("neutralOnTertiary")
         }
 
         enum Text {
-            static let primary = Palette.color("TextPrimary")
-            static let secondary = Palette.color("TextSecondary")
-            static let disabled = Palette.color("TextDisabled")
-        }
-
-        enum Surface {
-            static let darker = Palette.color("SurfaceDarker")
-            static let dark = Palette.color("SurfaceDark")
-            static let regular = Palette.color("SurfaceRegular")
-            static let opaque = Palette.color("SurfaceOpaque")
-        }
-
-        enum OnSurface {
-            static let darker = Palette.color("OnSurfaceDarker")
-            static let dark = Palette.color("OnSurfaceDark")
-            static let regular = Palette.color("OnSurfaceRegular")
-            static let onOpaque = Palette.color("OnSurfaceOnOpaque")
-        }
-
-        enum Border {
-            static let dark = Palette.color("BorderDark")
-            static let regular = Palette.color("BorderRegular")
-            static let light = Palette.color("BorderLight")
-        }
-
-        enum Separator {
-            static let regular = Palette.color("SeparatorRegular")
-            static let light = Palette.color("SeparatorLight")
+            static let primary = Palette.color("textPrimary")
+            static let secondary = Palette.color("textSecondary")
+            static let disabled = Palette.color("textDisabled")
         }
 
         enum Background {
-            static let regular = Palette.color("BackgroundRegular")
-            static let light = Palette.color("BackgroundLight")
+            static let primary = Palette.color("backgroundPrimary")
+        }
+
+        enum Surface {
+            static let primary = Palette.color("surfacePrimary")
+            static let disabled = Palette.color("surfaceDisabled")
+        }
+
+        enum OnSurface {
+            static let primary = Palette.color("onSurfacePrimary")
+            static let disabled = Palette.color("onSurfaceDisabled")
+        }
+
+        enum Border {
+            static let primary = Palette.color("borderPrimary")
+            static let secondary = Palette.color("borderSecondary")
+            static let disabled = Palette.color("borderDisabled")
         }
     }
 }

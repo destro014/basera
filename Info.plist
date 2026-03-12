@@ -6,5 +6,20 @@
 	<array>
 		<dict/>
 	</array>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Fonts/Rubik-Medium.ttf</string>
+		<string>Fonts/Rubik-Regular.ttf</string>
+		<string>Fonts/Rubik-SemiBold.ttf</string>
+	</array>
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string>backgroundPrimary</string>
+		<key>UIImageName</key>
+		<string>logo-vertical</string>
+		<key>UIImageRespectsSafeAreaInsets</key>
+		<true/>
+	</dict>
 </dict>
 </plist>

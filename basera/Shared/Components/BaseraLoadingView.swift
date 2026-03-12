@@ -6,7 +6,9 @@ struct BaseraLoadingView: View {
     var body: some View {
         VStack(spacing: AppTheme.Spacing.medium) {
             ProgressView()
+                .tint(AppTheme.Colors.brandPrimary)
             Text(message)
+                .baseraTextStyle(AppTheme.Typography.bodyLarge)
                 .foregroundStyle(AppTheme.Colors.textSecondary)
         }
         .padding()

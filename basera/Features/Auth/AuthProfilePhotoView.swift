@@ -16,42 +16,38 @@ struct AuthProfilePhotoView: View {
             VStack(alignment: .center, spacing: AppTheme.Spacing.medium) {
                 ZStack {
                     Circle()
-                        .fill(hasSelectedPhoto ? AppTheme.Colors.brandSecondary.opacity(0.14) : AppTheme.Colors.brandPrimary.opacity(0.12))
+                        .fill(hasSelectedPhoto ? AppTheme.Colors.brandTertiary : AppTheme.Colors.backgroundPrimary)
                         .frame(width: 120, height: 120)
 
                     Image(systemName: hasSelectedPhoto ? "checkmark.circle.fill" : "camera.fill")
                         .font(.system(size: 36, weight: .semibold))
-                        .foregroundStyle(hasSelectedPhoto ? AppTheme.Colors.brandSecondary : AppTheme.Colors.brandPrimary)
+                        .foregroundStyle(hasSelectedPhoto ? AppTheme.Colors.brandPrimary : AppTheme.Colors.brandPrimary)
                 }
 
                 Text(hasSelectedPhoto ? "Photo selected and ready to upload." : "No profile photo selected yet.")
-                    .font(AppTheme.Typography.body.weight(.semibold))
+                    .baseraTextStyle(AppTheme.Typography.titleMedium)
                     .foregroundStyle(AppTheme.Colors.textPrimary)
 
                 Text("Your photo will show in chat, agreement history, and profile screens. You can update it later.")
-                    .font(AppTheme.Typography.body)
+                    .baseraTextStyle(AppTheme.Typography.bodyLarge)
                     .foregroundStyle(AppTheme.Colors.textSecondary)
                     .multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, AppTheme.Spacing.small)
-
-            Button {
-                isPresentingFileImporter = true
-            } label: {
-                Label(hasSelectedPhoto ? "Choose another photo" : "Choose a photo", systemImage: "photo.on.rectangle")
-                    .font(AppTheme.Typography.body.weight(.semibold))
-                    .foregroundStyle(AppTheme.Colors.brandPrimary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, AppTheme.Spacing.medium)
-                    .background(AppTheme.Colors.surface)
-                    .overlay {
-                        RoundedRectangle(cornerRadius: AppTheme.Radius.medium, style: .continuous)
-                            .stroke(AppTheme.Colors.borderLight, lineWidth: 1)
-                    }
-                    .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.medium, style: .continuous))
+            .padding(AppTheme.Spacing.large)
+            .background(AppTheme.Colors.surfacePrimary)
+            .overlay {
+                RoundedRectangle(cornerRadius: AppTheme.Radius.large, style: .continuous)
+                    .stroke(AppTheme.Colors.borderSecondary, lineWidth: 1)
             }
-            .buttonStyle(.plain)
+            .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.large, style: .continuous))
+
+            BaseraButton(
+                title: hasSelectedPhoto ? "Choose another photo" : "Choose a photo",
+                style: .secondary
+            ) {
+                isPresentingFileImporter = true
+            }
 
             VStack(spacing: AppTheme.Spacing.medium) {
                 BaseraButton(

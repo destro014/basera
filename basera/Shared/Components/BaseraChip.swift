@@ -5,7 +5,7 @@ struct BaseraChip: View {
 
     var body: some View {
         Text(text)
-            .font(AppTheme.Typography.caption)
+            .baseraTextStyle(AppTheme.Typography.labelLarge)
             .padding(.horizontal, AppTheme.Spacing.medium)
             .padding(.vertical, AppTheme.Spacing.small)
             .background(AppTheme.Colors.brandSecondary.opacity(0.15))

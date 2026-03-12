@@ -5,7 +5,6 @@ enum AuthFlowStep: Int, CaseIterable, Identifiable {
     case phoneNumber
     case otpVerification
     case roleSelection
-    case consent
     case profilePhoto
 
     var id: Int { rawValue }
@@ -20,8 +19,6 @@ enum AuthFlowStep: Int, CaseIterable, Identifiable {
             "Verify your OTP"
         case .roleSelection:
             "Choose your role"
-        case .consent:
-            "Review terms and privacy"
         case .profilePhoto:
             "Add a profile photo"
         }
@@ -37,8 +34,6 @@ enum AuthFlowStep: Int, CaseIterable, Identifiable {
             "Enter the 6-digit code we sent to keep your Basera account secure."
         case .roleSelection:
             "Pick how you want to use Basera today. If you choose both, you can switch roles later."
-        case .consent:
-            "Basera needs your consent before unlocking chats, agreements, and billing history."
         case .profilePhoto:
             "Adding a photo is optional, but it helps renters and owners recognise each other faster."
         }
@@ -54,8 +49,6 @@ enum AuthFlowStep: Int, CaseIterable, Identifiable {
             "OTP"
         case .roleSelection:
             "Role"
-        case .consent:
-            "Consent"
         case .profilePhoto:
             "Photo"
         }
@@ -181,8 +174,6 @@ enum AuthError: LocalizedError, Equatable {
     case invalidOTP
     case resendNotReady(secondsRemaining: Int)
     case roleSelectionRequired
-    case termsConsentRequired
-    case privacyConsentRequired
     case onboardingSessionExpired
     case photoSelectionFailed
     case unexpected
@@ -190,7 +181,7 @@ enum AuthError: LocalizedError, Equatable {
     var errorDescription: String? {
         switch self {
         case .invalidPhoneNumber:
-            "Enter a valid Nepal mobile number. Example: +977 98XXXXXXXX."
+            "Enter a valid Nepal mobile number. Example: 98XXXXXXXX."
         case .otpCodeRequired:
             "Enter the 6-digit OTP before continuing."
         case .invalidOTP:
@@ -199,10 +190,6 @@ enum AuthError: LocalizedError, Equatable {
             "You can request another OTP in \(secondsRemaining) seconds."
         case .roleSelectionRequired:
             "Choose renter, owner, or both before continuing."
-        case .termsConsentRequired:
-            "You need to accept the Basera Terms of Service to continue."
-        case .privacyConsentRequired:
-            "You need to accept the Basera Privacy Policy to continue."
         case .onboardingSessionExpired:
             "Your verification session expired. Start again with your phone number."
         case .photoSelectionFailed:

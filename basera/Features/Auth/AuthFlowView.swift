@@ -11,99 +11,98 @@ struct AuthFlowView: View {
     }
 
     var body: some View {
-        AuthOnboardingContainerView(
-            step: viewModel.step,
-            notice: viewModel.notice,
-            canGoBack: viewModel.canGoBack,
-            onBack: viewModel.goBack
-        ) {
-            content
+        Group {
+            if viewModel.step == .introduction {
+                AuthOnboardingContainerView(step: viewModel.step, notice: viewModel.notice) {
+                    AuthIntroductionView(onContinue: viewModel.continueFromIntroduction)
+                }
+            } else {
+                NavigationStack(path: $viewModel.navigationPath) {
+                    AuthOnboardingContainerView(step: .phoneNumber, notice: viewModel.notice) {
+                        AuthPhoneEntryView(
+                            phoneNumber: Binding(
+                                get: { viewModel.phoneNumber },
+                                set: { viewModel.updatePhoneNumber($0) }
+                            ),
+                            validationMessage: viewModel.phoneFieldError,
+                            isLoading: viewModel.isLoading,
+                            onSubmit: {
+                                Task {
+                                    await viewModel.submitPhoneNumber()
+                                }
+                            }
+                        )
+                    }
+                    .navigationDestination(for: AuthFlowStep.self) { step in
+                        destinationView(for: step)
+                    }
+                }
+            }
         }
         .animation(.easeInOut(duration: 0.24), value: viewModel.step)
     }
 
     @ViewBuilder
-    private var content: some View {
-        switch viewModel.step {
-        case .introduction:
-            AuthIntroductionView(onContinue: viewModel.continueFromIntroduction)
-        case .phoneNumber:
-            AuthPhoneEntryView(
-                phoneNumber: Binding(
-                    get: { viewModel.phoneNumber },
-                    set: { viewModel.updatePhoneNumber($0) }
-                ),
-                validationMessage: viewModel.phoneFieldError,
-                isLoading: viewModel.isLoading,
-                onSubmit: {
-                    Task {
-                        await viewModel.submitPhoneNumber()
-                    }
-                }
-            )
+    private func destinationView(for step: AuthFlowStep) -> some View {
+        switch step {
         case .otpVerification:
-            AuthOTPVerificationView(
-                otpCode: Binding(
-                    get: { viewModel.otpCode },
-                    set: { viewModel.updateOTPCode($0) }
-                ),
-                maskedPhoneNumber: viewModel.maskedPhoneNumber,
-                validationMessage: viewModel.otpFieldError,
-                isLoading: viewModel.isLoading,
-                canResendCode: viewModel.canResendCode,
-                resendButtonTitle: viewModel.resendButtonTitle,
-                onVerify: {
-                    Task {
-                        if let user = await viewModel.verifyOTP() {
-                            onAuthenticated(user)
+            AuthOnboardingContainerView(step: step, notice: viewModel.notice) {
+                AuthOTPVerificationView(
+                    otpCode: Binding(
+                        get: { viewModel.otpCode },
+                        set: { viewModel.updateOTPCode($0) }
+                    ),
+                    validationMessage: viewModel.otpFieldError,
+                    isLoading: viewModel.isLoading,
+                    canResendCode: viewModel.canResendCode,
+                    resendButtonTitle: viewModel.resendButtonTitle,
+                    onVerify: {
+                        Task {
+                            if let user = await viewModel.verifyOTP() {
+                                onAuthenticated(user)
+                            }
+                        }
+                    },
+                    onResend: {
+                        Task {
+                            await viewModel.resendOTP()
                         }
                     }
-                },
-                onResend: {
-                    Task {
-                        await viewModel.resendOTP()
-                    }
-                }
-            )
+                )
+            }
         case .roleSelection:
-            AuthRoleSelectionView(
-                selectedOption: viewModel.selectedRoleOption,
-                onSelect: viewModel.selectRoleOption,
-                onContinue: viewModel.continueFromRoleSelection
-            )
-        case .consent:
-            AuthConsentView(
-                acceptsTerms: Binding(
-                    get: { viewModel.acceptsTerms },
-                    set: { viewModel.setAcceptsTerms($0) }
-                ),
-                acceptsPrivacy: Binding(
-                    get: { viewModel.acceptsPrivacy },
-                    set: { viewModel.setAcceptsPrivacy($0) }
-                ),
-                onContinue: viewModel.continueFromConsent
-            )
+            AuthOnboardingContainerView(step: step, notice: viewModel.notice) {
+                AuthRoleSelectionView(
+                    selectedOption: viewModel.selectedRoleOption,
+                    onSelect: viewModel.selectRoleOption,
+                    onContinue: viewModel.continueFromRoleSelection
+                )
+            }
         case .profilePhoto:
-            AuthProfilePhotoView(
-                hasSelectedPhoto: viewModel.hasSelectedPhoto,
-                isLoading: viewModel.isLoading,
-                onPhotoSelected: viewModel.handleSelectedPhotoData,
-                onPhotoSelectionFailure: viewModel.handlePhotoSelectionFailure,
-                onComplete: {
-                    Task {
-                        if let user = await viewModel.completeOnboarding() {
-                            onAuthenticated(user)
+            AuthOnboardingContainerView(step: step, notice: viewModel.notice) {
+                AuthProfilePhotoView(
+                    hasSelectedPhoto: viewModel.hasSelectedPhoto,
+                    isLoading: viewModel.isLoading,
+                    onPhotoSelected: viewModel.handleSelectedPhotoData,
+                    onPhotoSelectionFailure: viewModel.handlePhotoSelectionFailure,
+                    onComplete: {
+                        Task {
+                            if let user = await viewModel.completeOnboarding() {
+                                onAuthenticated(user)
+                            }
+                        }
+                    },
+                    onSkip: {
+                        Task {
+                            if let user = await viewModel.skipPhotoAndComplete() {
+                                onAuthenticated(user)
+                            }
                         }
                     }
-                },
-                onSkip: {
-                    Task {
-                        if let user = await viewModel.skipPhotoAndComplete() {
-                            onAuthenticated(user)
-                        }
-                    }
-                }
-            )
+                )
+            }
+        default:
+            EmptyView()
         }
     }
 }

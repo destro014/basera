@@ -27,7 +27,7 @@ enum NepalPhoneNumberFormatter {
             return normalizedPhoneNumber
         }
 
-        return "+977 \(localNumber)"
+        return localNumber
     }
 
     static func maskedPhoneNumber(from normalizedPhoneNumber: String) -> String {

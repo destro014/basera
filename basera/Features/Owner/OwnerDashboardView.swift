@@ -7,8 +7,10 @@ struct OwnerDashboardView: View {
                 BaseraCard {
                     VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
                         Text("Owner Command Center")
-                            .font(AppTheme.Typography.subtitle)
+                            .baseraTextStyle(AppTheme.Typography.titleLarge)
+                            .foregroundStyle(AppTheme.Colors.textPrimary)
                         Text("Manage listings, approvals, agreements, and monthly Basera invoices.")
+                            .baseraTextStyle(AppTheme.Typography.bodyLarge)
                             .foregroundStyle(AppTheme.Colors.textSecondary)
                     }
                 }

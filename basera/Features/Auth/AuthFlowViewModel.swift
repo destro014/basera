@@ -1,18 +1,20 @@
 import Combine
 import Foundation
+import SwiftUI
 
 @MainActor
 final class AuthFlowViewModel: ObservableObject {
-    @Published private(set) var step: AuthFlowStep = .introduction
+    @Published private(set) var step: AuthFlowStep
     @Published var phoneNumber: String = ""
     @Published var otpCode: String = ""
     @Published var selectedRoles: Set<UserRole> = []
-    @Published var acceptsTerms: Bool = false
-    @Published var acceptsPrivacy: Bool = false
     @Published private(set) var selectedPhotoData: Data?
     @Published private(set) var challenge: AuthOTPChallenge?
     @Published private(set) var notice: AuthStepNotice?
     @Published private(set) var isLoading = false
+    @Published var navigationPath = NavigationPath()
+
+    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
     @Published private(set) var resendSecondsRemaining = 0
 
     private let authRepository: AuthRepositoryProtocol
@@ -21,18 +23,13 @@ final class AuthFlowViewModel: ObservableObject {
 
     init(authRepository: AuthRepositoryProtocol) {
         self.authRepository = authRepository
+
+        let seenOnboarding = UserDefaults.standard.bool(forKey: "hasSeenOnboarding")
+        self.step = seenOnboarding ? .phoneNumber : .introduction
     }
 
     deinit {
         resendCountdownTask?.cancel()
-    }
-
-    var canGoBack: Bool {
-        step != .introduction && isLoading == false
-    }
-
-    var maskedPhoneNumber: String {
-        challenge?.maskedPhoneNumber ?? NepalPhoneNumberFormatter.maskedPhoneNumber(from: challenge?.phoneNumber ?? phoneNumber)
     }
 
     var canResendCode: Bool {
@@ -60,6 +57,7 @@ final class AuthFlowViewModel: ObservableObject {
     }
 
     func continueFromIntroduction() {
+        hasSeenOnboarding = true
         notice = nil
         step = .phoneNumber
     }
@@ -77,16 +75,6 @@ final class AuthFlowViewModel: ObservableObject {
     func selectRoleOption(_ option: UserRoleSelectionOption) {
         selectedRoles = option.roles
         clearErrorNotice(for: .roleSelection)
-    }
-
-    func setAcceptsTerms(_ acceptsTerms: Bool) {
-        self.acceptsTerms = acceptsTerms
-        clearErrorNotice(for: .consent)
-    }
-
-    func setAcceptsPrivacy(_ acceptsPrivacy: Bool) {
-        self.acceptsPrivacy = acceptsPrivacy
-        clearErrorNotice(for: .consent)
     }
 
     func handleSelectedPhotoData(_ data: Data) {
@@ -116,6 +104,7 @@ final class AuthFlowViewModel: ObservableObject {
             phoneNumber = NepalPhoneNumberFormatter.formattedDisplayString(from: normalizedPhoneNumber)
             otpCode = ""
             step = .otpVerification
+            navigationPath.append(AuthFlowStep.otpVerification)
             notice = AuthStepNotice(
                 style: .info,
                 message: "We sent a 6-digit OTP to \(challenge.maskedPhoneNumber)."
@@ -155,6 +144,7 @@ final class AuthFlowViewModel: ObservableObject {
             case .requiresOnboarding(let session):
                 verifiedSession = session
                 step = .roleSelection
+                navigationPath.append(AuthFlowStep.roleSelection)
                 notice = AuthStepNotice(
                     style: .success,
                     message: "Phone verified. Finish a few onboarding steps to unlock Basera."
@@ -208,21 +198,8 @@ final class AuthFlowViewModel: ObservableObject {
             return
         }
 
-        step = .consent
-        notice = nil
-    }
-
-    func continueFromConsent() {
-        guard acceptsTerms else {
-            notice = AuthStepNotice(style: .error, message: AuthError.termsConsentRequired.userMessage)
-            return
-        }
-        guard acceptsPrivacy else {
-            notice = AuthStepNotice(style: .error, message: AuthError.privacyConsentRequired.userMessage)
-            return
-        }
-
         step = .profilePhoto
+        navigationPath.append(AuthFlowStep.profilePhoto)
         notice = AuthStepNotice(
             style: .info,
             message: "You can skip the photo for now and update it later from your profile."
@@ -238,8 +215,8 @@ final class AuthFlowViewModel: ObservableObject {
 
         let submission = AuthOnboardingSubmission(
             selectedRoles: selectedRoles,
-            acceptsTerms: acceptsTerms,
-            acceptsPrivacy: acceptsPrivacy,
+            acceptsTerms: true,
+            acceptsPrivacy: true,
             profilePhotoData: selectedPhotoData
         )
 
@@ -262,24 +239,12 @@ final class AuthFlowViewModel: ObservableObject {
         return await completeOnboarding()
     }
 
-    func goBack() {
-        guard canGoBack else { return }
-
-        notice = nil
-
-        switch step {
-        case .introduction:
-            break
-        case .phoneNumber:
-            step = .introduction
-        case .otpVerification:
+    func handleNavigationPathChange() {
+        guard !navigationPath.isEmpty else {
+            // Path is empty — user popped back to root (phone number)
             step = .phoneNumber
-        case .roleSelection:
-            step = .otpVerification
-        case .consent:
-            step = .roleSelection
-        case .profilePhoto:
-            step = .consent
+            notice = nil
+            return
         }
     }
 

@@ -6,8 +6,8 @@ struct BaseraAvatar: View {
 
     var body: some View {
         Text(initials)
-            .font(AppTheme.Typography.body.weight(.bold))
-            .foregroundStyle(AppTheme.Colors.onPrimary)
+            .baseraTextStyle(AppTheme.Typography.titleMedium)
+            .foregroundStyle(AppTheme.Colors.brandOnPrimary)
             .frame(width: size, height: size)
             .background(AppTheme.Colors.brandPrimary)
             .clipShape(Circle())

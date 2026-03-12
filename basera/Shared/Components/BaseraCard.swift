@@ -7,7 +7,7 @@ struct BaseraCard<Content: View>: View {
         content
             .padding(AppTheme.Spacing.large)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(AppTheme.Colors.cardBackground)
+            .background(AppTheme.Colors.surfacePrimary)
             .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.large, style: .continuous))
     }
 }
@@ -15,6 +15,8 @@ struct BaseraCard<Content: View>: View {
 #Preview {
     BaseraCard {
         Text("Basera card content")
+            .baseraTextStyle(AppTheme.Typography.bodyLarge)
+            .foregroundStyle(AppTheme.Colors.textPrimary)
     }
     .padding()
 }

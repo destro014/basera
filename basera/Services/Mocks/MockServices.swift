@@ -77,12 +77,6 @@ actor MockAuthService: AuthServiceProtocol {
         guard roles.isEmpty == false else {
             throw AuthError.roleSelectionRequired
         }
-        guard acceptsTerms else {
-            throw AuthError.termsConsentRequired
-        }
-        guard acceptsPrivacy else {
-            throw AuthError.privacyConsentRequired
-        }
 
         try await simulateNetworkDelay()
 
