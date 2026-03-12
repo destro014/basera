@@ -1,32 +1,28 @@
 import SwiftUI
 
 struct OwnerDashboardView: View {
-    var body: some View {
-        NavigationView {
-            VStack(spacing: AppTheme.Spacing.large) {
-                BaseraCard {
-                    VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
-                        Text("Owner Command Center")
-                            .baseraTextStyle(AppTheme.Typography.titleLarge)
-                            .foregroundStyle(AppTheme.Colors.textPrimary)
-                        Text("Manage listings, approvals, agreements, and monthly Basera invoices.")
-                            .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                            .foregroundStyle(AppTheme.Colors.textSecondary)
-                    }
-                }
+    let ownerID: String
 
-                BaseraEmptyStateView(
-                    title: "No active tenants",
-                    message: "Assigned renters and move-out actions will appear here."
-                )
+    var body: some View {
+        VStack(spacing: AppTheme.Spacing.large) {
+            BaseraCard {
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+                    Text("Owner Command Center")
+                        .baseraTextStyle(AppTheme.Typography.titleLarge)
+                        .foregroundStyle(AppTheme.Colors.textPrimary)
+                    Text("Create, edit, pause, and duplicate listings while keeping exact address private until approval.")
+                        .baseraTextStyle(AppTheme.Typography.bodyLarge)
+                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                }
             }
-            .padding()
-            .navigationTitle("Basera Owner")
+            .padding(.horizontal)
+
+            MyListingsView(ownerID: ownerID)
         }
-        .navigationViewStyle(StackNavigationViewStyle())
     }
 }
 
 #Preview {
-    OwnerDashboardView()
+    OwnerDashboardView(ownerID: "preview-user-001")
+        .environmentObject(AppEnvironment.bootstrap())
 }

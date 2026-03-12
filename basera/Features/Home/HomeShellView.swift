@@ -38,7 +38,7 @@ struct HomeShellView: View {
                     Label("Renter", systemImage: "house")
                 }
         case .owner:
-            OwnerDashboardView()
+            OwnerDashboardView(ownerID: viewModel.user.id)
                 .tabItem {
                     Label("Owner", systemImage: "building.2")
                 }
