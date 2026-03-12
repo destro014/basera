@@ -8,11 +8,14 @@ final class AppEnvironment: ObservableObject {
     let storageService: StorageServiceProtocol
     let notificationsService: NotificationsServiceProtocol
     let remoteConfigService: RemoteConfigServiceProtocol
+    let agreementConfirmationService: AgreementConfirmationServiceProtocol
+    let agreementPDFService: AgreementPDFServiceProtocol
 
     let authRepository: AuthRepositoryProtocol
     let listingsRepository: ListingsRepositoryProtocol
     let profileRepository: ProfileRepositoryProtocol
     let interestsRepository: InterestsRepositoryProtocol
+    let agreementsRepository: AgreementsRepositoryProtocol
 
     @Published var currentUser: AppUser?
 
@@ -22,20 +25,26 @@ final class AppEnvironment: ObservableObject {
         storageService: StorageServiceProtocol,
         notificationsService: NotificationsServiceProtocol,
         remoteConfigService: RemoteConfigServiceProtocol,
+        agreementConfirmationService: AgreementConfirmationServiceProtocol,
+        agreementPDFService: AgreementPDFServiceProtocol,
         authRepository: AuthRepositoryProtocol,
         listingsRepository: ListingsRepositoryProtocol,
         profileRepository: ProfileRepositoryProtocol,
-        interestsRepository: InterestsRepositoryProtocol
+        interestsRepository: InterestsRepositoryProtocol,
+        agreementsRepository: AgreementsRepositoryProtocol
     ) {
         self.authService = authService
         self.firestoreService = firestoreService
         self.storageService = storageService
         self.notificationsService = notificationsService
         self.remoteConfigService = remoteConfigService
+        self.agreementConfirmationService = agreementConfirmationService
+        self.agreementPDFService = agreementPDFService
         self.authRepository = authRepository
         self.listingsRepository = listingsRepository
         self.profileRepository = profileRepository
         self.interestsRepository = interestsRepository
+        self.agreementsRepository = agreementsRepository
     }
 
     static func bootstrap() -> AppEnvironment {
@@ -44,6 +53,8 @@ final class AppEnvironment: ObservableObject {
         let storageService = MockStorageService()
         let notificationsService = MockNotificationsService()
         let remoteConfigService = MockRemoteConfigService()
+        let agreementConfirmationService = MockAgreementConfirmationService()
+        let agreementPDFService = MockAgreementPDFService()
 
         let authRepository = MockAuthRepository(
             authService: authService,
@@ -52,6 +63,7 @@ final class AppEnvironment: ObservableObject {
         let listingsRepository = MockListingsRepository()
         let profileRepository = MockProfileRepository()
         let interestsRepository = MockInterestsRepository()
+        let agreementsRepository = MockAgreementsRepository(confirmationService: agreementConfirmationService)
 
         return AppEnvironment(
             authService: authService,
@@ -59,10 +71,13 @@ final class AppEnvironment: ObservableObject {
             storageService: storageService,
             notificationsService: notificationsService,
             remoteConfigService: remoteConfigService,
+            agreementConfirmationService: agreementConfirmationService,
+            agreementPDFService: agreementPDFService,
             authRepository: authRepository,
             listingsRepository: listingsRepository,
             profileRepository: profileRepository,
-            interestsRepository: interestsRepository
+            interestsRepository: interestsRepository,
+            agreementsRepository: agreementsRepository
         )
     }
 }

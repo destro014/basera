@@ -217,12 +217,17 @@ struct RenterDashboardView: View {
     }
 
     private var renterWorkflowLinks: some View {
-        HStack {
-            NavigationLink("My Interest Requests") {
-                RenterInterestsView(renterID: "preview-user-001")
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+            HStack {
+                NavigationLink("My Interest Requests") {
+                    RenterInterestsView(renterID: "preview-user-001")
+                }
+                NavigationLink("Conversations") {
+                    ConversationListView(userID: "preview-user-001")
+                }
             }
-            NavigationLink("Conversations") {
-                ConversationListView(userID: "preview-user-001")
+            NavigationLink("My Agreement") {
+                AgreementHubView(currentUserID: "renter-103", party: .renter)
             }
         }
         .baseraTextStyle(AppTheme.Typography.bodyMedium)

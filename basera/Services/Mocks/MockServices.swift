@@ -184,3 +184,33 @@ final class MockRemoteConfigService: RemoteConfigServiceProtocol {
         values[key]
     }
 }
+
+actor MockAgreementConfirmationService: AgreementConfirmationServiceProtocol {
+    private var challenges: [String: String] = [:]
+
+    func requestOTP(agreementID: String, party: AgreementRecord.Party) async throws -> AgreementOTPChallenge {
+        let challengeID = UUID().uuidString
+        challenges[challengeID] = "123456"
+        return AgreementOTPChallenge(
+            challengeID: challengeID,
+            agreementID: agreementID,
+            party: party,
+            expiresAt: Date().addingTimeInterval(120)
+        )
+    }
+
+    func verifyOTP(challengeID: String, code: String) async throws -> Bool {
+        defer { challenges[challengeID] = nil }
+        return challenges[challengeID] == code
+    }
+}
+
+struct MockAgreementPDFService: AgreementPDFServiceProtocol {
+    func generatePDF(for agreement: AgreementRecord) async throws -> URL {
+        URL(string: "https://example.com/mock/agreement/\(agreement.id).pdf")!
+    }
+
+    func downloadPDF(agreementID: String) async throws -> URL {
+        URL(string: "https://example.com/mock/agreement/\(agreementID).pdf")!
+    }
+}

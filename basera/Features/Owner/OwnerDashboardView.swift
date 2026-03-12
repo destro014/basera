@@ -18,12 +18,17 @@ struct OwnerDashboardView: View {
             .padding(.horizontal)
 
             BaseraCard {
-                HStack {
-                    NavigationLink("Interested Renters") {
-                        OwnerInterestedRentersView(listingID: "OL-200", ownerID: ownerID)
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+                    HStack {
+                        NavigationLink("Interested Renters") {
+                            OwnerInterestedRentersView(listingID: "OL-200", ownerID: ownerID)
+                        }
+                        NavigationLink("Owner Conversations") {
+                            ConversationListView(userID: ownerID)
+                        }
                     }
-                    NavigationLink("Owner Conversations") {
-                        ConversationListView(userID: ownerID)
+                    NavigationLink("Agreement Management") {
+                        AgreementHubView(currentUserID: ownerID, party: .owner)
                     }
                 }
                 .baseraTextStyle(AppTheme.Typography.bodyMedium)
