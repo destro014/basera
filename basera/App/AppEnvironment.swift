@@ -12,6 +12,7 @@ final class AppEnvironment: ObservableObject {
     let authRepository: AuthRepositoryProtocol
     let listingsRepository: ListingsRepositoryProtocol
     let profileRepository: ProfileRepositoryProtocol
+    let interestsRepository: InterestsRepositoryProtocol
 
     @Published var currentUser: AppUser?
 
@@ -23,7 +24,8 @@ final class AppEnvironment: ObservableObject {
         remoteConfigService: RemoteConfigServiceProtocol,
         authRepository: AuthRepositoryProtocol,
         listingsRepository: ListingsRepositoryProtocol,
-        profileRepository: ProfileRepositoryProtocol
+        profileRepository: ProfileRepositoryProtocol,
+        interestsRepository: InterestsRepositoryProtocol
     ) {
         self.authService = authService
         self.firestoreService = firestoreService
@@ -33,6 +35,7 @@ final class AppEnvironment: ObservableObject {
         self.authRepository = authRepository
         self.listingsRepository = listingsRepository
         self.profileRepository = profileRepository
+        self.interestsRepository = interestsRepository
     }
 
     static func bootstrap() -> AppEnvironment {
@@ -48,6 +51,7 @@ final class AppEnvironment: ObservableObject {
         )
         let listingsRepository = MockListingsRepository()
         let profileRepository = MockProfileRepository()
+        let interestsRepository = MockInterestsRepository()
 
         return AppEnvironment(
             authService: authService,
@@ -57,7 +61,8 @@ final class AppEnvironment: ObservableObject {
             remoteConfigService: remoteConfigService,
             authRepository: authRepository,
             listingsRepository: listingsRepository,
-            profileRepository: profileRepository
+            profileRepository: profileRepository,
+            interestsRepository: interestsRepository
         )
     }
 }

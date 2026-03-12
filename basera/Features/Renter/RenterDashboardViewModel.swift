@@ -41,7 +41,7 @@ final class RenterDashboardViewModel: ObservableObject {
     @Published var filters = ListingFilters()
     @Published private(set) var allListings: [Listing] = []
     @Published private(set) var favoriteListingIDs: Set<String> = ["L-102"]
-    @Published private(set) var interestByListingID: [String: Listing.InterestState] = ["L-104": .requested]
+    @Published private(set) var interestByListingID: [String: InterestRequest.Status] = [:]
 
     var filteredListings: [Listing] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
@@ -113,12 +113,17 @@ final class RenterDashboardViewModel: ObservableObject {
     }
 
     func interestState(for listingID: String) -> Listing.InterestState {
-        interestByListingID[listingID] ?? .none
+        switch interestByListingID[listingID] {
+        case .pending: return .requested
+        case .accepted: return .approved
+        case .rejected: return .declined
+        case nil: return .none
+        }
     }
 
-    func sendInterest(for listingID: String) {
-        guard interestState(for: listingID) == .none else { return }
-        interestByListingID[listingID] = .requested
+    func refreshInterestStates(renterID: String, using repository: InterestsRepositoryProtocol) async {
+        guard let interests = try? await repository.fetchInterests(for: renterID) else { return }
+        interestByListingID = Dictionary(uniqueKeysWithValues: interests.map { ($0.listingID, $0.status) })
     }
 
     func similarListings(for listing: Listing) -> [Listing] {
