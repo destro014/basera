@@ -194,3 +194,42 @@ extension PreviewData {
         ]
     ]
 }
+
+
+extension PreviewData {
+    static let mockVisits: [PropertyVisitSchedule] = [
+        PropertyVisitSchedule(
+            id: "VIS-100",
+            listingID: "OL-200",
+            ownerID: "preview-user-001",
+            renterID: "renter-103",
+            note: "Please call when you arrive near Gate 2.",
+            scheduledAt: Calendar.current.date(byAdding: .day, value: 1, to: .now) ?? .now,
+            status: .proposed,
+            updatedAt: .now
+        ),
+        PropertyVisitSchedule(
+            id: "VIS-101",
+            listingID: "L-100",
+            ownerID: "owner-xyz",
+            renterID: "preview-user-001",
+            note: "Bring ID for building entry.",
+            scheduledAt: Calendar.current.date(byAdding: .day, value: 2, to: .now) ?? .now,
+            status: .proposed,
+            updatedAt: .now
+        )
+    ]
+
+    static let mockAssignmentsByListingID: [String: ListingAssignment] = [
+        "L-100": ListingAssignment(
+            id: "ASN-100",
+            listingID: "L-100",
+            ownerID: "owner-xyz",
+            renterID: "preview-user-001",
+            interestID: "INT-103",
+            requestedAt: Calendar.current.date(byAdding: .hour, value: -2, to: .now) ?? .now,
+            status: .requested,
+            note: "Confirm within 24 hours so agreement drafting can start."
+        )
+    ]
+}

@@ -7,4 +7,5 @@ protocol ListingsRepositoryProtocol {
     func updateListing(_ listing: Listing) async throws
     func pauseListing(id: String, ownerID: String) async throws
     func duplicateListing(id: String, ownerID: String) async throws -> Listing
+    func updateListingStatus(id: String, ownerID: String, status: Listing.Status) async throws
 }
