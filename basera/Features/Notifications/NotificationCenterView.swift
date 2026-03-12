@@ -17,7 +17,11 @@ struct NotificationCenterView: View {
                 BaseraEmptyStateView(
                     title: "No notifications yet",
                     message: "Important updates about interests, agreements, billing, payments, move-out, and reviews will appear here.",
-                    systemImage: "bell.slash"
+                    systemImage: "bell.slash",
+                    actionTitle: "Refresh",
+                    action: {
+                        Task { await viewModel.load(repository: environment.notificationsRepository) }
+                    }
                 )
                 .listRowSeparator(.hidden)
             } else {
@@ -37,6 +41,7 @@ struct NotificationCenterView: View {
                 } header: {
                     HStack {
                         Text("Updates")
+                            .baseraTextStyle(AppTheme.Typography.titleSmall)
                         Spacer()
                         if viewModel.badgeState.unreadCount > 0 {
                             Button("Mark all read") {
@@ -44,7 +49,7 @@ struct NotificationCenterView: View {
                                     await viewModel.markAllAsRead(repository: environment.notificationsRepository)
                                 }
                             }
-                            .font(.footnote)
+                            .baseraTextStyle(AppTheme.Typography.labelMedium)
                         }
                     }
                 }
@@ -81,7 +86,7 @@ private struct NotificationRowView: View {
                     .baseraTextStyle(AppTheme.Typography.bodySmall)
                     .foregroundStyle(AppTheme.Colors.textSecondary)
                 Text(notification.createdAt, style: .relative)
-                    .font(.caption)
+                    .baseraTextStyle(AppTheme.Typography.labelSmall)
                     .foregroundStyle(AppTheme.Colors.textSecondary)
             }
         }
@@ -89,9 +94,17 @@ private struct NotificationRowView: View {
     }
 }
 
-#Preview {
+#Preview("iPhone") {
     NavigationView {
         NotificationCenterView(userID: "preview-user-001", onRoute: { _ in })
     }
+    .environmentObject(AppEnvironment.bootstrap())
+}
+
+#Preview("iPad") {
+    NavigationView {
+        NotificationCenterView(userID: "preview-user-001", onRoute: { _ in })
+    }
+    .frame(width: 1024, height: 768)
     .environmentObject(AppEnvironment.bootstrap())
 }
