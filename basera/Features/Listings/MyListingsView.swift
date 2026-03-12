@@ -12,16 +12,18 @@ struct MyListingsView: View {
 
     var body: some View {
         NavigationView {
-            Group {
-                switch viewModel.state {
-                case .idle, .loading:
-                    BaseraLoadingView(message: "Loading your listings")
-                case .error(let message):
-                    BaseraErrorStateView(title: "My Listings", message: message) {
-                        Task { await reload() }
+            BaseraPageContainer {
+                Group {
+                    switch viewModel.state {
+                    case .idle, .loading:
+                        BaseraLoadingView(message: "Loading your listings")
+                    case .error(let message):
+                        BaseraErrorStateView(title: "My Listings", message: message) {
+                            Task { await reload() }
+                        }
+                    case .loaded:
+                        content
                     }
-                case .loaded:
-                    content
                 }
             }
             .navigationTitle("My Listings")
@@ -72,9 +74,11 @@ struct MyListingsView: View {
             if viewModel.listings.isEmpty {
                 BaseraEmptyStateView(
                     title: "No listings yet",
-                    message: "Create your first room, flat, or apartment listing."
+                    message: "Create your first room, flat, or apartment listing.",
+                    systemImage: "building.2.crop.circle",
+                    actionTitle: "Create Listing",
+                    action: { isPresentingCreate = true }
                 )
-                .padding()
             } else {
                 List(viewModel.listings) { listing in
                     BaseraCard {
@@ -117,7 +121,6 @@ struct MyListingsView: View {
                     .listRowBackground(Color.clear)
                 }
                 .listStyle(.plain)
-                .padding(.horizontal)
             }
         }
     }
@@ -148,5 +151,12 @@ struct MyListingsView: View {
 
 #Preview {
     MyListingsView(ownerID: "preview-user-001")
+        .environmentObject(AppEnvironment.bootstrap())
+}
+
+
+#Preview("iPad") {
+    MyListingsView(ownerID: "preview-user-001")
+        .frame(width: 1024, height: 768)
         .environmentObject(AppEnvironment.bootstrap())
 }

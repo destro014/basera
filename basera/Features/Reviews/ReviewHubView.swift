@@ -34,12 +34,13 @@ struct ReviewHubView: View {
 
     private var content: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.large) {
-                ratingSummaryCard
-                submissionSection
-                publicReviewsSection
+            BaseraPageContainer {
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.large) {
+                    ratingSummaryCard
+                    submissionSection
+                    publicReviewsSection
+                }
             }
-            .padding()
         }
     }
 
@@ -57,7 +58,8 @@ struct ReviewHubView: View {
                 if viewModel.submissionContexts.isEmpty {
                     BaseraEmptyStateView(
                         title: "No review opportunities yet",
-                        message: "You can review once a tenancy is active."
+                        message: "You can review once a tenancy is active.",
+                        systemImage: "star.bubble"
                     )
                 } else {
                     Picker("Stage", selection: $viewModel.selectedContextID) {
@@ -106,7 +108,8 @@ struct ReviewHubView: View {
             if viewModel.receivedReviews.isEmpty {
                 BaseraEmptyStateView(
                     title: "No reviews yet",
-                    message: "Published reviews from renter and owner will appear here."
+                    message: "Published reviews from renter and owner will appear here.",
+                    systemImage: "star.slash"
                 )
             } else {
                 ForEach(viewModel.receivedReviews) { review in

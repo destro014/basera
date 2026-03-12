@@ -4,17 +4,24 @@ struct BaseraLoadingView: View {
     let message: String
 
     var body: some View {
-        VStack(spacing: AppTheme.Spacing.medium) {
-            ProgressView()
-                .tint(AppTheme.Colors.brandPrimary)
-            Text(message)
-                .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                .foregroundStyle(AppTheme.Colors.textSecondary)
+        BaseraCard {
+            VStack(spacing: AppTheme.Spacing.medium) {
+                ProgressView()
+                    .controlSize(.large)
+                    .tint(AppTheme.Colors.brandPrimary)
+
+                Text(message)
+                    .baseraTextStyle(AppTheme.Typography.bodyMedium)
+                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(AppTheme.Spacing.large)
         }
-        .padding()
     }
 }
 
 #Preview {
     BaseraLoadingView(message: "Loading Basera data")
+        .padding()
 }

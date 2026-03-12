@@ -8,80 +8,81 @@ struct OwnerDashboardView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.large) {
-                BaseraCard {
-                    VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
-                        Text("Owner Tenant Overview")
-                            .baseraTextStyle(AppTheme.Typography.titleLarge)
-                        Text("Manage active tenants with quick links to monthly billing and signed agreements.")
-                            .baseraTextStyle(AppTheme.Typography.bodyMedium)
-                            .foregroundStyle(AppTheme.Colors.textSecondary)
-                    }
-                }
-
-                NavigationLink("Reviews & Rating") {
-                    ReviewHubView(userID: ownerID, role: .owner)
-                }
-                .baseraTextStyle(AppTheme.Typography.bodyMedium)
-
-                if viewModel.activeTenancies.isEmpty {
-                    BaseraInlineMessageView(tone: .info, message: "No active tenants yet. Signed agreements appear here as active tenancies.")
-                } else {
-                    ForEach(viewModel.activeTenancies) { tenancy in
-                        VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
-                            TenancySummaryCard(tenancy: tenancy, party: .owner)
-                            HStack {
-                                NavigationLink("Billing") {
-                                    InvoiceListView(tenancy: tenancy, userID: ownerID, actor: .owner)
-                                }
-                                NavigationLink("Payments") {
-                                    PaymentsHubView(tenancy: tenancy, userID: ownerID, actor: .owner)
-                                }
-                                NavigationLink("Agreement") {
-                                    AgreementHubView(currentUserID: ownerID, party: .owner)
-                                }
-                                NavigationLink("Tenancy detail") {
-                                    ActiveTenancyDetailView(tenancyID: tenancy.id, userID: ownerID, party: .owner)
-                                }
-                            }
-                            .baseraTextStyle(AppTheme.Typography.bodySmall)
-                        }
-                    }
-                }
-
-                if viewModel.archivedTenancies.isEmpty == false {
+            BaseraPageContainer {
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.large) {
                     BaseraCard {
                         VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
-                            Text("Archived Tenancies")
-                                .baseraTextStyle(AppTheme.Typography.titleMedium)
-                            ForEach(viewModel.archivedTenancies) { archived in
-                                VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
-                                    Text(archived.listingTitle)
-                                        .baseraTextStyle(AppTheme.Typography.labelLarge)
-                                    HStack {
-                                        NavigationLink("Agreement") {
-                                            AgreementHubView(currentUserID: ownerID, party: .owner)
-                                        }
-                                        NavigationLink("Invoices") {
-                                            InvoiceListView(tenancy: archived, userID: ownerID, actor: .owner)
-                                        }
-                                        NavigationLink("Payments") {
-                                            PaymentsHubView(tenancy: archived, userID: ownerID, actor: .owner)
-                                        }
-                                        NavigationLink("Review renter") {
-                                            ReviewHubView(userID: ownerID, role: .owner)
-                                        }
+                            Text("Owner Tenant Overview")
+                                .baseraTextStyle(AppTheme.Typography.titleLarge)
+                            Text("Manage active tenants with quick links to monthly billing and signed agreements.")
+                                .baseraTextStyle(AppTheme.Typography.bodyMedium)
+                                .foregroundStyle(AppTheme.Colors.textSecondary)
+                        }
+                    }
+
+                    NavigationLink("Reviews & Rating") {
+                        ReviewHubView(userID: ownerID, role: .owner)
+                    }
+                    .baseraTextStyle(AppTheme.Typography.bodyMedium)
+
+                    if viewModel.activeTenancies.isEmpty {
+                        BaseraInlineMessageView(tone: .info, message: "No active tenants yet. Signed agreements appear here as active tenancies.")
+                    } else {
+                        ForEach(viewModel.activeTenancies) { tenancy in
+                            VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+                                TenancySummaryCard(tenancy: tenancy, party: .owner)
+                                HStack {
+                                    NavigationLink("Billing") {
+                                        InvoiceListView(tenancy: tenancy, userID: ownerID, actor: .owner)
                                     }
-                                    .baseraTextStyle(AppTheme.Typography.bodySmall)
+                                    NavigationLink("Payments") {
+                                        PaymentsHubView(tenancy: tenancy, userID: ownerID, actor: .owner)
+                                    }
+                                    NavigationLink("Agreement") {
+                                        AgreementHubView(currentUserID: ownerID, party: .owner)
+                                    }
+                                    NavigationLink("Tenancy detail") {
+                                        ActiveTenancyDetailView(tenancyID: tenancy.id, userID: ownerID, party: .owner)
+                                    }
+                                }
+                                .baseraTextStyle(AppTheme.Typography.bodySmall)
+                            }
+                        }
+                    }
+
+                    if !viewModel.archivedTenancies.isEmpty {
+                        BaseraCard {
+                            VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+                                Text("Archived Tenancies")
+                                    .baseraTextStyle(AppTheme.Typography.titleMedium)
+                                ForEach(viewModel.archivedTenancies) { archived in
+                                    VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+                                        Text(archived.listingTitle)
+                                            .baseraTextStyle(AppTheme.Typography.labelLarge)
+                                        HStack {
+                                            NavigationLink("Agreement") {
+                                                AgreementHubView(currentUserID: ownerID, party: .owner)
+                                            }
+                                            NavigationLink("Invoices") {
+                                                InvoiceListView(tenancy: archived, userID: ownerID, actor: .owner)
+                                            }
+                                            NavigationLink("Payments") {
+                                                PaymentsHubView(tenancy: archived, userID: ownerID, actor: .owner)
+                                            }
+                                            NavigationLink("Review renter") {
+                                                ReviewHubView(userID: ownerID, role: .owner)
+                                            }
+                                        }
+                                        .baseraTextStyle(AppTheme.Typography.bodySmall)
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                MyListingsView(ownerID: ownerID)
+                    MyListingsView(ownerID: ownerID)
+                }
             }
-            .padding()
         }
         .task {
             await viewModel.load(ownerID: ownerID, tenancyRepository: environment.tenancyRepository)

@@ -72,15 +72,16 @@ struct RenterDashboardView: View {
 
     private var exploreContent: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.large) {
-                searchAndFilters
-                activeTenancySection
-                renterWorkflowLinks
-                favoritesSection
-                listingModePicker
-                resultsSection
+            BaseraPageContainer {
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.large) {
+                    searchAndFilters
+                    activeTenancySection
+                    renterWorkflowLinks
+                    favoritesSection
+                    listingModePicker
+                    resultsSection
+                }
             }
-            .padding()
         }
     }
 
