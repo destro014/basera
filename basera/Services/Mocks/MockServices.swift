@@ -156,10 +156,20 @@ actor MockAuthService: AuthServiceProtocol {
 
 struct MockFirestoreService: FirestoreServiceProtocol {
     func fetchDocument(path: String) async throws -> [String: Any] {
-        ["path": path, "source": "mock"]
+        ["id": path.replacingOccurrences(of: "/", with: "-")]
     }
 
     func setDocument(path: String, data: [String: Any]) async throws {}
+
+    func fetchCollection(path: String) async throws -> [[String: Any]] {
+        _ = path
+        return []
+    }
+
+    func queryCollection(path: String, field: String, isEqualTo value: Any) async throws -> [[String: Any]] {
+        _ = (path, field, value)
+        return []
+    }
 }
 
 struct MockStorageService: StorageServiceProtocol {

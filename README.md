@@ -302,6 +302,12 @@ Data structure is documented in:
 docs/firebase-schema.md
 ```
 
+Incremental Firebase wiring and environment setup:
+
+```
+docs/firebase-integration.md
+```
+
 ---
 
 # Project Structure

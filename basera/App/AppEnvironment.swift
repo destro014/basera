@@ -66,6 +66,51 @@ final class AppEnvironment: ObservableObject {
     }
 
     static func bootstrap() -> AppEnvironment {
+        if AppRuntimeConfiguration.useFirebaseInfrastructure {
+            FirebaseBootstrapper.configureIfNeeded()
+
+            let firestoreService = FirebaseFirestoreService()
+            let storageService = FirebaseStorageService()
+            let notificationsService = FirebaseNotificationsService()
+            let remoteConfigService = FirebaseRemoteConfigService()
+            let authService = FirebaseAuthService(firestoreService: firestoreService)
+            let agreementConfirmationService = MockAgreementConfirmationService()
+            let agreementPDFService = MockAgreementPDFService()
+            let paymentGatewayService = MockPaymentGatewayService()
+
+            let authRepository = FirebaseAuthRepository(authService: authService, storageService: storageService)
+            let listingsRepository = FirebaseListingsRepository(firestoreService: firestoreService)
+            let profileRepository = FirebaseProfileRepository(firestoreService: firestoreService)
+            let interestsRepository = MockInterestsRepository()
+            let agreementsRepository = MockAgreementsRepository(confirmationService: agreementConfirmationService)
+            let tenancyRepository = MockTenancyRepository()
+            let billingRepository = MockBillingRepository()
+            let paymentsRepository = MockPaymentsRepository(billingRepository: billingRepository, gatewayService: paymentGatewayService)
+            let notificationsRepository = FirebaseNotificationsRepository(notificationsService: notificationsService, firestoreService: firestoreService)
+            let reviewsRepository = MockReviewsRepository()
+
+            return AppEnvironment(
+                authService: authService,
+                firestoreService: firestoreService,
+                storageService: storageService,
+                notificationsService: notificationsService,
+                remoteConfigService: remoteConfigService,
+                agreementConfirmationService: agreementConfirmationService,
+                agreementPDFService: agreementPDFService,
+                paymentGatewayService: paymentGatewayService,
+                authRepository: authRepository,
+                listingsRepository: listingsRepository,
+                profileRepository: profileRepository,
+                interestsRepository: interestsRepository,
+                agreementsRepository: agreementsRepository,
+                tenancyRepository: tenancyRepository,
+                billingRepository: billingRepository,
+                paymentsRepository: paymentsRepository,
+                notificationsRepository: notificationsRepository,
+                reviewsRepository: reviewsRepository
+            )
+        }
+
         let authService = MockAuthService()
         let firestoreService = MockFirestoreService()
         let storageService = MockStorageService()
