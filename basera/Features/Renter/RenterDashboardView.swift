@@ -89,16 +89,20 @@ struct RenterDashboardView: View {
             Button {
                 isFilterSheetPresented = true
             } label: {
-                Image(systemName: "line.3.horizontal.decrease.circle")
-                    .font(.system(size: 22, weight: .medium))
-                    .foregroundStyle(AppTheme.Colors.brandPrimary)
-                    .frame(width: 44, height: 44)
-                    .background(AppTheme.Colors.backgroundPrimary)
-                    .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.medium, style: .continuous))
-                    .overlay {
-                        RoundedRectangle(cornerRadius: AppTheme.Radius.medium, style: .continuous)
-                            .stroke(AppTheme.Colors.borderSecondary, lineWidth: 1)
-                    }
+                VStack(spacing: AppTheme.Spacing.xSmall) {
+                    Image(systemName: "line.3.horizontal.decrease.circle")
+                        .font(.system(size: 20, weight: .semibold))
+                    Text("Filter")
+                        .baseraTextStyle(AppTheme.Typography.labelSmall)
+                }
+                .foregroundStyle(AppTheme.Colors.brandPrimary)
+                .frame(width: 64, height: 56)
+                .background(AppTheme.Colors.backgroundPrimary)
+                .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.medium, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: AppTheme.Radius.medium, style: .continuous)
+                        .stroke(AppTheme.Colors.borderSecondary, lineWidth: 1)
+                }
             }
         }
     }
@@ -220,13 +224,20 @@ struct RenterDashboardView: View {
                 Text("Active Tenancy")
                     .baseraTextStyle(AppTheme.Typography.titleMedium)
                 TenancySummaryCard(tenancy: tenancy, party: .renter)
-                HStack {
-                    NavigationLink("Open tenancy details") {
+                VStack(spacing: AppTheme.Spacing.small) {
+                    NavigationLink {
                         ActiveTenancyDetailView(tenancyID: tenancy.id, userID: "preview-user-001", party: .renter)
+                    } label: {
+                        BaseraActionTile(title: "Open Tenancy Details", subtitle: "View assignment, agreement, and checklist", systemImage: "person.3")
                     }
-                    NavigationLink("Payment history") {
+                    .buttonStyle(.plain)
+
+                    NavigationLink {
                         PaymentsHubView(tenancy: tenancy, userID: "preview-user-001", actor: .renter)
+                    } label: {
+                        BaseraActionTile(title: "Payment History", subtitle: "Track completed and pending payments", systemImage: "creditcard")
                     }
+                    .buttonStyle(.plain)
                 }
                 Text("Owner contact: \(tenancy.ownerContact.fullName) • \(tenancy.ownerContact.phoneNumber)")
                     .baseraTextStyle(AppTheme.Typography.bodySmall)
@@ -245,18 +256,28 @@ struct RenterDashboardView: View {
                         VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
                             Text(archived.listingTitle)
                                 .baseraTextStyle(AppTheme.Typography.labelLarge)
-                            HStack {
-                                NavigationLink("Agreement") {
+                            VStack(spacing: AppTheme.Spacing.small) {
+                                NavigationLink {
                                     AgreementHubView(currentUserID: "preview-user-001", party: .renter)
+                                } label: {
+                                    BaseraActionTile(title: "Agreement", subtitle: nil, systemImage: "doc.richtext")
                                 }
-                                NavigationLink("Invoices") {
+                                .buttonStyle(.plain)
+
+                                NavigationLink {
                                     InvoiceListView(tenancy: archived, userID: "preview-user-001", actor: .renter)
+                                } label: {
+                                    BaseraActionTile(title: "Invoices", subtitle: nil, systemImage: "doc.text")
                                 }
-                                NavigationLink("Payments") {
+                                .buttonStyle(.plain)
+
+                                NavigationLink {
                                     PaymentsHubView(tenancy: archived, userID: "preview-user-001", actor: .renter)
+                                } label: {
+                                    BaseraActionTile(title: "Payments", subtitle: nil, systemImage: "creditcard")
                                 }
+                                .buttonStyle(.plain)
                             }
-                            .baseraTextStyle(AppTheme.Typography.bodySmall)
                         }
                     }
                 }
@@ -266,22 +287,37 @@ struct RenterDashboardView: View {
 
     private var renterWorkflowLinks: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
-            HStack {
-                NavigationLink("My Interest Requests") {
-                    RenterInterestsView(renterID: "preview-user-001")
-                }
-                NavigationLink("Conversations") {
-                    ConversationListView(userID: "preview-user-001")
-                }
+            Text("Quick Actions")
+                .baseraTextStyle(AppTheme.Typography.titleMedium)
+
+            NavigationLink {
+                RenterInterestsView(renterID: "preview-user-001")
+            } label: {
+                BaseraActionTile(title: "My Interest Requests", subtitle: "View owner responses and pending requests", systemImage: "paperplane")
             }
-            NavigationLink("My Agreement") {
+            .buttonStyle(.plain)
+
+            NavigationLink {
+                ConversationListView(userID: "preview-user-001")
+            } label: {
+                BaseraActionTile(title: "Conversations", subtitle: "Continue approved chats with owners", systemImage: "bubble.left.and.bubble.right")
+            }
+            .buttonStyle(.plain)
+
+            NavigationLink {
                 AgreementHubView(currentUserID: "preview-user-001", party: .renter)
+            } label: {
+                BaseraActionTile(title: "My Agreement", subtitle: "Check agreement draft and signed status", systemImage: "doc.richtext")
             }
-            NavigationLink("Reviews & Rating") {
+            .buttonStyle(.plain)
+
+            NavigationLink {
                 ReviewHubView(userID: "preview-user-001", role: .renter)
+            } label: {
+                BaseraActionTile(title: "Reviews & Rating", subtitle: "Manage ratings for your tenancy", systemImage: "star.bubble")
             }
+            .buttonStyle(.plain)
         }
-        .baseraTextStyle(AppTheme.Typography.bodyMedium)
     }
 
     private var listingsGrid: some View {
