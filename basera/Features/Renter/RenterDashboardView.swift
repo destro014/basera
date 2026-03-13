@@ -21,9 +21,10 @@ struct RenterDashboardView: View {
                     exploreContent
                 }
             }
-            .navigationBarTitleDisplayMode(.large)
+            .background(AppTheme.Colors.backgroundPrimary)
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .principal) {
+                ToolbarItem(placement: .topBarLeading) {
                     Image("logo-horizontal")
                         .resizable()
                         .scaledToFit()
@@ -87,7 +88,7 @@ struct RenterDashboardView: View {
 
     private var searchAndFilters: some View {
         HStack(spacing: AppTheme.Spacing.small) {
-            BaseraCard {
+            BaseraCard(backgroundColor: AppTheme.Colors.backgroundPrimary) {
                 TextField("Search by area or title", text: $viewModel.searchText)
                     .baseraTextStyle(AppTheme.Typography.bodyLarge)
                     .foregroundStyle(AppTheme.Colors.textPrimary)
@@ -102,7 +103,7 @@ struct RenterDashboardView: View {
                     .font(.system(size: 22, weight: .medium))
                     .foregroundStyle(AppTheme.Colors.brandPrimary)
                     .frame(width: 44, height: 44)
-                    .background(AppTheme.Colors.surfacePrimary)
+                    .background(AppTheme.Colors.backgroundPrimary)
                     .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.medium, style: .continuous))
                     .overlay {
                         RoundedRectangle(cornerRadius: AppTheme.Radius.medium, style: .continuous)
@@ -246,7 +247,7 @@ struct RenterDashboardView: View {
         }
 
         if tenancyViewModel.archivedTenancies.isEmpty == false {
-            BaseraCard {
+            BaseraCard(backgroundColor: AppTheme.Colors.backgroundPrimary) {
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
                     Text("Archived Tenancies")
                         .baseraTextStyle(AppTheme.Typography.titleSmall)
@@ -315,7 +316,7 @@ struct RenterDashboardView: View {
 
 
     private var mapPlaceholderView: some View {
-        BaseraCard {
+        BaseraCard(backgroundColor: AppTheme.Colors.backgroundPrimary) {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
                 Label("Map integration placeholder", systemImage: "map")
                     .baseraTextStyle(AppTheme.Typography.titleMedium)
@@ -348,7 +349,7 @@ struct RenterDashboardView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: AppTheme.Spacing.small) {
                         ForEach(viewModel.favoriteListings) { listing in
-                            BaseraCard {
+                            BaseraCard(backgroundColor: AppTheme.Colors.backgroundPrimary) {
                                 VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
                                     Text(listing.title)
                                         .baseraTextStyle(AppTheme.Typography.labelLarge)
@@ -374,7 +375,7 @@ struct RenterDashboardView: View {
 
 
     private func listingCard(for listing: Listing) -> some View {
-        BaseraCard {
+        BaseraCard(backgroundColor: AppTheme.Colors.backgroundPrimary) {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
                 HStack {
                     Text(listing.title)
@@ -412,7 +413,7 @@ struct RenterDashboardView: View {
                 .baseraTextStyle(AppTheme.Typography.bodySmall)
                 .padding(.horizontal, AppTheme.Spacing.medium)
                 .padding(.vertical, AppTheme.Spacing.small)
-                .background(isSelected ? AppTheme.Colors.brandPrimary : AppTheme.Colors.surfacePrimary)
+                .background(isSelected ? AppTheme.Colors.brandPrimary : AppTheme.Colors.backgroundPrimary)
                 .foregroundStyle(isSelected ? AppTheme.Colors.brandOnPrimary : AppTheme.Colors.textPrimary)
                 .clipShape(Capsule())
         }

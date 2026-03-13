@@ -35,6 +35,7 @@ struct MoveInChecklistView: View {
                 }
             }
         }
+        .baseraListBackground()
         .navigationTitle("Move-in Checklist")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

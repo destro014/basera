@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct BaseraPageContainer<Content: View>: View {
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @ViewBuilder private let content: () -> Content
 
     init(@ViewBuilder content: @escaping () -> Content) {
@@ -8,16 +9,43 @@ struct BaseraPageContainer<Content: View>: View {
     }
 
     var body: some View {
-        GeometryReader { geometry in
-            let horizontalPadding: CGFloat = geometry.size.width >= 768 ? AppTheme.Spacing.xLarge * 2 : AppTheme.Spacing.large
-            let maxWidth: CGFloat = geometry.size.width >= 768 ? 900 : .infinity
+        content()
+            .frame(maxWidth: horizontalSizeClass == .regular ? 900 : .infinity)
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, horizontalSizeClass == .regular ? AppTheme.Spacing.xLarge * 2 : AppTheme.Spacing.large)
+            .padding(.vertical, AppTheme.Spacing.large)
+        .baseraScreenBackground()
+    }
+}
 
-            content()
-                .frame(maxWidth: maxWidth)
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, horizontalPadding)
-                .padding(.vertical, AppTheme.Spacing.large)
+struct BaseraScreenBackgroundModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .background(AppTheme.Colors.backgroundPrimary)
+    }
+}
+
+struct BaseraListBackgroundModifier: ViewModifier {
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if #available(iOS 16.0, *) {
+            content
+                .scrollContentBackground(.hidden)
+                .background(AppTheme.Colors.backgroundPrimary)
+        } else {
+            content
+                .background(AppTheme.Colors.backgroundPrimary)
         }
+    }
+}
+
+extension View {
+    func baseraScreenBackground() -> some View {
+        modifier(BaseraScreenBackgroundModifier())
+    }
+
+    func baseraListBackground() -> some View {
+        modifier(BaseraListBackgroundModifier())
     }
 }
 

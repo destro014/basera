@@ -13,6 +13,11 @@ struct AuthOnboardingContainerView<Content: View>: View {
                         introHeader
                     }
 
+                    if step == .phoneNumber {
+                        Spacer()
+                            .frame(height: AppTheme.Spacing.xLarge)
+                    }
+
                     VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
                         Text(step.title)
                             .baseraTextStyle(AppTheme.Typography.headlineLarge)

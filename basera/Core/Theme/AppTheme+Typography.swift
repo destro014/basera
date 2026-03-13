@@ -35,9 +35,9 @@ extension AppTheme {
         static let bodyMedium = Style(size: 14, lineHeight: 20, tracking: 0, weight: .regular, relativeTextStyle: .callout)
         static let bodySmall = Style(size: 12, lineHeight: 16, tracking: 0.4, weight: .regular, relativeTextStyle: .caption)
 
-        static let labelLarge = Style(size: 14, lineHeight: 24, tracking: 0.3, weight: .medium, relativeTextStyle: .callout)
-        static let labelMedium = Style(size: 12, lineHeight: 16, tracking: 0.3, weight: .medium, relativeTextStyle: .caption)
-        static let labelSmall = Style(size: 11, lineHeight: 16, tracking: 0.3, weight: .medium, relativeTextStyle: .caption2)
+        static let labelLarge = Style(size: 16, lineHeight: 24, tracking: 0.3, weight: .medium, relativeTextStyle: .callout)
+        static let labelMedium = Style(size: 14, lineHeight: 16, tracking: 0.3, weight: .medium, relativeTextStyle: .caption)
+        static let labelSmall = Style(size: 12, lineHeight: 16, tracking: 0.3, weight: .medium, relativeTextStyle: .caption2)
 
         static let title = titleLarge.font
         static let subtitle = titleMedium.font

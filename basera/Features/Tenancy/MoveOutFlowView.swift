@@ -35,6 +35,7 @@ struct MoveOutFlowView: View {
             historySection
             listingReactivationSection
         }
+        .baseraListBackground()
         .navigationTitle("Move-out & Closure")
         .alert("Move-out flow", isPresented: .constant(viewModel.errorMessage != nil), actions: {
             Button("OK") { viewModel.errorMessage = nil }

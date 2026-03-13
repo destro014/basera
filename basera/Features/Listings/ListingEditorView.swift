@@ -28,6 +28,7 @@ struct ListingEditorView: View {
                     ListingPreviewView(listing: viewModel.buildListing(status: .draft))
                 }
             }
+            .baseraListBackground()
 
             HStack(spacing: AppTheme.Spacing.small) {
                 BaseraButton(title: "Back", style: .secondary, isDisabled: viewModel.step == .basics) {

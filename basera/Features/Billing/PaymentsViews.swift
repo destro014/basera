@@ -103,6 +103,7 @@ struct PaymentsHubView: View {
                 }
             }
         }
+        .baseraListBackground()
         .navigationTitle(actor == .owner ? "Tenant Payments" : "My Payments")
         .task {
             await viewModel.load(tenancyID: tenancy.id, userID: userID, repository: environment.paymentsRepository)

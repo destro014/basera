@@ -28,6 +28,7 @@ struct HomeShellView: View {
                     .hidden()
                 }
             }
+            .navigationViewStyle(StackNavigationViewStyle())
             .tabItem {
                 Label(viewModel.user.activeRole == .renter ? "Renter" : "Owner", systemImage: viewModel.user.activeRole == .renter ? "house" : "building.2")
             }
@@ -38,6 +39,7 @@ struct HomeShellView: View {
                     viewModel.openNotificationRoute(route)
                 }
             }
+            .navigationViewStyle(StackNavigationViewStyle())
             .tabItem {
                 Label("Notifications", systemImage: "bell")
             }

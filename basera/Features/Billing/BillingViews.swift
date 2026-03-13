@@ -49,6 +49,7 @@ struct InvoiceListView: View {
                 }
             }
         }
+        .baseraListBackground()
         .navigationTitle(actor == .owner ? "Owner Billing" : "My Bills")
         .task {
             await viewModel.load(tenancyID: tenancy.id, userID: userID, repository: environment.billingRepository)
@@ -152,6 +153,7 @@ struct InvoiceComposerView: View {
                     .frame(minHeight: 80)
             }
         }
+        .baseraListBackground()
         .navigationTitle(actor == .owner ? "Create Invoice" : "Bill Draft")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -229,6 +231,7 @@ struct InvoicePreviewView: View {
                 Text("Total: Rs. \(NSDecimalNumber(decimal: invoice.totalAmount).stringValue)")
             }
         }
+        .baseraListBackground()
         .navigationTitle("Invoice Preview")
     }
 }

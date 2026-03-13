@@ -75,7 +75,7 @@ struct SettingsView: View {
                 }
             }
             .listStyle(.insetGrouped)
-            .modifier(SettingsListBackgroundModifier())
+            .baseraListBackground()
             .navigationTitle("Settings")
         }
         .navigationViewStyle(StackNavigationViewStyle())
@@ -88,20 +88,6 @@ struct SettingsView: View {
             .compactMap { $0.first }
             .map(String.init)
             .joined()
-    }
-}
-
-private struct SettingsListBackgroundModifier: ViewModifier {
-    @ViewBuilder
-    func body(content: Content) -> some View {
-        if #available(iOS 16.0, *) {
-            content
-                .scrollContentBackground(.hidden)
-                .background(AppTheme.Colors.backgroundPrimary)
-        } else {
-            content
-                .background(AppTheme.Colors.backgroundPrimary)
-        }
     }
 }
 

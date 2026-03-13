@@ -27,6 +27,7 @@ struct ConversationListView: View {
                 }
             }
         }
+        .baseraListBackground()
         .navigationTitle("Conversations")
         .task {
             await viewModel.load(using: environment.interestsRepository)

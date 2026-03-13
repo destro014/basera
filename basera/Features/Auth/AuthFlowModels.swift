@@ -16,7 +16,7 @@ enum AuthFlowStep: Int, CaseIterable, Identifiable {
         case .introduction:
             "Welcome to Basera"
         case .phoneNumber:
-            "Sign in with your phone"
+            "Enter your number"
         case .otpVerification:
             "Verify your OTP"
         case .passwordEntry:

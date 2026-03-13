@@ -87,6 +87,7 @@ struct RenterInterestsView: View {
                 .padding(.vertical, AppTheme.Spacing.xSmall)
             }
         }
+        .baseraListBackground()
         .navigationTitle("My Interests")
         .task {
             await viewModel.load(using: environment.interestsRepository)

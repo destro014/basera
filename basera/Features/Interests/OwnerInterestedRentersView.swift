@@ -57,6 +57,7 @@ struct OwnerInterestedRentersView: View {
                 }
             }
         }
+        .baseraListBackground()
         .navigationTitle("Interested Renters")
         .task {
             await viewModel.load(using: environment.interestsRepository)

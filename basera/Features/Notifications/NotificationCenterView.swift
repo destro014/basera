@@ -55,6 +55,7 @@ struct NotificationCenterView: View {
                 }
             }
         }
+        .baseraListBackground()
         .navigationTitle("Notifications")
         .task {
             await environment.notificationsRepository.registerForPushNotifications()
