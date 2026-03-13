@@ -22,16 +22,6 @@ struct RenterDashboardView: View {
                 }
             }
             .background(AppTheme.Colors.backgroundPrimary)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Image("logo-horizontal")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 160)
-                        .accessibilityHidden(true)
-                }
-            }
             .sheet(isPresented: $isFilterSheetPresented) {
                 NavigationView {
                     ScrollView {

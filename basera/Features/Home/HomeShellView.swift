@@ -27,6 +27,21 @@ struct HomeShellView: View {
                     }
                     .hidden()
                 }
+                .navigationBarTitleDisplayMode(.inline)
+                .navigationTitle("Home")
+
+                .toolbar {
+                    ToolbarItem(placement: .title) {
+                        HStack{
+                            Image("logo-horizontal")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 32)
+                                .offset(x: -116, y: 0)
+                        }
+                        
+                    }
+                }
             }
             .navigationViewStyle(StackNavigationViewStyle())
             .tabItem {
