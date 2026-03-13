@@ -56,6 +56,7 @@ struct BaseraTextField: View {
                     .tint(AppTheme.Colors.brandPrimary)
                     .offset(y: isLabelFloating ? 12 : 0)
                     .frame(height: 40)
+
                 }
                 .background(alignment: .leading) {
                     Text(title)
@@ -70,7 +71,7 @@ struct BaseraTextField: View {
             .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.large, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: AppTheme.Radius.large, style: .continuous)
-                    .stroke(borderColor, lineWidth: 1)
+                    .stroke(borderColor, lineWidth: 2)
             }
             .contentShape(RoundedRectangle(cornerRadius: AppTheme.Radius.large, style: .continuous))
             .onTapGesture {

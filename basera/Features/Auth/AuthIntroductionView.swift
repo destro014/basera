@@ -23,7 +23,7 @@ struct AuthIntroductionView: View {
                 message: "Track agreements, monthly invoices, partial payments, advance payments, and the formal move-out flow in one place."
             )
 
-            Spacer(minLength: AppTheme.Spacing.xLarge)
+            Spacer()
 
             BaseraButton(title: "Continue", style: .primary, action: onContinue)
         }

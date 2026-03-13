@@ -14,8 +14,8 @@ struct AuthOnboardingContainerView<Content: View>: View {
                     }
 
                     if step == .phoneNumber {
-                        Spacer()
-                            .frame(height: AppTheme.Spacing.xLarge)
+//                        Spacer()
+//                            .frame(height: AppTheme.Spacing.xLarge)
                     }
 
                     VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
@@ -34,17 +34,16 @@ struct AuthOnboardingContainerView<Content: View>: View {
 
                     content()
 
-                    if step == .introduction {
-                        Spacer(minLength: 0)
-                    }
+                    
                 }
                 .frame(maxWidth: 402, minHeight: max(proxy.size.height - 32, 0), alignment: .top)
                 .padding(.horizontal, proxy.size.width >= 520 ? 24 : 16)
                 .padding(.top, 24)
-                .padding(.bottom, 32)
+                .padding(.bottom, 8)
                 .frame(maxWidth: .infinity)
             }
             .background(backgroundView)
+
         }
     }
 
@@ -52,7 +51,7 @@ struct AuthOnboardingContainerView<Content: View>: View {
         Image("logo-horizontal")
             .resizable()
             .scaledToFit()
-            .frame(width: 245, height: 62)
+            .frame(height: 40)
             .accessibilityHidden(true)
     }
 

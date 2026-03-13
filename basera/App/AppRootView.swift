@@ -34,6 +34,7 @@ struct AppRootView: View {
             await viewModel.load(environment: environment)
         }
         .baseraScreenBackground()
+
     }
 }
 
