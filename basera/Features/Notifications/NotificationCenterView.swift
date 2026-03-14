@@ -7,49 +7,69 @@ struct NotificationCenterView: View {
     let onRoute: (NotificationRoute) -> Void
 
     init(userID: String, onRoute: @escaping (NotificationRoute) -> Void) {
-        _viewModel = StateObject(wrappedValue: NotificationCenterViewModel(userID: userID))
+        _viewModel = StateObject(
+            wrappedValue: NotificationCenterViewModel(userID: userID)
+        )
         self.onRoute = onRoute
     }
 
     var body: some View {
-        List {
+        VStack ( alignment:.leading , spacing: 0, ){
             if viewModel.notifications.isEmpty {
                 BaseraEmptyStateView(
                     title: "No notifications yet",
-                    message: "Important updates about interests, agreements, billing, payments, move-out, and reviews will appear here.",
+                    message:
+                        "Important updates about interests, agreements, billing, payments, move-out, and reviews will appear here.",
                     systemImage: "bell.slash",
                     actionTitle: "Refresh",
                     action: {
-                        Task { await viewModel.load(repository: environment.notificationsRepository) }
-                    }
-                )
-                .listRowSeparator(.hidden)
-            } else {
-                Section {
-                    ForEach(viewModel.notifications) { notification in
-                        NavigationLink {
-                            NotificationDetailView(notification: notification) {
-                                onRoute(notification.route)
-                            }
-                            .task {
-                                await viewModel.markAsRead(notification.id, repository: environment.notificationsRepository)
-                            }
-                        } label: {
-                            NotificationRowView(notification: notification)
+                        Task {
+                            await viewModel.load(
+                                repository: environment.notificationsRepository
+                            )
                         }
                     }
-                } header: {
-                    HStack {
-                        Text("Updates")
-                            .baseraTextStyle(AppTheme.Typography.titleSmall)
-                        Spacer()
-                        if viewModel.badgeState.unreadCount > 0 {
-                            Button("Mark all read") {
-                                Task {
-                                    await viewModel.markAllAsRead(repository: environment.notificationsRepository)
+                )
+            } else {
+                List {
+
+                    Section {
+                        ForEach(viewModel.notifications) { notification in
+                            NavigationLink {
+                                NotificationDetailView(
+                                    notification: notification
+                                ) {
+                                    onRoute(notification.route)
                                 }
+                                .task {
+                                    await viewModel.markAsRead(
+                                        notification.id,
+                                        repository: environment
+                                            .notificationsRepository
+                                    )
+                                }
+                            } label: {
+                                NotificationRowView(notification: notification)
                             }
-                            .baseraTextStyle(AppTheme.Typography.labelMedium)
+                        }
+                    } header: {
+                        HStack {
+                            Text("Updates")
+                                .baseraTextStyle(AppTheme.Typography.titleSmall)
+                            Spacer()
+                            if viewModel.badgeState.unreadCount > 0 {
+                                Button("Mark all read") {
+                                    Task {
+                                        await viewModel.markAllAsRead(
+                                            repository: environment
+                                                .notificationsRepository
+                                        )
+                                    }
+                                }
+                                .baseraTextStyle(
+                                    AppTheme.Typography.labelMedium
+                                )
+                            }
                         }
                     }
                 }
@@ -60,8 +80,11 @@ struct NotificationCenterView: View {
         .navigationBarTitleDisplayMode(.large)
 
         .task {
-            await environment.notificationsRepository.registerForPushNotifications()
-            await viewModel.load(repository: environment.notificationsRepository)
+            await environment.notificationsRepository
+                .registerForPushNotifications()
+            await viewModel.load(
+                repository: environment.notificationsRepository
+            )
         }
     }
 }
@@ -72,7 +95,11 @@ private struct NotificationRowView: View {
     var body: some View {
         HStack(alignment: .top, spacing: AppTheme.Spacing.medium) {
             Image(systemName: notification.type.systemImageName)
-                .foregroundStyle(notification.isUnread ? AppTheme.Colors.brandPrimary : AppTheme.Colors.textSecondary)
+                .foregroundStyle(
+                    notification.isUnread
+                        ? AppTheme.Colors.brandPrimary
+                        : AppTheme.Colors.textSecondary
+                )
                 .frame(width: 28)
 
             VStack(alignment: .leading, spacing: AppTheme.Spacing.xSmall) {
