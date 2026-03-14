@@ -14,6 +14,7 @@ enum FirebaseBootstrapper {
             print("[Basera] Skipping Firebase configuration because GoogleService-Info.plist is missing.")
             #endif
             return
+
         }
         FirebaseApp.configure()
 

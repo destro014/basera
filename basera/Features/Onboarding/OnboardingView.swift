@@ -9,17 +9,57 @@ struct OnboardingView: View {
         GeometryReader { proxy in
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
+
                     Image("logo-horizontal")
                         .resizable()
                         .scaledToFit()
                         .frame(height: 40)
                         .accessibilityHidden(true)
+                    Spacer()
+                        .frame(height: AppTheme.Spacing.xLarge)
 
-                    if let notice {
-                        BaseraInlineMessageView(tone: tone(for: notice.style), message: notice.message)
+
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xSmall) {
+                        Text("Welcome to Basera")
+                            .baseraTextStyle(AppTheme.Typography.headlineLarge)
+                            .foregroundStyle(AppTheme.Colors.textPrimary)
+
+                        Text("Manage the rental journey in one place, from discovery and approvals to agreements, monthly invoices, and move-out records.")
+                            .baseraTextStyle(AppTheme.Typography.bodyLarge)
+                            .foregroundStyle(AppTheme.Colors.textSecondary)
                     }
+                    Spacer()
+                        .frame(height: AppTheme.Spacing.xxLarge)
 
-                    content
+
+                        introPoint(
+                            iconName: "person.2.fill",
+                            title: "One account, flexible roles",
+                            message: "Start as a renter, an owner, or both. If you do both, you can switch roles later without creating a second account."
+                        )
+
+                        introPoint(
+                            iconName: "lock.shield.fill",
+                            title: "Privacy-first listing flow",
+                            message: "Public listings keep the exact property address hidden until an owner reviews and approves the renter."
+                        )
+
+                        introPoint(
+                            iconName: "doc.text.fill",
+                            title: "Records that stay accessible",
+                            message: "Track agreements, monthly invoices, partial payments, advance payments, and the formal move-out flow in one place."
+                        )
+
+                        Spacer()
+
+                        HStack(spacing: AppTheme.Spacing.medium) {
+                            BaseraButton(title: "Register", style: .primary, action: onRegister)
+                                .frame(maxWidth: .infinity)
+                            BaseraButton(title: "Login", style: .secondary, action: onLogin)
+                                .frame(maxWidth: .infinity)
+                        }
+                    
+                
                 }
                 .frame(maxWidth: 402, minHeight: max(proxy.size.height - 32, 0), alignment: .top)
                 .padding(.horizontal, proxy.size.width >= 520 ? 24 : 16)
@@ -31,38 +71,6 @@ struct OnboardingView: View {
         }
     }
 
-    private var content: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.large) {
-            header
-
-            introPoint(
-                iconName: "person.2.fill",
-                title: "One account, flexible roles",
-                message: "Start as a renter, an owner, or both. If you do both, you can switch roles later without creating a second account."
-            )
-
-            introPoint(
-                iconName: "lock.shield.fill",
-                title: "Privacy-first listing flow",
-                message: "Public listings keep the exact property address hidden until an owner reviews and approves the renter."
-            )
-
-            introPoint(
-                iconName: "doc.text.fill",
-                title: "Records that stay accessible",
-                message: "Track agreements, monthly invoices, partial payments, advance payments, and the formal move-out flow in one place."
-            )
-
-            Spacer()
-
-            HStack(spacing: AppTheme.Spacing.medium) {
-                BaseraButton(title: "Register", style: .primary, action: onRegister)
-                    .frame(maxWidth: .infinity)
-                BaseraButton(title: "Login", style: .secondary, action: onLogin)
-                    .frame(maxWidth: .infinity)
-            }
-        }
-    }
 
     private func tone(for style: AuthStepNotice.Style) -> BaseraInlineMessageView.Tone {
         switch style {
@@ -72,18 +80,6 @@ struct OnboardingView: View {
             .success
         case .error:
             .error
-        }
-    }
-
-    private var header: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
-            Text("Welcome to Basera")
-                .baseraTextStyle(AppTheme.Typography.headlineLarge)
-                .foregroundStyle(AppTheme.Colors.textPrimary)
-
-            Text("Manage the rental journey in one place, from discovery and approvals to agreements, monthly invoices, and move-out records.")
-                .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                .foregroundStyle(AppTheme.Colors.textSecondary)
         }
     }
 
