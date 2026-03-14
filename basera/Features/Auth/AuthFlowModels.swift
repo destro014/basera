@@ -1,116 +1,61 @@
 import Foundation
 
 enum AuthFlowStep: Int, CaseIterable, Identifiable {
-    case introduction
-    case phoneNumber
-    case otpVerification
-    case passwordEntry
-    case profileCreation
-    case roleSelection
-    case profilePhoto
+    case login
+    case registration
+    case emailVerification
+    case registrationPassword
+    case profileSetup
+    case passwordRecoveryEmail
+    case passwordRecoveryVerification
+    case passwordRecoveryReset
 
     var id: Int { rawValue }
-
-    var title: String {
-        switch self {
-        case .introduction:
-            "Welcome to Basera"
-        case .phoneNumber:
-            "Enter your number"
-        case .otpVerification:
-            "Verify your OTP"
-        case .passwordEntry:
-            "Enter the password"
-        case .profileCreation:
-            "Lets create your account"
-        case .roleSelection:
-            "Choose your role"
-        case .profilePhoto:
-            "Add a profile photo"
-        }
-    }
-
-    var subtitle: String {
-        switch self {
-        case .introduction:
-            "Manage the rental journey in one place, from discovery and approvals to agreements, monthly invoices, and move-out records."
-        case .phoneNumber:
-            "Use the mobile number you want attached to listings, agreements, and monthly billing."
-        case .otpVerification:
-            "Enter the 6-digit code we sent to keep your Basera account secure."
-        case .passwordEntry:
-            "Enter the password associated with your account."
-        case .profileCreation:
-            "Enter your legal name and create a password for next login."
-        case .roleSelection:
-            "Pick how you want to use Basera today. If you choose both, you can switch roles later."
-        case .profilePhoto:
-            "Adding a photo is optional, but it helps renters and owners recognise each other faster."
-        }
-    }
-
-    var shortLabel: String {
-        switch self {
-        case .introduction:
-            "Intro"
-        case .phoneNumber:
-            "Phone"
-        case .otpVerification:
-            "OTP"
-        case .passwordEntry:
-            "Password"
-        case .profileCreation:
-            "Account"
-        case .roleSelection:
-            "Role"
-        case .profilePhoto:
-            "Photo"
-        }
-    }
-
-    var showsProductOverview: Bool {
-        self == .introduction
-    }
-
-    var countsTowardsProgress: Bool {
-        self != .introduction
-    }
-
-    var progressIndex: Int? {
-        guard countsTowardsProgress else { return nil }
-        return Self.progressSteps.firstIndex(of: self)
-    }
-
-    static var progressSteps: [AuthFlowStep] {
-        allCases.filter(\.countsTowardsProgress)
-    }
 }
 
-struct AuthOTPChallenge: Equatable {
+struct AuthEmailVerificationChallenge: Equatable {
     let id: String
-    let phoneNumber: String
-    let maskedPhoneNumber: String
+    let email: String
+    let maskedEmail: String
     let resendAvailableAt: Date
 }
 
-struct AuthenticatedPhoneSession: Equatable {
+struct AuthenticatedEmailSession: Equatable {
     let id: String
     let userID: String
-    let phoneNumber: String
+    let email: String
 }
 
-enum AuthVerificationResult: Equatable {
-    case requiresPassword(AuthenticatedPhoneSession)
-    case requiresOnboarding(AuthenticatedPhoneSession)
+struct AuthPasswordRecoveryChallenge: Equatable {
+    let id: String
+    let email: String
+    let maskedEmail: String
+    let resendAvailableAt: Date
 }
 
-struct AuthOnboardingSubmission: Equatable {
+struct AuthPasswordResetSession: Equatable {
+    let id: String
+    let userID: String
+    let email: String
+}
+
+enum AuthSignInResult: Equatable {
+    case authenticated(AppUser)
+    case requiresEmailVerification(AuthEmailVerificationChallenge)
+    case requiresProfileSetup(AuthenticatedEmailSession)
+}
+
+struct AuthProfileSetupSubmission: Equatable {
     let fullName: String
-    let passwordHash: String
+    let phoneNumber: String
     let selectedRoles: Set<UserRole>
     let acceptsTerms: Bool
     let acceptsPrivacy: Bool
-    let profilePhotoData: Data?
+}
+
+struct AuthFlowCompletion {
+    let user: AppUser
+    let credentials: AuthCredentials?
 }
 
 struct AuthStepNotice: Equatable, Identifiable {
@@ -185,40 +130,70 @@ enum UserRoleSelectionOption: String, CaseIterable, Identifiable {
 }
 
 enum AuthError: LocalizedError, Equatable {
-    case invalidPhoneNumber
-    case otpCodeRequired
-    case invalidOTP
-    case resendNotReady(secondsRemaining: Int)
-    case nameRequired
+    case emailRequired
+    case invalidEmail
     case passwordRequired
+    case passwordTooShort(minLength: Int)
+    case confirmPasswordRequired
+    case passwordsDoNotMatch
+    case verificationCodeRequired
+    case invalidVerificationCode
+    case resendNotReady(secondsRemaining: Int)
+    case fullNameRequired
+    case phoneNumberRequired
     case invalidPassword
-    case roleSelectionRequired
-    case onboardingSessionExpired
-    case photoSelectionFailed
+    case emailAlreadyInUse
+    case accountNotFound
+    case registrationSessionExpired
+    case passwordRecoverySessionExpired
+    case passwordResetSessionExpired
+    case biometricUnavailable
+    case biometricAuthenticationFailed
+    case biometricCredentialsMissing
     case unexpected
 
     var errorDescription: String? {
         switch self {
-        case .invalidPhoneNumber:
-            "Enter a valid Nepal mobile number. Example: 98XXXXXXXX."
-        case .otpCodeRequired:
-            "Enter the 6-digit OTP before continuing."
-        case .invalidOTP:
-            "That OTP did not match. Check the 6-digit code and try again."
-        case .resendNotReady(let secondsRemaining):
-            "You can request another OTP in \(secondsRemaining) seconds."
-        case .nameRequired:
-            "Enter your full name to create an account."
+        case .emailRequired:
+            "Enter your email address to continue."
+        case .invalidEmail:
+            "Enter a valid email address."
         case .passwordRequired:
             "Enter your password to continue."
+        case .passwordTooShort(let minLength):
+            "Password must be at least \(minLength) characters."
+        case .confirmPasswordRequired:
+            "Confirm your password to continue."
+        case .passwordsDoNotMatch:
+            "Passwords do not match."
+        case .verificationCodeRequired:
+            "Enter the 6-digit verification code."
+        case .invalidVerificationCode:
+            "That verification code did not match. Try again."
+        case .resendNotReady(let secondsRemaining):
+            "You can request another code in \(secondsRemaining) seconds."
+        case .fullNameRequired:
+            "Enter your full name to complete profile setup."
+        case .phoneNumberRequired:
+            "Enter your phone number to complete profile setup."
         case .invalidPassword:
-            "Incorrect password. Please try again."
-        case .roleSelectionRequired:
-            "Choose renter, owner, or both before continuing."
-        case .onboardingSessionExpired:
-            "Your verification session expired. Start again with your phone number."
-        case .photoSelectionFailed:
-            "Basera could not read that photo. Choose another image and try again."
+            "The details you entered are not valid. Please try again."
+        case .emailAlreadyInUse:
+            "An account already exists. Please login to continue."
+        case .accountNotFound:
+            "No account was found for this request."
+        case .registrationSessionExpired:
+            "Your registration session expired. Start again from registration."
+        case .passwordRecoverySessionExpired:
+            "Your password recovery session expired. Start again."
+        case .passwordResetSessionExpired:
+            "Your password reset session expired. Start again."
+        case .biometricUnavailable:
+            "Biometric login is not available on this device."
+        case .biometricAuthenticationFailed:
+            "Biometric verification failed. Try again or use password login."
+        case .biometricCredentialsMissing:
+            "Saved credentials are missing. Login with email and password."
         case .unexpected:
             "Something went wrong. Please try again."
         }

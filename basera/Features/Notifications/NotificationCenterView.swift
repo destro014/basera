@@ -57,6 +57,8 @@ struct NotificationCenterView: View {
         }
         .baseraListBackground()
         .navigationTitle("Notifications")
+        .navigationBarTitleDisplayMode(.large)
+
         .task {
             await environment.notificationsRepository.registerForPushNotifications()
             await viewModel.load(repository: environment.notificationsRepository)

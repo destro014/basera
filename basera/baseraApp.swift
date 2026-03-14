@@ -10,7 +10,7 @@ struct BaseraApp: App {
 
     var body: some Scene {
         WindowGroup {
-            AppRootView()
+            ContentView()
                 .environmentObject(environment)
         }
     }

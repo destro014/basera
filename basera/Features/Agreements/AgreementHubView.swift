@@ -34,7 +34,7 @@ struct AgreementHubView: View {
         .task {
             await viewModel.load(using: environment.agreementsRepository)
         }
-        .alert("Agreement update", isPresented: .constant(viewModel.errorMessage != nil), actions: {
+        .alert("Agreement update", isPresented: errorAlertIsPresented, actions: {
             Button("OK") { viewModel.errorMessage = nil }
         }, message: {
             Text(viewModel.errorMessage ?? "")
@@ -143,6 +143,17 @@ struct AgreementHubView: View {
                 }
             }
         }
+    }
+
+    private var errorAlertIsPresented: Binding<Bool> {
+        Binding(
+            get: { viewModel.errorMessage != nil },
+            set: { isPresented in
+                if isPresented == false {
+                    viewModel.errorMessage = nil
+                }
+            }
+        )
     }
 }
 

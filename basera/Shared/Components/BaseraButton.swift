@@ -9,6 +9,9 @@ struct BaseraButton: View {
 
     let title: String
     let style: Style
+    var leftIcon: String? = nil
+    var rightIcon: String? = nil
+    var iconWeight: Font.Weight? = nil
     var isLoading: Bool = false
     var isDisabled: Bool = false
     let action: () -> Void
@@ -19,15 +22,34 @@ struct BaseraButton: View {
                 if isLoading {
                     ProgressView()
                         .tint(foregroundColor)
+                        .frame(height: 24)
+
                 } else {
-                    Text(title)
-                        .baseraTextStyle(AppTheme.Typography.labelLarge)
+                    HStack(spacing: AppTheme.Spacing.small) {
+                        if let leftIcon {
+                            Image(systemName: leftIcon)
+                                .font(.system(size: 24, weight: iconWeight ?? .semibold))
+
+                        }
+
+                        Text(title)
+                            .baseraTextStyle(AppTheme.Typography.labelLarge)
+                            .lineLimit(1)
+                            .frame(height: 24)
+
+
+                        if let rightIcon {
+                            Image(systemName: rightIcon)
+                                .font(.system(size: 24, weight: iconWeight ?? .regular))
+
+                        }
+                    }
                 }
             }
             .frame(maxWidth: .infinity)
-            .padding(AppTheme.Spacing.large)
+            .padding(.horizontal, AppTheme.Spacing.xLarge)
+            .padding(.vertical, AppTheme.Spacing.large)
             .contentShape(RoundedRectangle(cornerRadius: AppTheme.Radius.large, style: .continuous))
-            
         }
         .buttonStyle(.plain)
         .foregroundStyle(foregroundColor)
@@ -91,6 +113,10 @@ struct BaseraButton: View {
 #Preview {
     VStack(spacing: 12) {
         BaseraButton(title: "Continue in Basera", style: .primary, action: {})
+        BaseraButton(title: "Back", style: .primary, leftIcon: "arrow.left", action: {})
+        BaseraButton(title: "Next", style: .secondary, rightIcon: "chevron.right", action: {})
+        BaseraButton(title: "Swap Role", style: .subtle, leftIcon: "arrow.left.arrow.right", rightIcon: "chevron.right", action: {})
+        BaseraButton(title: "Thick Face ID", style: .secondary, leftIcon: "faceid", iconWeight: .bold, action: {})
         BaseraButton(title: "Secondary", style: .secondary, action: {})
         BaseraButton(title: "Subtle", style: .subtle, action: {})
         BaseraButton(title: "Loading", style: .primary, isLoading: true, action: {})

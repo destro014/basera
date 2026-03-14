@@ -7,7 +7,7 @@ struct SettingsView: View {
     let onSignOut: () -> Void
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 Section {
                     HStack {
@@ -16,6 +16,11 @@ struct SettingsView: View {
                             Text(user.displayName)
                                 .baseraTextStyle(AppTheme.Typography.titleMedium)
                                 .foregroundStyle(AppTheme.Colors.textPrimary)
+                            if user.email.isEmpty == false {
+                                Text(user.email)
+                                    .baseraTextStyle(AppTheme.Typography.bodySmall)
+                                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                            }
                             Text(user.phoneNumber)
                                 .baseraTextStyle(AppTheme.Typography.bodySmall)
                                 .foregroundStyle(AppTheme.Colors.textSecondary)
@@ -78,7 +83,6 @@ struct SettingsView: View {
             .baseraListBackground()
             .navigationTitle("Settings")
         }
-        .navigationViewStyle(StackNavigationViewStyle())
     }
 
     private var initials: String {

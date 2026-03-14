@@ -6,50 +6,54 @@ import FirebaseFirestore
 
 struct FirebaseAuthRepository: AuthRepositoryProtocol {
     private let authService: AuthServiceProtocol
-    private let storageService: StorageServiceProtocol
 
-    init(authService: AuthServiceProtocol, storageService: StorageServiceProtocol) {
+    init(authService: AuthServiceProtocol) {
         self.authService = authService
-        self.storageService = storageService
     }
 
     func restoreSession() async throws -> AppUser? {
         try await authService.currentUser()
     }
 
-    func requestOTP(for phoneNumber: String) async throws -> AuthOTPChallenge {
-        try await authService.requestOTP(for: phoneNumber)
+    func signIn(email: String, password: String) async throws -> AuthSignInResult {
+        try await authService.signIn(email: email, password: password)
     }
 
-    func resendOTP(for challengeID: String) async throws -> AuthOTPChallenge {
-        try await authService.resendOTP(for: challengeID)
+    func startEmailRegistration(email: String) async throws -> AuthEmailVerificationChallenge {
+        try await authService.startEmailRegistration(email: email)
     }
 
-    func verifyOTP(_ code: String, challengeID: String) async throws -> AuthVerificationResult {
-        try await authService.verifyOTP(code, challengeID: challengeID)
+    func resendEmailRegistrationCode(for challengeID: String) async throws -> AuthEmailVerificationChallenge {
+        try await authService.resendEmailRegistrationCode(for: challengeID)
     }
 
-    func signIn(withPassword password: String, for session: AuthenticatedPhoneSession) async throws -> AppUser {
-        try await authService.signIn(withPassword: password, for: session)
+    func verifyEmailRegistrationCode(_ code: String, challengeID: String) async throws -> AuthenticatedEmailSession {
+        try await authService.verifyEmailRegistrationCode(code, challengeID: challengeID)
     }
 
-    func completeOnboarding(_ submission: AuthOnboardingSubmission, for session: AuthenticatedPhoneSession) async throws -> AppUser {
-        let profilePhotoURL: URL?
-        if let profilePhotoData = submission.profilePhotoData {
-            profilePhotoURL = try await storageService.upload(data: profilePhotoData, path: "profile-photos/\(session.userID).jpg")
-        } else {
-            profilePhotoURL = nil
-        }
+    func setRegistrationPassword(_ password: String, for session: AuthenticatedEmailSession) async throws -> AuthenticatedEmailSession {
+        try await authService.setRegistrationPassword(password, for: session)
+    }
 
-        return try await authService.completeOnboarding(
-            for: session,
-            fullName: submission.fullName,
-            passwordHash: submission.passwordHash,
-            roles: submission.selectedRoles,
-            acceptsTerms: submission.acceptsTerms,
-            acceptsPrivacy: submission.acceptsPrivacy,
-            profilePhotoURL: profilePhotoURL
-        )
+    func completeProfileSetup(_ submission: AuthProfileSetupSubmission, for session: AuthenticatedEmailSession) async throws -> AppUser {
+        let profilePhotoURL: URL? = nil
+        return try await authService.completeProfileSetup(submission, for: session, profilePhotoURL: profilePhotoURL)
+    }
+
+    func startPasswordRecovery(email: String) async throws -> AuthPasswordRecoveryChallenge {
+        try await authService.startPasswordRecovery(email: email)
+    }
+
+    func resendPasswordRecoveryCode(for challengeID: String) async throws -> AuthPasswordRecoveryChallenge {
+        try await authService.resendPasswordRecoveryCode(for: challengeID)
+    }
+
+    func verifyPasswordRecoveryCode(_ code: String, challengeID: String) async throws -> AuthPasswordResetSession {
+        try await authService.verifyPasswordRecoveryCode(code, challengeID: challengeID)
+    }
+
+    func completePasswordRecovery(newPassword: String, for session: AuthPasswordResetSession) async throws {
+        try await authService.completePasswordRecovery(newPassword: newPassword, for: session)
     }
 
     func signOut() async throws {
@@ -66,9 +70,9 @@ actor FirebaseListingsRepository: ListingsRepositoryProtocol {
 
     func fetchExploreListings() async throws -> [Listing] {
         let rows = try await firestoreService.fetchCollection(path: "listings")
-        return rows.compactMap(FirebaseListingMapper.listing(from:)).filter {
-            [.active, .assigned, .agreementPending, .occupied].contains($0.status)
-        }
+        return rows
+            .compactMap(FirebaseListingMapper.listing(from:))
+            .filter { Listing.Status.discoverableStatuses.contains($0.status) }
     }
 
     func fetchOwnerListings(ownerID: String) async throws -> [Listing] {
@@ -94,37 +98,10 @@ actor FirebaseListingsRepository: ListingsRepositoryProtocol {
             throw FirebaseServiceError.missingDocument("listings/\(id)")
         }
 
-        let duplicate = Listing(
+        let duplicate = original.duplicating(
+            for: ownerID,
             id: "\(original.id)-COPY-\(Int.random(in: 100...999))",
-            ownerID: ownerID,
-            title: "Copy of \(original.title)",
-            description: original.description,
-            approximateLocation: original.approximateLocation,
-            exactAddress: original.location.exactAddress,
-            exactAddressMasked: original.exactAddressMasked,
-            monthlyRent: original.monthlyRent,
-            securityDeposit: original.pricing.securityDeposit,
-            bedroomCount: original.roomCount,
-            floor: original.floor,
-            propertyType: original.propertyType,
-            listingScope: original.listingScope,
-            furnishing: original.furnishing,
-            parkingAvailable: original.parkingAvailable,
-            wifiAvailable: original.wifiAvailable,
-            petAllowed: original.petAllowed,
-            tenantPreference: original.tenantPreference,
-            locationRadiusInKM: original.locationRadiusInKM,
-            availableFrom: original.availableFrom,
-            minimumStayMonths: original.minimumStayMonths,
-            utilities: original.utilities,
-            smokingAllowed: original.rules.smokingAllowed,
-            visitorsAllowed: original.rules.visitorsAllowed,
-            quietHours: original.rules.quietHours,
-            latitude: original.location.latitude,
-            longitude: original.location.longitude,
-            media: original.media,
-            status: .draft,
-            similarListingIDs: original.similarListingIDs
+            status: .draft
         )
         try await createListing(duplicate)
         return duplicate
@@ -132,38 +109,7 @@ actor FirebaseListingsRepository: ListingsRepositoryProtocol {
 
     func updateListingStatus(id: String, ownerID: String, status: Listing.Status) async throws {
         guard let listing = try await fetchOwnerListings(ownerID: ownerID).first(where: { $0.id == id }) else { return }
-        let updated = Listing(
-            id: listing.id,
-            ownerID: listing.ownerID,
-            title: listing.title,
-            description: listing.description,
-            approximateLocation: listing.approximateLocation,
-            exactAddress: listing.location.exactAddress,
-            exactAddressMasked: listing.exactAddressMasked,
-            monthlyRent: listing.monthlyRent,
-            securityDeposit: listing.pricing.securityDeposit,
-            bedroomCount: listing.roomCount,
-            floor: listing.floor,
-            propertyType: listing.propertyType,
-            listingScope: listing.listingScope,
-            furnishing: listing.furnishing,
-            parkingAvailable: listing.parkingAvailable,
-            wifiAvailable: listing.wifiAvailable,
-            petAllowed: listing.petAllowed,
-            tenantPreference: listing.tenantPreference,
-            locationRadiusInKM: listing.locationRadiusInKM,
-            availableFrom: listing.availableFrom,
-            minimumStayMonths: listing.minimumStayMonths,
-            utilities: listing.utilities,
-            smokingAllowed: listing.rules.smokingAllowed,
-            visitorsAllowed: listing.rules.visitorsAllowed,
-            quietHours: listing.rules.quietHours,
-            latitude: listing.location.latitude,
-            longitude: listing.location.longitude,
-            media: listing.media,
-            status: status,
-            similarListingIDs: listing.similarListingIDs
-        )
+        let updated = listing.updating(status: status)
         try await updateListing(updated)
     }
 }

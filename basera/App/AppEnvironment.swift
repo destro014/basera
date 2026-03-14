@@ -11,6 +11,7 @@ final class AppEnvironment: ObservableObject {
     let agreementConfirmationService: AgreementConfirmationServiceProtocol
     let agreementPDFService: AgreementPDFServiceProtocol
     let paymentGatewayService: PaymentGatewayServiceProtocol
+    let biometricLoginManager: BiometricLoginManagerProtocol
 
     let authRepository: AuthRepositoryProtocol
     let listingsRepository: ListingsRepositoryProtocol
@@ -34,6 +35,7 @@ final class AppEnvironment: ObservableObject {
         agreementConfirmationService: AgreementConfirmationServiceProtocol,
         agreementPDFService: AgreementPDFServiceProtocol,
         paymentGatewayService: PaymentGatewayServiceProtocol,
+        biometricLoginManager: BiometricLoginManagerProtocol,
         authRepository: AuthRepositoryProtocol,
         listingsRepository: ListingsRepositoryProtocol,
         profileRepository: ProfileRepositoryProtocol,
@@ -53,6 +55,7 @@ final class AppEnvironment: ObservableObject {
         self.agreementConfirmationService = agreementConfirmationService
         self.agreementPDFService = agreementPDFService
         self.paymentGatewayService = paymentGatewayService
+        self.biometricLoginManager = biometricLoginManager
         self.authRepository = authRepository
         self.listingsRepository = listingsRepository
         self.profileRepository = profileRepository
@@ -67,50 +70,66 @@ final class AppEnvironment: ObservableObject {
 
     static func bootstrap() -> AppEnvironment {
         if AppRuntimeConfiguration.useFirebaseInfrastructure {
-            FirebaseBootstrapper.configureIfNeeded()
-
-            let firestoreService = FirebaseFirestoreService()
-            let storageService = FirebaseStorageService()
-            let notificationsService = FirebaseNotificationsService()
-            let remoteConfigService = FirebaseRemoteConfigService()
-            let authService = FirebaseAuthService(firestoreService: firestoreService)
-            let agreementConfirmationService = MockAgreementConfirmationService()
-            let agreementPDFService = MockAgreementPDFService()
-            let paymentGatewayService = MockPaymentGatewayService()
-
-            let authRepository = FirebaseAuthRepository(authService: authService, storageService: storageService)
-            let listingsRepository = FirebaseListingsRepository(firestoreService: firestoreService)
-            let profileRepository = FirebaseProfileRepository(firestoreService: firestoreService)
-            let interestsRepository = MockInterestsRepository()
-            let agreementsRepository = MockAgreementsRepository(confirmationService: agreementConfirmationService)
-            let tenancyRepository = MockTenancyRepository()
-            let billingRepository = MockBillingRepository()
-            let paymentsRepository = MockPaymentsRepository(billingRepository: billingRepository, gatewayService: paymentGatewayService)
-            let notificationsRepository = FirebaseNotificationsRepository(notificationsService: notificationsService, firestoreService: firestoreService)
-            let reviewsRepository = MockReviewsRepository()
-
-            return AppEnvironment(
-                authService: authService,
-                firestoreService: firestoreService,
-                storageService: storageService,
-                notificationsService: notificationsService,
-                remoteConfigService: remoteConfigService,
-                agreementConfirmationService: agreementConfirmationService,
-                agreementPDFService: agreementPDFService,
-                paymentGatewayService: paymentGatewayService,
-                authRepository: authRepository,
-                listingsRepository: listingsRepository,
-                profileRepository: profileRepository,
-                interestsRepository: interestsRepository,
-                agreementsRepository: agreementsRepository,
-                tenancyRepository: tenancyRepository,
-                billingRepository: billingRepository,
-                paymentsRepository: paymentsRepository,
-                notificationsRepository: notificationsRepository,
-                reviewsRepository: reviewsRepository
-            )
+            return firebaseEnvironment()
         }
 
+        return mockEnvironment()
+    }
+
+    private static func firebaseEnvironment() -> AppEnvironment {
+        FirebaseBootstrapper.configureIfNeeded()
+
+        let firestoreService = FirebaseFirestoreService()
+        let storageService = FirebaseStorageService()
+        let notificationsService = FirebaseNotificationsService()
+        let remoteConfigService = FirebaseRemoteConfigService()
+        let authService = FirebaseAuthService(firestoreService: firestoreService)
+        let agreementConfirmationService = MockAgreementConfirmationService()
+        let agreementPDFService = MockAgreementPDFService()
+        let paymentGatewayService = MockPaymentGatewayService()
+        let biometricLoginManager = DeviceBiometricLoginManager()
+
+        let authRepository = FirebaseAuthRepository(authService: authService)
+        let listingsRepository = FirebaseListingsRepository(firestoreService: firestoreService)
+        let profileRepository = FirebaseProfileRepository(firestoreService: firestoreService)
+        let interestsRepository = MockInterestsRepository()
+        let agreementsRepository = MockAgreementsRepository(confirmationService: agreementConfirmationService)
+        let tenancyRepository = MockTenancyRepository()
+        let billingRepository = MockBillingRepository()
+        let paymentsRepository = MockPaymentsRepository(
+            billingRepository: billingRepository,
+            gatewayService: paymentGatewayService
+        )
+        let notificationsRepository = FirebaseNotificationsRepository(
+            notificationsService: notificationsService,
+            firestoreService: firestoreService
+        )
+        let reviewsRepository = MockReviewsRepository()
+
+        return AppEnvironment(
+            authService: authService,
+            firestoreService: firestoreService,
+            storageService: storageService,
+            notificationsService: notificationsService,
+            remoteConfigService: remoteConfigService,
+            agreementConfirmationService: agreementConfirmationService,
+            agreementPDFService: agreementPDFService,
+            paymentGatewayService: paymentGatewayService,
+            biometricLoginManager: biometricLoginManager,
+            authRepository: authRepository,
+            listingsRepository: listingsRepository,
+            profileRepository: profileRepository,
+            interestsRepository: interestsRepository,
+            agreementsRepository: agreementsRepository,
+            tenancyRepository: tenancyRepository,
+            billingRepository: billingRepository,
+            paymentsRepository: paymentsRepository,
+            notificationsRepository: notificationsRepository,
+            reviewsRepository: reviewsRepository
+        )
+    }
+
+    private static func mockEnvironment() -> AppEnvironment {
         let authService = MockAuthService()
         let firestoreService = MockFirestoreService()
         let storageService = MockStorageService()
@@ -119,18 +138,19 @@ final class AppEnvironment: ObservableObject {
         let agreementConfirmationService = MockAgreementConfirmationService()
         let agreementPDFService = MockAgreementPDFService()
         let paymentGatewayService = MockPaymentGatewayService()
+        let biometricLoginManager = DeviceBiometricLoginManager()
 
-        let authRepository = MockAuthRepository(
-            authService: authService,
-            storageService: storageService
-        )
+        let authRepository = MockAuthRepository(authService: authService)
         let listingsRepository = MockListingsRepository()
         let profileRepository = MockProfileRepository()
         let interestsRepository = MockInterestsRepository()
         let agreementsRepository = MockAgreementsRepository(confirmationService: agreementConfirmationService)
         let tenancyRepository = MockTenancyRepository()
         let billingRepository = MockBillingRepository()
-        let paymentsRepository = MockPaymentsRepository(billingRepository: billingRepository, gatewayService: paymentGatewayService)
+        let paymentsRepository = MockPaymentsRepository(
+            billingRepository: billingRepository,
+            gatewayService: paymentGatewayService
+        )
         let notificationsRepository = MockNotificationsRepository(service: notificationsService)
         let reviewsRepository = MockReviewsRepository()
 
@@ -143,6 +163,7 @@ final class AppEnvironment: ObservableObject {
             agreementConfirmationService: agreementConfirmationService,
             agreementPDFService: agreementPDFService,
             paymentGatewayService: paymentGatewayService,
+            biometricLoginManager: biometricLoginManager,
             authRepository: authRepository,
             listingsRepository: listingsRepository,
             profileRepository: profileRepository,

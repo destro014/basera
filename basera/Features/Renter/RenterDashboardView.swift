@@ -7,54 +7,69 @@ struct RenterDashboardView: View {
     @State private var selectedListingForInterest: Listing?
     @StateObject private var tenancyViewModel = RenterActiveTenancyViewModel()
 
+    let renterID: String
+    let renterSnapshot: RenterProfileSnapshot
+
+    init(
+        renterID: String = "preview-user-001",
+        renterSnapshot: RenterProfileSnapshot = .init(
+            renterID: "preview-user-001",
+            fullName: "Sita Basera",
+            occupation: "Software Engineer",
+            familySize: 3,
+            hasPets: false,
+            smokingStatus: "Non-smoker"
+        )
+    ) {
+        self.renterID = renterID
+        self.renterSnapshot = renterSnapshot
+    }
+
     var body: some View {
-        NavigationView {
-            Group {
-                switch viewModel.state {
-                case .idle, .loading:
-                    BaseraLoadingView(message: "Finding rentals for you")
-                case .error(let message):
-                    BaseraErrorStateView(title: "Unable to load Explore", message: message) {
-                        Task { await viewModel.retry(using: environment.listingsRepository) }
-                    }
-                case .loaded:
-                    exploreContent
+        Group {
+            switch viewModel.state {
+            case .idle, .loading:
+                BaseraLoadingView(message: "Finding rentals for you")
+            case .error(let message):
+                BaseraErrorStateView(title: "Unable to load Explore", message: message) {
+                    Task { await viewModel.retry(using: environment.listingsRepository) }
                 }
+            case .loaded:
+                exploreContent
             }
-            .background(AppTheme.Colors.backgroundPrimary)
-            .sheet(isPresented: $isFilterSheetPresented) {
-                NavigationView {
-                    ScrollView {
-                        filterControls
-                            .padding()
-                    }
-                    .navigationTitle("Filters")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button("Done") {
-                                isFilterSheetPresented = false
-                            }
+        }
+        .background(AppTheme.Colors.backgroundPrimary)
+        .sheet(isPresented: $isFilterSheetPresented) {
+            NavigationStack {
+                ScrollView {
+                    filterControls
+                        .padding()
+                }
+                .navigationTitle("Filters")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Done") {
+                            isFilterSheetPresented = false
                         }
                     }
                 }
-                .presentationDetents([.medium, .large])
-                .presentationDragIndicator(.visible)
             }
-            .task {
-                guard viewModel.state == .idle else { return }
-                await viewModel.load(using: environment.listingsRepository)
-                await viewModel.refreshInterestStates(renterID: "preview-user-001", using: environment.interestsRepository)
-                await tenancyViewModel.load(renterID: "preview-user-001", tenancyRepository: environment.tenancyRepository)
-            }
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
         }
-        .navigationViewStyle(StackNavigationViewStyle())
+        .task {
+            guard viewModel.state == .idle else { return }
+            await viewModel.load(using: environment.listingsRepository)
+            await viewModel.refreshInterestStates(renterID: renterID, using: environment.interestsRepository)
+            await tenancyViewModel.load(renterID: renterID, tenancyRepository: environment.tenancyRepository)
+        }
         .sheet(item: $selectedListingForInterest) { listing in
-            NavigationView {
+            NavigationStack {
                 InterestSubmissionView(
                     listing: listing,
-                    renterID: "preview-user-001",
-                    renterSnapshot: .init(renterID: "preview-user-001", fullName: "Sita Basera", occupation: "Software Engineer", familySize: 3, hasPets: false, smokingStatus: "Non-smoker")
+                    renterID: renterID,
+                    renterSnapshot: renterSnapshot
                 )
             }
             .environmentObject(environment)
@@ -226,14 +241,14 @@ struct RenterDashboardView: View {
                 TenancySummaryCard(tenancy: tenancy, party: .renter)
                 VStack(spacing: AppTheme.Spacing.small) {
                     NavigationLink {
-                        ActiveTenancyDetailView(tenancyID: tenancy.id, userID: "preview-user-001", party: .renter)
+                        ActiveTenancyDetailView(tenancyID: tenancy.id, userID: renterID, party: .renter)
                     } label: {
                         BaseraActionTile(title: "Open Tenancy Details", subtitle: "View assignment, agreement, and checklist", systemImage: "person.3")
                     }
                     .buttonStyle(.plain)
 
                     NavigationLink {
-                        PaymentsHubView(tenancy: tenancy, userID: "preview-user-001", actor: .renter)
+                        PaymentsHubView(tenancy: tenancy, userID: renterID, actor: .renter)
                     } label: {
                         BaseraActionTile(title: "Payment History", subtitle: "Track completed and pending payments", systemImage: "creditcard")
                     }
@@ -258,21 +273,21 @@ struct RenterDashboardView: View {
                                 .baseraTextStyle(AppTheme.Typography.labelLarge)
                             VStack(spacing: AppTheme.Spacing.small) {
                                 NavigationLink {
-                                    AgreementHubView(currentUserID: "preview-user-001", party: .renter)
+                                    AgreementHubView(currentUserID: renterID, party: .renter)
                                 } label: {
                                     BaseraActionTile(title: "Agreement", subtitle: nil, systemImage: "doc.richtext")
                                 }
                                 .buttonStyle(.plain)
 
                                 NavigationLink {
-                                    InvoiceListView(tenancy: archived, userID: "preview-user-001", actor: .renter)
+                                    InvoiceListView(tenancy: archived, userID: renterID, actor: .renter)
                                 } label: {
                                     BaseraActionTile(title: "Invoices", subtitle: nil, systemImage: "doc.text")
                                 }
                                 .buttonStyle(.plain)
 
                                 NavigationLink {
-                                    PaymentsHubView(tenancy: archived, userID: "preview-user-001", actor: .renter)
+                                    PaymentsHubView(tenancy: archived, userID: renterID, actor: .renter)
                                 } label: {
                                     BaseraActionTile(title: "Payments", subtitle: nil, systemImage: "creditcard")
                                 }
@@ -291,28 +306,28 @@ struct RenterDashboardView: View {
                 .baseraTextStyle(AppTheme.Typography.titleMedium)
 
             NavigationLink {
-                RenterInterestsView(renterID: "preview-user-001")
+                RenterInterestsView(renterID: renterID)
             } label: {
                 BaseraActionTile(title: "My Interest Requests", subtitle: "View owner responses and pending requests", systemImage: "paperplane")
             }
             .buttonStyle(.plain)
 
             NavigationLink {
-                ConversationListView(userID: "preview-user-001")
+                ConversationListView(userID: renterID)
             } label: {
                 BaseraActionTile(title: "Conversations", subtitle: "Continue approved chats with owners", systemImage: "bubble.left.and.bubble.right")
             }
             .buttonStyle(.plain)
 
             NavigationLink {
-                AgreementHubView(currentUserID: "preview-user-001", party: .renter)
+                AgreementHubView(currentUserID: renterID, party: .renter)
             } label: {
                 BaseraActionTile(title: "My Agreement", subtitle: "Check agreement draft and signed status", systemImage: "doc.richtext")
             }
             .buttonStyle(.plain)
 
             NavigationLink {
-                ReviewHubView(userID: "preview-user-001", role: .renter)
+                ReviewHubView(userID: renterID, role: .renter)
             } label: {
                 BaseraActionTile(title: "Reviews & Rating", subtitle: "Manage ratings for your tenancy", systemImage: "star.bubble")
             }

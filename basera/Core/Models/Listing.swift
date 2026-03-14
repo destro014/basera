@@ -213,4 +213,88 @@ extension Listing {
     var wifiAvailable: Bool { amenities.wifiAvailable }
     var petAllowed: Bool { amenities.petAllowed }
     var utilities: Utilities { pricing.utilities }
+
+    func updating(status: Status) -> Listing {
+        Listing(
+            id: id,
+            ownerID: ownerID,
+            title: title,
+            description: description,
+            approximateLocation: approximateLocation,
+            exactAddress: location.exactAddress,
+            exactAddressMasked: exactAddressMasked,
+            monthlyRent: monthlyRent,
+            securityDeposit: pricing.securityDeposit,
+            bedroomCount: roomCount,
+            floor: floor,
+            propertyType: propertyType,
+            listingScope: listingScope,
+            furnishing: furnishing,
+            parkingAvailable: parkingAvailable,
+            wifiAvailable: wifiAvailable,
+            petAllowed: petAllowed,
+            tenantPreference: tenantPreference,
+            locationRadiusInKM: locationRadiusInKM,
+            availableFrom: availableFrom,
+            minimumStayMonths: minimumStayMonths,
+            utilities: utilities,
+            smokingAllowed: rules.smokingAllowed,
+            visitorsAllowed: rules.visitorsAllowed,
+            quietHours: rules.quietHours,
+            latitude: location.latitude,
+            longitude: location.longitude,
+            media: media,
+            status: status,
+            similarListingIDs: similarListingIDs
+        )
+    }
+
+    func duplicating(
+        for ownerID: String,
+        id: String = UUID().uuidString,
+        titlePrefix: String = "Copy of ",
+        status: Status = .draft
+    ) -> Listing {
+        Listing(
+            id: id,
+            ownerID: ownerID,
+            title: "\(titlePrefix)\(title)",
+            description: description,
+            approximateLocation: approximateLocation,
+            exactAddress: location.exactAddress,
+            exactAddressMasked: exactAddressMasked,
+            monthlyRent: monthlyRent,
+            securityDeposit: pricing.securityDeposit,
+            bedroomCount: roomCount,
+            floor: floor,
+            propertyType: propertyType,
+            listingScope: listingScope,
+            furnishing: furnishing,
+            parkingAvailable: parkingAvailable,
+            wifiAvailable: wifiAvailable,
+            petAllowed: petAllowed,
+            tenantPreference: tenantPreference,
+            locationRadiusInKM: locationRadiusInKM,
+            availableFrom: availableFrom,
+            minimumStayMonths: minimumStayMonths,
+            utilities: utilities,
+            smokingAllowed: rules.smokingAllowed,
+            visitorsAllowed: rules.visitorsAllowed,
+            quietHours: rules.quietHours,
+            latitude: location.latitude,
+            longitude: location.longitude,
+            media: media,
+            status: status,
+            similarListingIDs: similarListingIDs
+        )
+    }
+}
+
+extension Listing.Status {
+    static let discoverableStatuses: Set<Listing.Status> = [
+        .active,
+        .assigned,
+        .agreementPending,
+        .occupied
+    ]
 }

@@ -6,6 +6,7 @@ enum PreviewData {
             id: id,
             fullName: "Sita Basera",
             phoneNumber: "+9779800000000",
+            email: "sita@example.com",
             availableRoles: [.renter, .owner],
             activeRole: activeRole,
             profilePhotoURL: nil

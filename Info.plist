@@ -6,6 +6,8 @@
 	<array>
 		<dict/>
 	</array>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Use Face ID for faster and secure login to Basera.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Fonts/Rubik-Medium.ttf</string>

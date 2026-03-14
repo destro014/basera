@@ -9,12 +9,14 @@ struct BaseraTextField: View {
     var textContentType: UITextContentType? = nil
     var textInputAutocapitalization: TextInputAutocapitalization = .sentences
     var isSecure: Bool = false
+    var allowsSecureTextToggle: Bool = false
     var errorMessage: String? = nil
     var isDisabled: Bool = false
     var submitLabel: SubmitLabel = .done
     var onSubmit: (() -> Void)? = nil
 
     @FocusState private var isFocused: Bool
+    @State private var isSecureTextVisible = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
@@ -26,43 +28,59 @@ struct BaseraTextField: View {
                         .frame(width: 20, height: 20)
                 }
 
-                ZStack(alignment: .leading) {
-                    if shouldShowPrompt, let prompt {
-                        Text(prompt)
-                            .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                            .foregroundStyle(AppTheme.Colors.textDisabled)
-                            .offset(y: 12)
-                    }
-
-                    Group {
-                        if isSecure {
-                            SecureField("", text: $text)
-                        } else {
-                            TextField("", text: $text)
+                HStack(spacing: AppTheme.Spacing.small) {
+                    ZStack(alignment: .leading) {
+                        if shouldShowPrompt, let prompt {
+                            Text(prompt)
+                                .baseraTextStyle(AppTheme.Typography.bodyLarge)
+                                .foregroundStyle(AppTheme.Colors.textDisabled)
+                                .offset(y: 12)
                         }
-                    }
-                    .textInputAutocapitalization(textInputAutocapitalization)
-                    .autocorrectionDisabled()
-                    .keyboardType(keyboardType)
-                    .textContentType(textContentType)
-                    .submitLabel(submitLabel)
-                    .focused($isFocused)
-                    .onSubmit {
-                        onSubmit?()
-                    }
-                    .disabled(isDisabled)
-                    .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                    .foregroundStyle(AppTheme.Colors.textPrimary)
-                    .tint(AppTheme.Colors.brandPrimary)
-                    .offset(y: isLabelFloating ? 12 : 0)
-                    .frame(height: 40)
 
-                }
-                .background(alignment: .leading) {
-                    Text(title)
-                        .baseraTextStyle(AppTheme.Typography.bodyMedium)
-                        .foregroundStyle(labelColor)
-                        .offset(y: isLabelFloating ? -12 : 0)
+                        Group {
+                            if shouldUseSecureEntry {
+                                SecureField("", text: $text)
+                            } else {
+                                TextField("", text: $text)
+                            }
+                        }
+                        .textFieldStyle(.plain)
+                        .background(Color.clear)
+                        .textInputAutocapitalization(textInputAutocapitalization)
+                        .autocorrectionDisabled()
+                        .keyboardType(keyboardType)
+                        .textContentType(textContentType)
+                        .submitLabel(submitLabel)
+                        .focused($isFocused)
+                        .onSubmit {
+                            onSubmit?()
+                        }
+                        .disabled(isDisabled)
+                        .baseraTextStyle(AppTheme.Typography.bodyLarge)
+                        .foregroundStyle(AppTheme.Colors.textPrimary)
+                        .tint(AppTheme.Colors.brandPrimary)
+                        .offset(y: isLabelFloating ? 12 : 0)
+                        .frame(height: 40)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(alignment: .leading) {
+                        Text(title)
+                            .baseraTextStyle(AppTheme.Typography.bodyMedium)
+                            .foregroundStyle(labelColor)
+                            .offset(y: isLabelFloating ? -12 : 0)
+                    }
+
+                    if showsSecureToggle {
+                        Button {
+                            isSecureTextVisible.toggle()
+                        } label: {
+                            Image(systemName: isSecureTextVisible ? "eye.slash" : "eye")
+                                .font(.system(size: 18, weight: .medium))
+                                .foregroundStyle(iconColor)
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(isDisabled)
+                    }
                 }
             }
             .padding(.horizontal, AppTheme.Spacing.large)
@@ -91,6 +109,14 @@ struct BaseraTextField: View {
 
     private var isLabelFloating: Bool {
         isFocused || text.isEmpty == false
+    }
+
+    private var shouldUseSecureEntry: Bool {
+        isSecure && !(allowsSecureTextToggle && isSecureTextVisible)
+    }
+
+    private var showsSecureToggle: Bool {
+        isSecure && allowsSecureTextToggle
     }
 
     private var shouldShowPrompt: Bool {

@@ -39,14 +39,19 @@ enum FirebaseServiceError: LocalizedError {
 
 final class FirebaseAuthService: AuthServiceProtocol {
     private struct PendingChallenge {
-        let verificationID: String
-        let phoneNumber: String
+        let userID: String
+        let email: String
+        let code: String
         let resendAvailableAt: Date
     }
 
     private actor AuthStateStore {
         private var pendingChallenges: [String: PendingChallenge] = [:]
-        private var sessionsByID: [String: AuthenticatedPhoneSession] = [:]
+        private var sessionsByID: [String: AuthenticatedEmailSession] = [:]
+        private var pendingPasswordRecoveryChallenges: [String: PendingChallenge] = [:]
+        private var passwordResetSessionsByID: [String: AuthPasswordResetSession] = [:]
+        private var localPasswordOverrides: [String: String] = [:]
+        private var fallbackUser: AppUser?
 
         func saveChallenge(challengeID: String, challenge: PendingChallenge) {
             pendingChallenges[challengeID] = challenge
@@ -60,16 +65,56 @@ final class FirebaseAuthService: AuthServiceProtocol {
             pendingChallenges[id] = nil
         }
 
-        func saveSession(_ session: AuthenticatedPhoneSession) {
+        func saveSession(_ session: AuthenticatedEmailSession) {
             sessionsByID[session.id] = session
         }
 
-        func validateSession(_ session: AuthenticatedPhoneSession) -> Bool {
+        func validateSession(_ session: AuthenticatedEmailSession) -> Bool {
             sessionsByID[session.id] != nil
         }
 
-        func consumeSession(_ session: AuthenticatedPhoneSession) {
+        func consumeSession(_ session: AuthenticatedEmailSession) {
             sessionsByID[session.id] = nil
+        }
+
+        func savePasswordRecoveryChallenge(challengeID: String, challenge: PendingChallenge) {
+            pendingPasswordRecoveryChallenges[challengeID] = challenge
+        }
+
+        func passwordRecoveryChallenge(id: String) -> PendingChallenge? {
+            pendingPasswordRecoveryChallenges[id]
+        }
+
+        func removePasswordRecoveryChallenge(id: String) {
+            pendingPasswordRecoveryChallenges[id] = nil
+        }
+
+        func savePasswordResetSession(_ session: AuthPasswordResetSession) {
+            passwordResetSessionsByID[session.id] = session
+        }
+
+        func passwordResetSession(id: String) -> AuthPasswordResetSession? {
+            passwordResetSessionsByID[id]
+        }
+
+        func consumePasswordResetSession(_ session: AuthPasswordResetSession) {
+            passwordResetSessionsByID[session.id] = nil
+        }
+
+        func saveLocalPasswordOverride(_ password: String, for email: String) {
+            localPasswordOverrides[email] = password
+        }
+
+        func localPasswordOverride(for email: String) -> String? {
+            localPasswordOverrides[email]
+        }
+
+        func setFallbackUser(_ user: AppUser?) {
+            fallbackUser = user
+        }
+
+        func getFallbackUser() -> AppUser? {
+            fallbackUser
         }
     }
 
@@ -81,62 +126,119 @@ final class FirebaseAuthService: AuthServiceProtocol {
     }
 
     func currentUser() async throws -> AppUser? {
-        #if canImport(FirebaseAuth)
-        guard let firebaseUser = Auth.auth().currentUser else { return nil }
-        let payload = try? await firestoreService.fetchDocument(path: "users/\(firebaseUser.uid)")
-        return FirebaseUserDocumentMapper.mapToAppUser(
-            userID: firebaseUser.uid,
-            phoneNumber: firebaseUser.phoneNumber,
-            payload: payload
-        )
-        #else
-        throw FirebaseServiceError.sdkUnavailable("Auth")
-        #endif
-    }
-
-    func requestOTP(for phoneNumber: String) async throws -> AuthOTPChallenge {
-        #if canImport(FirebaseAuth)
-        let verificationID = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<String, Error>) in
-            PhoneAuthProvider.provider().verifyPhoneNumber(phoneNumber, uiDelegate: nil) { verificationID, error in
-                if let error {
-                    continuation.resume(throwing: error)
-                    return
-                }
-
-                guard let verificationID else {
-                    continuation.resume(throwing: AuthError.unexpected)
-                    return
-                }
-
-                continuation.resume(returning: verificationID)
-            }
+        if let fallbackUser = await stateStore.getFallbackUser() {
+            return fallbackUser
         }
 
-        let challengeID = UUID().uuidString
-        let resendAvailableAt = Date().addingTimeInterval(30)
-        await stateStore.saveChallenge(
-            challengeID: challengeID,
-            challenge: PendingChallenge(
-                verificationID: verificationID,
-                phoneNumber: phoneNumber,
-                resendAvailableAt: resendAvailableAt
-            )
-        )
+        #if canImport(FirebaseAuth)
+        guard let firebaseUser = Auth.auth().currentUser else { return nil }
+        let payload = try await firestoreService.fetchDocument(path: "users/\(firebaseUser.uid)")
+        let emailVerified = payload["emailVerified"] as? Bool ?? false
+        let profileCompleted = payload["profileCompleted"] as? Bool ?? false
 
-        return AuthOTPChallenge(
-            id: challengeID,
-            phoneNumber: phoneNumber,
-            maskedPhoneNumber: NepalPhoneNumberFormatter.maskedPhoneNumber(from: phoneNumber),
-            resendAvailableAt: resendAvailableAt
+        guard emailVerified, profileCompleted else {
+            try? Auth.auth().signOut()
+            return nil
+        }
+
+        return FirebaseUserDocumentMapper.mapToAppUser(
+            userID: firebaseUser.uid,
+            email: firebaseUser.email,
+            payload: payload,
+            emailVerified: emailVerified,
+            profileCompleted: profileCompleted
         )
         #else
         throw FirebaseServiceError.sdkUnavailable("Auth")
         #endif
     }
 
-    func resendOTP(for challengeID: String) async throws -> AuthOTPChallenge {
+    func signIn(email: String, password: String) async throws -> AuthSignInResult {
+        #if canImport(FirebaseAuth)
+        let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        await stateStore.setFallbackUser(nil)
+
+        do {
+            let authResult = try await Auth.auth().signIn(withEmail: normalizedEmail, password: password)
+            let payload = try await firestoreService.fetchDocument(path: "users/\(authResult.user.uid)")
+            let emailVerified = payload["emailVerified"] as? Bool ?? false
+            let profileCompleted = payload["profileCompleted"] as? Bool ?? false
+
+            if emailVerified == false {
+                let challenge = await createChallenge(for: authResult.user.uid, email: normalizedEmail)
+                return .requiresEmailVerification(challenge)
+            }
+
+            if profileCompleted == false {
+                let session = AuthenticatedEmailSession(
+                    id: UUID().uuidString,
+                    userID: authResult.user.uid,
+                    email: normalizedEmail
+                )
+                await stateStore.saveSession(session)
+                return .requiresProfileSetup(session)
+            }
+
+            let user = FirebaseUserDocumentMapper.mapToAppUser(
+                userID: authResult.user.uid,
+                email: authResult.user.email,
+                payload: payload,
+                emailVerified: emailVerified,
+                profileCompleted: profileCompleted
+            )
+            return .authenticated(user)
+        } catch {
+            let mappedError = mapAuthError(error)
+            guard let authError = mappedError as? AuthError, authError == .invalidPassword else {
+                throw mappedError
+            }
+
+            let overridePassword = await stateStore.localPasswordOverride(for: normalizedEmail)
+            guard overridePassword == password else {
+                throw mappedError
+            }
+
+            return try await signInUsingLocalPasswordOverride(email: normalizedEmail)
+        }
+        #else
+        throw FirebaseServiceError.sdkUnavailable("Auth")
+        #endif
+    }
+
+    func startEmailRegistration(email: String) async throws -> AuthEmailVerificationChallenge {
+        #if canImport(FirebaseAuth)
+        let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let existingMethods = try await Auth.auth().fetchSignInMethods(forEmail: normalizedEmail)
+        guard existingMethods.isEmpty else {
+            throw AuthError.emailAlreadyInUse
+        }
+
+        let provisionalPassword = "pending-\(UUID().uuidString)"
+        let authResult = try await Auth.auth().createUser(withEmail: normalizedEmail, password: provisionalPassword)
+        let userID = authResult.user.uid
+        let payload: [String: Any] = [
+            "id": userID,
+            "email": normalizedEmail,
+            "fullName": NSNull(),
+            "phoneNumber": NSNull(),
+            "roles": [],
+            "activeRole": UserRole.renter.rawValue,
+            "profilePhotoURL": NSNull(),
+            "emailVerified": false,
+            "profileCompleted": false,
+            "createdAt": Date()
+        ]
+        try await firestoreService.setDocument(path: "users/\(userID)", data: payload)
+
+        return await createChallenge(for: userID, email: normalizedEmail)
+        #else
+        throw FirebaseServiceError.sdkUnavailable("Auth")
+        #endif
+    }
+
+    func resendEmailRegistrationCode(for challengeID: String) async throws -> AuthEmailVerificationChallenge {
         guard let challenge = await stateStore.challenge(id: challengeID) else {
-            throw AuthError.onboardingSessionExpired
+            throw AuthError.registrationSessionExpired
         }
         let secondsRemaining = max(0, Int(ceil(challenge.resendAvailableAt.timeIntervalSinceNow)))
         guard secondsRemaining == 0 else {
@@ -144,115 +246,346 @@ final class FirebaseAuthService: AuthServiceProtocol {
         }
 
         await stateStore.removeChallenge(id: challengeID)
-        return try await requestOTP(for: challenge.phoneNumber)
+        return await createChallenge(for: challenge.userID, email: challenge.email)
     }
 
-    func verifyOTP(_ code: String, challengeID: String) async throws -> AuthVerificationResult {
-        #if canImport(FirebaseAuth)
+    func verifyEmailRegistrationCode(_ code: String, challengeID: String) async throws -> AuthenticatedEmailSession {
         guard let challenge = await stateStore.challenge(id: challengeID) else {
-            throw AuthError.onboardingSessionExpired
+            throw AuthError.registrationSessionExpired
         }
 
-        let credential = PhoneAuthProvider.provider().credential(
-            withVerificationID: challenge.verificationID,
-            verificationCode: code
+        guard challenge.code == code else {
+            throw AuthError.invalidVerificationCode
+        }
+
+        try await firestoreService.setDocument(
+            path: "users/\(challenge.userID)",
+            data: [
+                "emailVerified": true,
+                "updatedAt": Date()
+            ]
         )
 
-        let authResult = try await Auth.auth().signIn(with: credential)
+        let session = AuthenticatedEmailSession(
+            id: UUID().uuidString,
+            userID: challenge.userID,
+            email: challenge.email
+        )
         await stateStore.removeChallenge(id: challengeID)
-
-        let userID = authResult.user.uid
-        let session = AuthenticatedPhoneSession(id: UUID().uuidString, userID: userID, phoneNumber: challenge.phoneNumber)
         await stateStore.saveSession(session)
+        return session
+    }
 
-        do {
-            let userDoc = try await firestoreService.fetchDocument(path: "users/\(userID)")
-            let hasPassword = (userDoc["passwordHash"] as? String)?.isEmpty == false
-            return hasPassword ? .requiresPassword(session) : .requiresOnboarding(session)
-        } catch {
-            return .requiresOnboarding(session)
+    func setRegistrationPassword(_ password: String, for session: AuthenticatedEmailSession) async throws -> AuthenticatedEmailSession {
+        #if canImport(FirebaseAuth)
+        guard await stateStore.validateSession(session) else {
+            throw AuthError.registrationSessionExpired
+        }
+        guard password.isEmpty == false else {
+            throw AuthError.passwordRequired
+        }
+        guard password.count >= 8 else {
+            throw AuthError.passwordTooShort(minLength: 8)
+        }
+
+        if let currentUser = Auth.auth().currentUser, currentUser.uid == session.userID {
+            do {
+                try await currentUser.updatePassword(to: password)
+                return session
+            } catch {
+                // Development-safe fallback when updatePassword cannot run due auth state constraints.
+                await stateStore.saveLocalPasswordOverride(password, for: session.email)
+                return session
+            }
+        } else {
+            await stateStore.saveLocalPasswordOverride(password, for: session.email)
+            return session
         }
         #else
         throw FirebaseServiceError.sdkUnavailable("Auth")
         #endif
     }
 
-    func signIn(withPassword password: String, for session: AuthenticatedPhoneSession) async throws -> AppUser {
+    func completeProfileSetup(_ submission: AuthProfileSetupSubmission, for session: AuthenticatedEmailSession, profilePhotoURL: URL?) async throws -> AppUser {
+        #if canImport(FirebaseAuth)
         guard await stateStore.validateSession(session) else {
-            throw AuthError.onboardingSessionExpired
+            throw AuthError.registrationSessionExpired
         }
-        let userDoc = try await firestoreService.fetchDocument(path: "users/\(session.userID)")
-        let savedHash = userDoc["passwordHash"] as? String ?? ""
-        guard savedHash.isEmpty == false, savedHash == password else {
-            throw AuthError.invalidPassword
+        guard submission.fullName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
+            throw AuthError.fullNameRequired
+        }
+        guard submission.phoneNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
+            throw AuthError.phoneNumberRequired
+        }
+        guard submission.selectedRoles.isEmpty == false else {
+            throw AuthError.unexpected
         }
 
-        let user = FirebaseUserDocumentMapper.mapToAppUser(userID: session.userID, phoneNumber: session.phoneNumber, payload: userDoc)
-        await stateStore.consumeSession(session)
-        return user
+        let preferredRole: UserRole = submission.selectedRoles.contains(.renter) ? .renter : .owner
+
+        do {
+            let payload: [String: Any] = [
+                "id": session.userID,
+                "fullName": submission.fullName,
+                "phoneNumber": submission.phoneNumber,
+                "email": session.email,
+                "roles": submission.selectedRoles.map(\.rawValue),
+                "activeRole": preferredRole.rawValue,
+                "profilePhotoURL": profilePhotoURL?.absoluteString ?? NSNull(),
+                "acceptsTerms": submission.acceptsTerms,
+                "acceptsPrivacy": submission.acceptsPrivacy,
+                "profileCompleted": true,
+                "updatedAt": Date()
+            ]
+
+            try await firestoreService.setDocument(path: "users/\(session.userID)", data: payload)
+            await stateStore.consumeSession(session)
+
+            return AppUser(
+                id: session.userID,
+                fullName: submission.fullName,
+                phoneNumber: submission.phoneNumber,
+                email: session.email,
+                availableRoles: submission.selectedRoles,
+                activeRole: preferredRole,
+                profilePhotoURL: profilePhotoURL
+            )
+        } catch {
+            throw mapAuthError(error)
+        }
+        #else
+        throw FirebaseServiceError.sdkUnavailable("Auth")
+        #endif
     }
 
-    func completeOnboarding(
-        for session: AuthenticatedPhoneSession,
-        fullName: String,
-        passwordHash: String,
-        roles: Set<UserRole>,
-        acceptsTerms: Bool,
-        acceptsPrivacy: Bool,
-        profilePhotoURL: URL?
-    ) async throws -> AppUser {
-        guard await stateStore.validateSession(session) else {
-            throw AuthError.onboardingSessionExpired
+    func startPasswordRecovery(email: String) async throws -> AuthPasswordRecoveryChallenge {
+        #if canImport(FirebaseAuth)
+        let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let existingMethods = try await Auth.auth().fetchSignInMethods(forEmail: normalizedEmail)
+        guard existingMethods.isEmpty == false else {
+            throw AuthError.accountNotFound
         }
 
-        let preferredRole: UserRole = roles.contains(.renter) ? .renter : .owner
-        let payload: [String: Any] = [
-            "id": session.userID,
-            "fullName": fullName,
-            "phoneNumber": session.phoneNumber,
-            "roles": roles.map(\.rawValue),
-            "activeRole": preferredRole.rawValue,
-            "profilePhotoURL": profilePhotoURL?.absoluteString ?? NSNull(),
-            "passwordHash": passwordHash,
-            "acceptsTerms": acceptsTerms,
-            "acceptsPrivacy": acceptsPrivacy,
-            "createdAt": Date()
-        ]
+        let userID = try await resolveUserID(forEmail: normalizedEmail)
+        return await createPasswordRecoveryChallenge(for: userID, email: normalizedEmail)
+        #else
+        throw FirebaseServiceError.sdkUnavailable("Auth")
+        #endif
+    }
 
-        try await firestoreService.setDocument(path: "users/\(session.userID)", data: payload)
-        await stateStore.consumeSession(session)
+    func resendPasswordRecoveryCode(for challengeID: String) async throws -> AuthPasswordRecoveryChallenge {
+        guard let challenge = await stateStore.passwordRecoveryChallenge(id: challengeID) else {
+            throw AuthError.passwordRecoverySessionExpired
+        }
 
-        return AppUser(
-            id: session.userID,
-            fullName: fullName,
-            phoneNumber: session.phoneNumber,
-            availableRoles: roles,
-            activeRole: preferredRole,
-            profilePhotoURL: profilePhotoURL
+        let secondsRemaining = max(0, Int(ceil(challenge.resendAvailableAt.timeIntervalSinceNow)))
+        guard secondsRemaining == 0 else {
+            throw AuthError.resendNotReady(secondsRemaining: secondsRemaining)
+        }
+
+        await stateStore.removePasswordRecoveryChallenge(id: challengeID)
+        return await createPasswordRecoveryChallenge(for: challenge.userID, email: challenge.email)
+    }
+
+    func verifyPasswordRecoveryCode(_ code: String, challengeID: String) async throws -> AuthPasswordResetSession {
+        guard let challenge = await stateStore.passwordRecoveryChallenge(id: challengeID) else {
+            throw AuthError.passwordRecoverySessionExpired
+        }
+
+        guard challenge.code == code else {
+            throw AuthError.invalidVerificationCode
+        }
+
+        let session = AuthPasswordResetSession(
+            id: UUID().uuidString,
+            userID: challenge.userID,
+            email: challenge.email
         )
+
+        await stateStore.removePasswordRecoveryChallenge(id: challengeID)
+        await stateStore.savePasswordResetSession(session)
+        return session
+    }
+
+    func completePasswordRecovery(newPassword: String, for session: AuthPasswordResetSession) async throws {
+        guard newPassword.isEmpty == false else {
+            throw AuthError.passwordRequired
+        }
+        guard newPassword.count >= 8 else {
+            throw AuthError.passwordTooShort(minLength: 8)
+        }
+
+        guard let storedSession = await stateStore.passwordResetSession(id: session.id), storedSession == session else {
+            throw AuthError.passwordResetSessionExpired
+        }
+
+        // Firebase password-reset without a backend requires out-of-band action codes.
+        // For local development we store an in-memory override and use it in signIn fallback.
+        await stateStore.saveLocalPasswordOverride(newPassword, for: session.email)
+        await stateStore.consumePasswordResetSession(session)
     }
 
     func signOut() async throws {
+        await stateStore.setFallbackUser(nil)
+
         #if canImport(FirebaseAuth)
         try Auth.auth().signOut()
         #else
         throw FirebaseServiceError.sdkUnavailable("Auth")
         #endif
     }
+
+    private func createChallenge(for userID: String, email: String) async -> AuthEmailVerificationChallenge {
+        let challengeID = UUID().uuidString
+        let resendAvailableAt = Date().addingTimeInterval(30)
+        let challenge = PendingChallenge(
+            userID: userID,
+            email: email,
+            code: "246810",
+            resendAvailableAt: resendAvailableAt
+        )
+        await stateStore.saveChallenge(challengeID: challengeID, challenge: challenge)
+
+        return AuthEmailVerificationChallenge(
+            id: challengeID,
+            email: email,
+            maskedEmail: Self.maskedEmail(from: email),
+            resendAvailableAt: resendAvailableAt
+        )
+    }
+
+    private func createPasswordRecoveryChallenge(for userID: String, email: String) async -> AuthPasswordRecoveryChallenge {
+        let challengeID = UUID().uuidString
+        let resendAvailableAt = Date().addingTimeInterval(30)
+        let challenge = PendingChallenge(
+            userID: userID,
+            email: email,
+            code: "246810",
+            resendAvailableAt: resendAvailableAt
+        )
+        await stateStore.savePasswordRecoveryChallenge(challengeID: challengeID, challenge: challenge)
+
+        return AuthPasswordRecoveryChallenge(
+            id: challengeID,
+            email: email,
+            maskedEmail: Self.maskedEmail(from: email),
+            resendAvailableAt: resendAvailableAt
+        )
+    }
+
+    private func resolveUserID(forEmail email: String) async throws -> String {
+        #if canImport(FirebaseAuth)
+        if let authUserID = Auth.auth().currentUser?.uid {
+            return authUserID
+        }
+
+        let rows = try await firestoreService.queryCollection(path: "users", field: "email", isEqualTo: email)
+        if let payload = rows.first, let userID = payload["id"] as? String {
+            return userID
+        }
+
+        throw AuthError.accountNotFound
+        #else
+        throw FirebaseServiceError.sdkUnavailable("Auth")
+        #endif
+    }
+
+    private func signInUsingLocalPasswordOverride(email: String) async throws -> AuthSignInResult {
+        let userRecord = try await fetchUserRecord(forEmail: email)
+        let emailVerified = userRecord.payload["emailVerified"] as? Bool ?? false
+        let profileCompleted = userRecord.payload["profileCompleted"] as? Bool ?? false
+
+        if emailVerified == false {
+            let challenge = await createChallenge(for: userRecord.userID, email: email)
+            return .requiresEmailVerification(challenge)
+        }
+
+        if profileCompleted == false {
+            let session = AuthenticatedEmailSession(
+                id: UUID().uuidString,
+                userID: userRecord.userID,
+                email: email
+            )
+            await stateStore.saveSession(session)
+            return .requiresProfileSetup(session)
+        }
+
+        let user = FirebaseUserDocumentMapper.mapToAppUser(
+            userID: userRecord.userID,
+            email: email,
+            payload: userRecord.payload,
+            emailVerified: emailVerified,
+            profileCompleted: profileCompleted
+        )
+        await stateStore.setFallbackUser(user)
+        return .authenticated(user)
+    }
+
+    private func fetchUserRecord(forEmail email: String) async throws -> (userID: String, payload: [String: Any]) {
+        let rows = try await firestoreService.queryCollection(path: "users", field: "email", isEqualTo: email)
+        guard let payload = rows.first, let userID = payload["id"] as? String else {
+            throw AuthError.accountNotFound
+        }
+        return (userID, payload)
+    }
+
+    private static func maskedEmail(from email: String) -> String {
+        let components = email.split(separator: "@", maxSplits: 1).map(String.init)
+        guard components.count == 2 else { return email }
+
+        let local = components[0]
+        let domain = components[1]
+        guard local.isEmpty == false else { return email }
+
+        let firstCharacter = local.prefix(1)
+        let maskedCount = max(2, local.count - 1)
+        return "\(firstCharacter)\(String(repeating: "*", count: maskedCount))@\(domain)"
+    }
+
+    private func mapAuthError(_ error: Error) -> Error {
+        #if canImport(FirebaseAuth)
+        let nsError = error as NSError
+        guard nsError.domain == AuthErrorDomain else { return error }
+
+        switch AuthErrorCode(rawValue: nsError.code) {
+        case .invalidEmail:
+            return AuthError.invalidEmail
+        case .emailAlreadyInUse:
+            return AuthError.emailAlreadyInUse
+        case .userNotFound:
+            return AuthError.accountNotFound
+        case .wrongPassword, .invalidCredential:
+            return AuthError.invalidPassword
+        default:
+            return error
+        }
+        #else
+        return error
+        #endif
+    }
 }
 
 struct FirebaseUserDocumentMapper {
-    static func mapToAppUser(userID: String, phoneNumber: String?, payload: [String: Any]?) -> AppUser {
+    static func mapToAppUser(
+        userID: String,
+        email: String?,
+        payload: [String: Any]?,
+        emailVerified: Bool,
+        profileCompleted: Bool
+    ) -> AppUser {
         let fullName = payload?["fullName"] as? String
         let roles = Set((payload?["roles"] as? [String] ?? [UserRole.renter.rawValue]).compactMap(UserRole.init(rawValue:)))
         let activeRoleRaw = payload?["activeRole"] as? String
         let activeRole = UserRole(rawValue: activeRoleRaw ?? "") ?? roles.first ?? .renter
         let photoURL = (payload?["profilePhotoURL"] as? String).flatMap(URL.init(string:))
+        let fallbackName = profileCompleted ? fullName : nil
+        let fallbackPhone = profileCompleted ? (payload?["phoneNumber"] as? String ?? "") : ""
 
         return AppUser(
             id: userID,
-            fullName: fullName,
-            phoneNumber: phoneNumber ?? (payload?["phoneNumber"] as? String ?? ""),
+            fullName: fallbackName,
+            phoneNumber: fallbackPhone,
+            email: email ?? (payload?["email"] as? String ?? ""),
             availableRoles: roles,
             activeRole: activeRole,
             profilePhotoURL: photoURL

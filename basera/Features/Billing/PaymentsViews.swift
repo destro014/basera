@@ -108,9 +108,20 @@ struct PaymentsHubView: View {
         .task {
             await viewModel.load(tenancyID: tenancy.id, userID: userID, repository: environment.paymentsRepository)
         }
-        .alert("Payment error", isPresented: .constant(viewModel.errorMessage != nil), actions: {
+        .alert("Payment error", isPresented: paymentErrorIsPresented, actions: {
             Button("OK") { viewModel.errorMessage = nil }
         }, message: { Text(viewModel.errorMessage ?? "") })
+    }
+
+    private var paymentErrorIsPresented: Binding<Bool> {
+        Binding(
+            get: { viewModel.errorMessage != nil },
+            set: { isPresented in
+                if isPresented == false {
+                    viewModel.errorMessage = nil
+                }
+            }
+        )
     }
 }
 

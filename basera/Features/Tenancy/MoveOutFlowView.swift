@@ -37,7 +37,7 @@ struct MoveOutFlowView: View {
         }
         .baseraListBackground()
         .navigationTitle("Move-out & Closure")
-        .alert("Move-out flow", isPresented: .constant(viewModel.errorMessage != nil), actions: {
+        .alert("Move-out flow", isPresented: moveOutErrorIsPresented, actions: {
             Button("OK") { viewModel.errorMessage = nil }
         }, message: {
             Text(viewModel.errorMessage ?? "")
@@ -163,6 +163,17 @@ struct MoveOutFlowView: View {
                 }
             }
         }
+    }
+
+    private var moveOutErrorIsPresented: Binding<Bool> {
+        Binding(
+            get: { viewModel.errorMessage != nil },
+            set: { isPresented in
+                if isPresented == false {
+                    viewModel.errorMessage = nil
+                }
+            }
+        )
     }
 }
 

@@ -54,9 +54,20 @@ struct InvoiceListView: View {
         .task {
             await viewModel.load(tenancyID: tenancy.id, userID: userID, repository: environment.billingRepository)
         }
-        .alert("Billing error", isPresented: .constant(viewModel.errorMessage != nil), actions: {
+        .alert("Billing error", isPresented: billingErrorIsPresented, actions: {
             Button("OK") { viewModel.errorMessage = nil }
         }, message: { Text(viewModel.errorMessage ?? "") })
+    }
+
+    private var billingErrorIsPresented: Binding<Bool> {
+        Binding(
+            get: { viewModel.errorMessage != nil },
+            set: { isPresented in
+                if isPresented == false {
+                    viewModel.errorMessage = nil
+                }
+            }
+        )
     }
 }
 
@@ -271,7 +282,7 @@ struct InvoiceDetailView: View {
                 errorMessage = error.localizedDescription
             }
         }
-        .alert("Error", isPresented: .constant(errorMessage != nil), actions: {
+        .alert("Error", isPresented: errorAlertIsPresented, actions: {
             Button("OK") { errorMessage = nil }
         }, message: { Text(errorMessage ?? "") })
     }
@@ -290,6 +301,17 @@ struct InvoiceDetailView: View {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    private var errorAlertIsPresented: Binding<Bool> {
+        Binding(
+            get: { errorMessage != nil },
+            set: { isPresented in
+                if isPresented == false {
+                    errorMessage = nil
+                }
+            }
+        )
     }
 }
 

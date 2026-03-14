@@ -12,6 +12,7 @@ final class MyListingsViewModel: ObservableObject {
 
     @Published private(set) var state: State = .idle
     @Published private(set) var listings: [Listing] = []
+    @Published var operationErrorMessage: String?
 
     func load(ownerID: String, repository: ListingsRepositoryProtocol) async {
         state = .loading
@@ -23,25 +24,43 @@ final class MyListingsViewModel: ObservableObject {
         }
     }
 
-    func save(listing: Listing, repository: ListingsRepositoryProtocol) async {
+    @discardableResult
+    func save(listing: Listing, repository: ListingsRepositoryProtocol) async -> Bool {
         do {
             if listings.contains(where: { $0.id == listing.id }) {
                 try await repository.updateListing(listing)
             } else {
                 try await repository.createListing(listing)
             }
-        } catch { }
+            operationErrorMessage = nil
+            return true
+        } catch {
+            operationErrorMessage = "Unable to save listing."
+            return false
+        }
     }
 
-    func pause(listing: Listing, repository: ListingsRepositoryProtocol) async {
+    @discardableResult
+    func pause(listing: Listing, repository: ListingsRepositoryProtocol) async -> Bool {
         do {
             try await repository.pauseListing(id: listing.id, ownerID: listing.ownerID)
-        } catch { }
+            operationErrorMessage = nil
+            return true
+        } catch {
+            operationErrorMessage = "Unable to pause listing."
+            return false
+        }
     }
 
-    func duplicate(listing: Listing, repository: ListingsRepositoryProtocol) async {
+    @discardableResult
+    func duplicate(listing: Listing, repository: ListingsRepositoryProtocol) async -> Bool {
         do {
             _ = try await repository.duplicateListing(id: listing.id, ownerID: listing.ownerID)
-        } catch { }
+            operationErrorMessage = nil
+            return true
+        } catch {
+            operationErrorMessage = "Unable to duplicate listing."
+            return false
+        }
     }
 }

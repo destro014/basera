@@ -2,10 +2,15 @@ import Foundation
 
 protocol AuthRepositoryProtocol {
     func restoreSession() async throws -> AppUser?
-    func requestOTP(for phoneNumber: String) async throws -> AuthOTPChallenge
-    func resendOTP(for challengeID: String) async throws -> AuthOTPChallenge
-    func verifyOTP(_ code: String, challengeID: String) async throws -> AuthVerificationResult
-    func signIn(withPassword password: String, for session: AuthenticatedPhoneSession) async throws -> AppUser
-    func completeOnboarding(_ submission: AuthOnboardingSubmission, for session: AuthenticatedPhoneSession) async throws -> AppUser
+    func signIn(email: String, password: String) async throws -> AuthSignInResult
+    func startEmailRegistration(email: String) async throws -> AuthEmailVerificationChallenge
+    func resendEmailRegistrationCode(for challengeID: String) async throws -> AuthEmailVerificationChallenge
+    func verifyEmailRegistrationCode(_ code: String, challengeID: String) async throws -> AuthenticatedEmailSession
+    func setRegistrationPassword(_ password: String, for session: AuthenticatedEmailSession) async throws -> AuthenticatedEmailSession
+    func completeProfileSetup(_ submission: AuthProfileSetupSubmission, for session: AuthenticatedEmailSession) async throws -> AppUser
+    func startPasswordRecovery(email: String) async throws -> AuthPasswordRecoveryChallenge
+    func resendPasswordRecoveryCode(for challengeID: String) async throws -> AuthPasswordRecoveryChallenge
+    func verifyPasswordRecoveryCode(_ code: String, challengeID: String) async throws -> AuthPasswordResetSession
+    func completePasswordRecovery(newPassword: String, for session: AuthPasswordResetSession) async throws
     func signOut() async throws
 }

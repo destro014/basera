@@ -11,62 +11,66 @@ struct MyListingsView: View {
     @State private var previewListing: Listing?
 
     var body: some View {
-        NavigationView {
-            BaseraPageContainer {
-                Group {
-                    switch viewModel.state {
-                    case .idle, .loading:
-                        BaseraLoadingView(message: "Loading your listings")
-                    case .error(let message):
-                        BaseraErrorStateView(title: "My Listings", message: message) {
-                            Task { await reload() }
-                        }
-                    case .loaded:
-                        content
+        BaseraPageContainer {
+            Group {
+                switch viewModel.state {
+                case .idle, .loading:
+                    BaseraLoadingView(message: "Loading your listings")
+                case .error(let message):
+                    BaseraErrorStateView(title: "My Listings", message: message) {
+                        Task { await reload() }
                     }
-                }
-            }
-            .navigationTitle("My Listings")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        isPresentingCreate = true
-                    } label: {
-                        Image(systemName: "plus")
-                    }
-                }
-            }
-            .task {
-                guard viewModel.state == .idle else { return }
-                await reload()
-            }
-            .sheet(isPresented: $isPresentingCreate) {
-                NavigationView {
-                    ListingEditorView(ownerID: ownerID) { listing in
-                        Task {
-                            await viewModel.save(listing: listing, repository: environment.listingsRepository)
-                            await reload()
-                        }
-                    }
-                }
-            }
-            .sheet(item: $editingListing) { listing in
-                NavigationView {
-                    ListingEditorView(ownerID: ownerID, listing: listing) { updated in
-                        Task {
-                            await viewModel.save(listing: updated, repository: environment.listingsRepository)
-                            await reload()
-                        }
-                    }
-                }
-            }
-            .sheet(item: $previewListing) { listing in
-                NavigationView {
-                    ListingPreviewView(listing: listing)
+                case .loaded:
+                    content
                 }
             }
         }
-        .navigationViewStyle(StackNavigationViewStyle())
+        .navigationTitle("My Listings")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    isPresentingCreate = true
+                } label: {
+                    Image(systemName: "plus")
+                }
+            }
+        }
+        .task {
+            guard viewModel.state == .idle else { return }
+            await reload()
+        }
+        .alert("Listings", isPresented: operationAlertIsPresented) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(viewModel.operationErrorMessage ?? "")
+        }
+        .sheet(isPresented: $isPresentingCreate) {
+            NavigationStack {
+                ListingEditorView(ownerID: ownerID) { listing in
+                    Task {
+                        if await viewModel.save(listing: listing, repository: environment.listingsRepository) {
+                            await reload()
+                        }
+                    }
+                }
+            }
+        }
+        .sheet(item: $editingListing) { listing in
+            NavigationStack {
+                ListingEditorView(ownerID: ownerID, listing: listing) { updated in
+                    Task {
+                        if await viewModel.save(listing: updated, repository: environment.listingsRepository) {
+                            await reload()
+                        }
+                    }
+                }
+            }
+        }
+        .sheet(item: $previewListing) { listing in
+            NavigationStack {
+                ListingPreviewView(listing: listing)
+            }
+        }
     }
 
     private var content: some View {
@@ -103,14 +107,16 @@ struct MyListingsView: View {
                                 actionButton("Edit") { editingListing = listing }
                                 actionButton("Pause") {
                                     Task {
-                                        await viewModel.pause(listing: listing, repository: environment.listingsRepository)
-                                        await reload()
+                                        if await viewModel.pause(listing: listing, repository: environment.listingsRepository) {
+                                            await reload()
+                                        }
                                     }
                                 }
                                 actionButton("Duplicate") {
                                     Task {
-                                        await viewModel.duplicate(listing: listing, repository: environment.listingsRepository)
-                                        await reload()
+                                        if await viewModel.duplicate(listing: listing, repository: environment.listingsRepository) {
+                                            await reload()
+                                        }
                                     }
                                 }
                             }
@@ -147,16 +153,31 @@ struct MyListingsView: View {
     private func reload() async {
         await viewModel.load(ownerID: ownerID, repository: environment.listingsRepository)
     }
+
+    private var operationAlertIsPresented: Binding<Bool> {
+        Binding(
+            get: { viewModel.operationErrorMessage != nil },
+            set: { isPresented in
+                if isPresented == false {
+                    viewModel.operationErrorMessage = nil
+                }
+            }
+        )
+    }
 }
 
 #Preview {
-    MyListingsView(ownerID: "preview-user-001")
-        .environmentObject(AppEnvironment.bootstrap())
+    NavigationStack {
+        MyListingsView(ownerID: "preview-user-001")
+            .environmentObject(AppEnvironment.bootstrap())
+    }
 }
 
 
 #Preview("iPad") {
-    MyListingsView(ownerID: "preview-user-001")
-        .frame(width: 1024, height: 768)
-        .environmentObject(AppEnvironment.bootstrap())
+    NavigationStack {
+        MyListingsView(ownerID: "preview-user-001")
+            .frame(width: 1024, height: 768)
+            .environmentObject(AppEnvironment.bootstrap())
+    }
 }

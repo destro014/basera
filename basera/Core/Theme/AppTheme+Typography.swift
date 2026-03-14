@@ -2,6 +2,7 @@ import SwiftUI
 
 extension AppTheme {
     enum Typography {
+
         struct Style {
             let size: CGFloat
             let lineHeight: CGFloat
@@ -10,11 +11,21 @@ extension AppTheme {
             let relativeTextStyle: Font.TextStyle
 
             var font: Font {
-                Font.custom(AppTheme.Typography.fontName(for: weight), size: size, relativeTo: relativeTextStyle)
+                Font.custom(
+                    AppTheme.Typography.fontName(for: weight),
+                    size: size,
+                    relativeTo: relativeTextStyle
+                )
             }
 
+            /// Calculates correct line spacing based on the real font metrics
             var lineSpacing: CGFloat {
-                max(0, lineHeight - size)
+                let uiFont = UIFont(
+                    name: AppTheme.Typography.fontName(for: weight),
+                    size: size
+                ) ?? UIFont.systemFont(ofSize: size)
+
+                return max(0, lineHeight - uiFont.lineHeight)
             }
         }
 
@@ -58,20 +69,14 @@ extension AppTheme {
 }
 
 private struct BaseraTextStyleModifier: ViewModifier {
+
     let style: AppTheme.Typography.Style
 
-    @ViewBuilder
     func body(content: Content) -> some View {
-        if #available(iOS 16.0, *) {
-            content
-                .font(style.font)
-                .kerning(style.tracking)
-                .lineSpacing(style.lineSpacing)
-        } else {
-            content
-                .font(style.font)
-                .lineSpacing(style.lineSpacing)
-        }
+        content
+            .font(style.font)
+            .kerning(style.tracking)
+            .lineSpacing(style.lineSpacing)
     }
 }
 
