@@ -17,7 +17,7 @@ It supports two user roles:
 - renter
 - owner
 
-A single account may have both roles, and users can switch roles later.
+A single account has exactly one role (`renter` or `owner`) and role switching is not supported.
 
 Core product areas:
 
@@ -42,11 +42,10 @@ Basera acts as a **digital record platform** for agreements, not a legal enforce
 
 - SwiftUI
 - Xcode
-- Firebase Authentication
-- Firestore
-- Firebase Storage
-- Firebase Cloud Messaging
-- Firebase Remote Config
+- Supabase Auth
+- Supabase Database
+- Supabase Storage
+- Supabase Realtime / notifications data fanout
 
 Target platforms:
 
@@ -71,7 +70,7 @@ Use a **feature-first SwiftUI architecture** with **MVVM**.
 - Views should remain focused on rendering and user interaction
 - Put state and interaction logic into ViewModels
 - Put backend and persistence logic into services and repositories
-- Do not call Firebase directly inside SwiftUI views
+- Do not call Supabase directly inside SwiftUI views
 - Prefer protocol-based abstractions for services and repositories
 - Keep code modular and easy to extend
 - Prefer small, testable units over large multi-purpose files
@@ -84,10 +83,10 @@ Use this direction whenever possible:
 View
 → ViewModel
 → Repository / Service
-→ Firebase
+→ Supabase
 ```
 
-Views should **never talk directly to Firebase**.
+Views should **never talk directly to Supabase**.
 
 ---
 
@@ -123,7 +122,7 @@ Basera/
 
 **Services**
 
-- Firebase services
+- Supabase services
 - authentication
 - storage
 - messaging
@@ -179,7 +178,7 @@ All components should include **SwiftUI previews**.
 
 ## Data Handling Rules
 
-- Firebase access must be abstracted through repositories or services
+- Supabase access must be abstracted through repositories or services
 - Business rules must not live in views
 - Use models for state representation
 - Prefer immutable data patterns where practical
@@ -191,7 +190,7 @@ All components should include **SwiftUI previews**.
 During early development:
 
 - use **mock repositories**
-- avoid wiring real Firebase unless explicitly required
+- avoid wiring real Supabase unless explicitly required
 - provide realistic preview data for SwiftUI previews
 
 This keeps the app **runnable without backend configuration**.
@@ -205,7 +204,7 @@ Unit tests should focus on:
 - invoice calculations
 - carry-forward balance updates
 - agreement locking after signing
-- role switching behavior
+- single-role account behavior
 - assignment and approval logic
 
 Avoid overbuilding tests for purely visual UI unless requested.

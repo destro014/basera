@@ -5,8 +5,7 @@ struct AppUser: Identifiable, Equatable {
     let fullName: String?
     let phoneNumber: String
     let email: String
-    let availableRoles: Set<UserRole>
-    let activeRole: UserRole
+    let role: UserRole
     let profilePhotoURL: URL?
 
     init(
@@ -14,16 +13,14 @@ struct AppUser: Identifiable, Equatable {
         fullName: String?,
         phoneNumber: String,
         email: String = "",
-        availableRoles: Set<UserRole>,
-        activeRole: UserRole,
+        role: UserRole,
         profilePhotoURL: URL?
     ) {
         self.id = id
         self.fullName = fullName
         self.phoneNumber = phoneNumber
         self.email = email
-        self.availableRoles = availableRoles
-        self.activeRole = activeRole
+        self.role = role
         self.profilePhotoURL = profilePhotoURL
     }
 
@@ -35,19 +32,4 @@ struct AppUser: Identifiable, Equatable {
         return fullName
     }
 
-    var canSwitchRoles: Bool {
-        availableRoles.count > 1
-    }
-
-    func updatingActiveRole(_ role: UserRole) -> AppUser {
-        AppUser(
-            id: id,
-            fullName: fullName,
-            phoneNumber: phoneNumber,
-            email: email,
-            availableRoles: availableRoles,
-            activeRole: role,
-            profilePhotoURL: profilePhotoURL
-        )
-    }
 }

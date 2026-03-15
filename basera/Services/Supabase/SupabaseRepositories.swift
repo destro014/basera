@@ -1,10 +1,6 @@
 import Foundation
 
-#if canImport(FirebaseFirestore)
-import FirebaseFirestore
-#endif
-
-struct FirebaseAuthRepository: AuthRepositoryProtocol {
+struct SupabaseAuthRepository: AuthRepositoryProtocol {
     private let authService: AuthServiceProtocol
 
     init(authService: AuthServiceProtocol) {
@@ -61,32 +57,31 @@ struct FirebaseAuthRepository: AuthRepositoryProtocol {
     }
 }
 
-actor FirebaseListingsRepository: ListingsRepositoryProtocol {
-    private let firestoreService: FirestoreServiceProtocol
+actor SupabaseListingsRepository: ListingsRepositoryProtocol {
+    private let databaseService: DatabaseServiceProtocol
 
-    init(firestoreService: FirestoreServiceProtocol) {
-        self.firestoreService = firestoreService
+    init(databaseService: DatabaseServiceProtocol) {
+        self.databaseService = databaseService
     }
 
     func fetchExploreListings() async throws -> [Listing] {
-        let rows = try await firestoreService.fetchCollection(path: "listings")
+        let rows = try await databaseService.fetchCollection(path: "listings")
         return rows
-            .compactMap(FirebaseListingMapper.listing(from:))
+            .compactMap(SupabaseListingMapper.listing(from:))
             .filter { Listing.Status.discoverableStatuses.contains($0.status) }
     }
 
     func fetchOwnerListings(ownerID: String) async throws -> [Listing] {
-        let rows = try await firestoreService.queryCollection(path: "listings", field: "ownerID", isEqualTo: ownerID)
-        return rows.compactMap(FirebaseListingMapper.listing(from:)).sorted { $0.availableFrom < $1.availableFrom }
+        let rows = try await databaseService.queryCollection(path: "listings", field: "ownerID", isEqualTo: ownerID)
+        return rows.compactMap(SupabaseListingMapper.listing(from:)).sorted { $0.availableFrom < $1.availableFrom }
     }
 
     func createListing(_ listing: Listing) async throws {
-        try await firestoreService.setDocument(path: "listings/\(listing.id)", data: FirebaseListingMapper.payload(from: listing))
-        // TODO: Persist listing photos/videos to Firebase Storage once binary media pipeline is introduced.
+        try await databaseService.setDocument(path: "listings/\(listing.id)", data: SupabaseListingMapper.payload(from: listing))
     }
 
     func updateListing(_ listing: Listing) async throws {
-        try await firestoreService.setDocument(path: "listings/\(listing.id)", data: FirebaseListingMapper.payload(from: listing))
+        try await databaseService.setDocument(path: "listings/\(listing.id)", data: SupabaseListingMapper.payload(from: listing))
     }
 
     func pauseListing(id: String, ownerID: String) async throws {
@@ -95,7 +90,7 @@ actor FirebaseListingsRepository: ListingsRepositoryProtocol {
 
     func duplicateListing(id: String, ownerID: String) async throws -> Listing {
         guard let original = try await fetchOwnerListings(ownerID: ownerID).first(where: { $0.id == id }) else {
-            throw FirebaseServiceError.missingDocument("listings/\(id)")
+            throw SupabaseServiceError.missingDocument("listings/\(id)")
         }
 
         let duplicate = original.duplicating(
@@ -114,39 +109,38 @@ actor FirebaseListingsRepository: ListingsRepositoryProtocol {
     }
 }
 
-actor FirebaseProfileRepository: ProfileRepositoryProtocol {
-    private let firestoreService: FirestoreServiceProtocol
+actor SupabaseProfileRepository: ProfileRepositoryProtocol {
+    private let databaseService: DatabaseServiceProtocol
 
-    init(firestoreService: FirestoreServiceProtocol) {
-        self.firestoreService = firestoreService
+    init(databaseService: DatabaseServiceProtocol) {
+        self.databaseService = databaseService
     }
 
     func fetchProfiles(for userID: String) async throws -> UserProfileBundle {
-        let renter = try? await firestoreService.fetchDocument(path: "renter_profiles/\(userID)")
-        let owner = try? await firestoreService.fetchDocument(path: "owner_profiles/\(userID)")
+        let renter = try? await databaseService.fetchDocument(path: "renter_profiles/\(userID)")
+        let owner = try? await databaseService.fetchDocument(path: "owner_profiles/\(userID)")
         return UserProfileBundle(
-            renterProfile: renter.flatMap(FirebaseProfileMapper.renterProfile(from:)),
-            ownerProfile: owner.flatMap(FirebaseProfileMapper.ownerProfile(from:))
+            renterProfile: renter.flatMap(SupabaseProfileMapper.renterProfile(from:)),
+            ownerProfile: owner.flatMap(SupabaseProfileMapper.ownerProfile(from:))
         )
     }
 
     func saveRenterProfile(_ profile: RenterProfile, for userID: String) async throws {
-        try await firestoreService.setDocument(path: "renter_profiles/\(userID)", data: FirebaseProfileMapper.payload(from: profile))
+        try await databaseService.setDocument(path: "renter_profiles/\(userID)", data: SupabaseProfileMapper.payload(from: profile))
     }
 
     func saveOwnerProfile(_ profile: OwnerProfile, for userID: String) async throws {
-        try await firestoreService.setDocument(path: "owner_profiles/\(userID)", data: FirebaseProfileMapper.payload(from: profile))
-        // TODO: Add dedicated upload endpoints for front/back national ID images and write resulting URLs here.
+        try await databaseService.setDocument(path: "owner_profiles/\(userID)", data: SupabaseProfileMapper.payload(from: profile))
     }
 }
 
-actor FirebaseNotificationsRepository: NotificationsRepositoryProtocol {
+actor SupabaseNotificationsRepository: NotificationsRepositoryProtocol {
     private let notificationsService: NotificationsServiceProtocol
-    private let firestoreService: FirestoreServiceProtocol
+    private let databaseService: DatabaseServiceProtocol
 
-    init(notificationsService: NotificationsServiceProtocol, firestoreService: FirestoreServiceProtocol) {
+    init(notificationsService: NotificationsServiceProtocol, databaseService: DatabaseServiceProtocol) {
         self.notificationsService = notificationsService
-        self.firestoreService = firestoreService
+        self.databaseService = databaseService
     }
 
     func registerForPushNotifications() async {
@@ -167,13 +161,13 @@ actor FirebaseNotificationsRepository: NotificationsRepositoryProtocol {
                 "route": payload.route.id,
                 "metadata": payload.metadata
             ]
-            try? await firestoreService.setDocument(path: "notifications/\(payload.id)", data: data)
+            try? await databaseService.setDocument(path: "notifications/\(payload.id)", data: data)
         }
     }
 
     func fetchNotifications(for userID: String) async throws -> [AppNotification] {
-        let rows = try await firestoreService.queryCollection(path: "notifications", field: "userID", isEqualTo: userID)
-        return rows.compactMap(FirebaseNotificationMapper.notification(from:)).sorted { $0.createdAt > $1.createdAt }
+        let rows = try await databaseService.queryCollection(path: "notifications", field: "userID", isEqualTo: userID)
+        return rows.compactMap(SupabaseNotificationMapper.notification(from:)).sorted { $0.createdAt > $1.createdAt }
     }
 
     func fetchBadgeState(for userID: String) async throws -> NotificationBadgeState {
@@ -183,7 +177,7 @@ actor FirebaseNotificationsRepository: NotificationsRepositoryProtocol {
 
     func markAsRead(notificationID: String, userID: String) async throws {
         _ = userID
-        try await firestoreService.setDocument(path: "notifications/\(notificationID)", data: ["readAt": Date()])
+        try await databaseService.setDocument(path: "notifications/\(notificationID)", data: ["readAt": Date()])
     }
 
     func markAllAsRead(for userID: String) async throws {
@@ -194,18 +188,34 @@ actor FirebaseNotificationsRepository: NotificationsRepositoryProtocol {
     }
 }
 
+private enum DatabaseFieldValueDecoder {
+    private static let internetDateFormatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter
+    }()
 
-private enum FirebaseFieldValueDecoder {
+    private static let internetDateWithFractionalFormatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
+
     static func date(_ value: Any?) -> Date? {
         if let date = value as? Date { return date }
-        #if canImport(FirebaseFirestore)
-        if let timestamp = value as? Timestamp { return timestamp.dateValue() }
-        #endif
+        if let timestamp = value as? TimeInterval { return Date(timeIntervalSince1970: timestamp) }
+        if let timestampInt = value as? Int { return Date(timeIntervalSince1970: TimeInterval(timestampInt)) }
+        if let iso = value as? String {
+            if let preciseDate = internetDateWithFractionalFormatter.date(from: iso) {
+                return preciseDate
+            }
+            return internetDateFormatter.date(from: iso)
+        }
         return nil
     }
 }
 
-enum FirebaseListingMapper {
+enum SupabaseListingMapper {
     static func listing(from payload: [String: Any]) -> Listing? {
         guard
             let id = payload["id"] as? String,
@@ -247,7 +257,7 @@ enum FirebaseListingMapper {
             petAllowed: payload["petAllowed"] as? Bool ?? false,
             tenantPreference: tenantPreference,
             locationRadiusInKM: payload["locationRadiusInKM"] as? Int ?? 3,
-            availableFrom: FirebaseFieldValueDecoder.date(payload["availableFrom"]) ?? .now,
+            availableFrom: DatabaseFieldValueDecoder.date(payload["availableFrom"]) ?? .now,
             minimumStayMonths: payload["minimumStayMonths"] as? Int ?? 6,
             utilities: Listing.Utilities(
                 electricityIncluded: payload["electricityIncluded"] as? Bool ?? false,
@@ -303,7 +313,7 @@ enum FirebaseListingMapper {
     }
 }
 
-enum FirebaseProfileMapper {
+enum SupabaseProfileMapper {
     static func renterProfile(from payload: [String: Any]) -> RenterProfile? {
         guard
             let fullName = payload["fullName"] as? String,
@@ -391,7 +401,7 @@ enum FirebaseProfileMapper {
     }
 }
 
-enum FirebaseNotificationMapper {
+enum SupabaseNotificationMapper {
     static func notification(from payload: [String: Any]) -> AppNotification? {
         guard
             let id = payload["id"] as? String,
@@ -404,6 +414,9 @@ enum FirebaseNotificationMapper {
             let message = payload["message"] as? String
         else { return nil }
 
+        let metadata = payload["metadata"] as? [String: String] ?? [:]
+        let route = route(from: payload["route"] as? String, metadata: metadata)
+
         return AppNotification(
             id: id,
             userID: userID,
@@ -411,10 +424,34 @@ enum FirebaseNotificationMapper {
             type: type,
             title: title,
             message: message,
-            createdAt: FirebaseFieldValueDecoder.date(payload["createdAt"]) ?? .now,
-            readAt: FirebaseFieldValueDecoder.date(payload["readAt"]),
-            route: .interests(listingID: nil),
-            metadata: payload["metadata"] as? [String: String] ?? [:]
+            createdAt: DatabaseFieldValueDecoder.date(payload["createdAt"]) ?? .now,
+            readAt: DatabaseFieldValueDecoder.date(payload["readAt"]),
+            route: route,
+            metadata: metadata
         )
+    }
+
+    private static func route(from rawValue: String?, metadata: [String: String]) -> NotificationRoute {
+        guard let rawValue else {
+            return .interests(listingID: metadata["listingID"])
+        }
+
+        if rawValue.hasPrefix("agreement") {
+            return .agreement(agreementID: metadata["agreementID"])
+        }
+        if rawValue.hasPrefix("billing") {
+            return .billing(invoiceID: metadata["invoiceID"])
+        }
+        if rawValue.hasPrefix("payments") {
+            return .payments(invoiceID: metadata["invoiceID"])
+        }
+        if rawValue.hasPrefix("moveout") {
+            return .moveOut(tenancyID: metadata["tenancyID"])
+        }
+        if rawValue.hasPrefix("review") {
+            return .review(tenancyID: metadata["tenancyID"])
+        }
+
+        return .interests(listingID: metadata["listingID"])
     }
 }

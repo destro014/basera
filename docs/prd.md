@@ -26,7 +26,7 @@ Platforms:
 Technology:
 
 - SwiftUI
-- Firebase backend
+- Supabase backend
 
 ---
 

@@ -18,11 +18,6 @@ final class HomeShellViewModel: ObservableObject {
         self.user = user
     }
 
-    func switchRole(_ role: UserRole) {
-        guard user.availableRoles.contains(role) else { return }
-        user = user.updatingActiveRole(role)
-    }
-
     func refreshNotificationBadge(using repository: NotificationsRepositoryProtocol) async {
         await repository.syncIncomingNotifications(for: user.id)
         notificationBadge = (try? await repository.fetchBadgeState(for: user.id)) ?? .empty

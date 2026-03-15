@@ -5,6 +5,7 @@ enum AuthFlowStep: Int, CaseIterable, Identifiable {
     case registration
     case emailVerification
     case registrationPassword
+    case roleSelection
     case profileSetup
     case passwordRecoveryEmail
     case passwordRecoveryVerification
@@ -48,7 +49,7 @@ enum AuthSignInResult: Equatable {
 struct AuthProfileSetupSubmission: Equatable {
     let fullName: String
     let phoneNumber: String
-    let selectedRoles: Set<UserRole>
+    let selectedRole: UserRole
     let acceptsTerms: Bool
     let acceptsPrivacy: Bool
 }
@@ -70,62 +71,6 @@ struct AuthStepNotice: Equatable, Identifiable {
 
     var id: String {
         "\(style)-\(message)"
-    }
-}
-
-enum UserRoleSelectionOption: String, CaseIterable, Identifiable {
-    case renter
-    case owner
-    case both
-
-    var id: String { rawValue }
-
-    var title: String {
-        switch self {
-        case .renter:
-            "I'm renting"
-        case .owner:
-            "I manage properties"
-        case .both:
-            "I do both"
-        }
-    }
-
-    var subtitle: String {
-        switch self {
-        case .renter:
-            "Browse listings, request visits, sign agreements, and pay monthly invoices."
-        case .owner:
-            "Publish listings, approve renters, create agreements, and track billing."
-        case .both:
-            "Use one account for renter and owner work, then switch roles from Settings."
-        }
-    }
-
-    var iconName: String {
-        switch self {
-        case .renter:
-            "person.fill"
-        case .owner:
-            "building.2.fill"
-        case .both:
-            "arrow.left.arrow.right.circle.fill"
-        }
-    }
-
-    var roles: Set<UserRole> {
-        switch self {
-        case .renter:
-            [.renter]
-        case .owner:
-            [.owner]
-        case .both:
-            [.renter, .owner]
-        }
-    }
-
-    static func option(for roles: Set<UserRole>) -> UserRoleSelectionOption? {
-        allCases.first { $0.roles == roles }
     }
 }
 

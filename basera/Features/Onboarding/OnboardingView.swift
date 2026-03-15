@@ -34,8 +34,8 @@ struct OnboardingView: View {
 
                         introPoint(
                             iconName: "person.2.fill",
-                            title: "One account, flexible roles",
-                            message: "Start as a renter, an owner, or both. If you do both, you can switch roles later without creating a second account."
+                            title: "Single role account setup",
+                            message: "Choose renter or owner during registration. Each account keeps one role for clear workflows."
                         )
 
                         introPoint(

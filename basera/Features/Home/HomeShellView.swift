@@ -4,15 +4,13 @@ struct HomeShellView: View {
     @EnvironmentObject private var environment: AppEnvironment
     @StateObject private var viewModel: HomeShellViewModel
 
-    let onSwitchRole: (UserRole) -> Void
     let onSignOut: () -> Void
 
     private let defaultOwnerListingID = "OL-200"
     private let defaultTenancyID = "TEN-300"
 
-    init(user: AppUser, onSwitchRole: @escaping (UserRole) -> Void, onSignOut: @escaping () -> Void) {
+    init(user: AppUser, onSignOut: @escaping () -> Void) {
         _viewModel = StateObject(wrappedValue: HomeShellViewModel(user: user))
-        self.onSwitchRole = onSwitchRole
         self.onSignOut = onSignOut
     }
 
@@ -74,7 +72,6 @@ struct HomeShellView: View {
         SettingsView(
             user: viewModel.user,
             profileRepository: environment.profileRepository,
-            onSwitchRole: handleRoleSwitch,
             onSignOut: onSignOut
         )
     }
@@ -91,16 +88,16 @@ struct HomeShellView: View {
     }
 
     private var primaryTabTitle: String {
-        viewModel.user.activeRole == .renter ? "Renter" : "Owner"
+        viewModel.user.role == .renter ? "Renter" : "Owner"
     }
 
     private var primaryTabSystemImage: String {
-        viewModel.user.activeRole == .renter ? "house" : "building.2"
+        viewModel.user.role == .renter ? "house" : "building.2"
     }
 
     @ViewBuilder
     private var rolePrimaryTab: some View {
-        switch viewModel.user.activeRole {
+        switch viewModel.user.role {
         case .renter:
             RenterDashboardView(
                 renterID: viewModel.user.id,
@@ -128,14 +125,14 @@ struct HomeShellView: View {
         case .moveOut(let tenancyID):
             tenancyDetailDestination(tenancyID: tenancyID)
         case .review:
-            ReviewHubView(userID: viewModel.user.id, role: viewModel.user.activeRole)
+            ReviewHubView(userID: viewModel.user.id, role: viewModel.user.role)
                 .environmentObject(environment)
         }
     }
 
     @ViewBuilder
     private func interestsDestination(listingID: String?) -> some View {
-        if viewModel.user.activeRole == .owner {
+        if viewModel.user.role == .owner {
             OwnerInterestedRentersView(
                 listingID: listingID ?? defaultOwnerListingID,
                 ownerID: viewModel.user.id
@@ -154,7 +151,7 @@ struct HomeShellView: View {
     }
 
     private var currentAgreementParty: AgreementRecord.Party {
-        viewModel.user.activeRole == .owner ? .owner : .renter
+        viewModel.user.role == .owner ? .owner : .renter
     }
 
     private var renterSnapshot: RenterProfileSnapshot {
@@ -188,11 +185,6 @@ struct HomeShellView: View {
         )
     }
 
-    private func handleRoleSwitch(_ role: UserRole) {
-        viewModel.switchRole(role)
-        onSwitchRole(role)
-    }
-
     private func refreshNotificationBadge() async {
         await viewModel.refreshNotificationBadge(using: environment.notificationsRepository)
     }
@@ -200,8 +192,7 @@ struct HomeShellView: View {
 
 #Preview {
     HomeShellView(
-        user: PreviewData.user(activeRole: .renter),
-        onSwitchRole: { _ in },
+        user: PreviewData.user(role: .renter),
         onSignOut: {}
     )
     .environmentObject(AppEnvironment.bootstrap())

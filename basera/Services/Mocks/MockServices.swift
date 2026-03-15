@@ -28,8 +28,7 @@ actor MockAuthService: AuthServiceProtocol {
         var password: String
         var fullName: String?
         var phoneNumber: String?
-        var roles: Set<UserRole>
-        var activeRole: UserRole
+        var role: UserRole
         var profilePhotoURL: URL?
         var isEmailVerified: Bool
         var isProfileCompleted: Bool
@@ -40,8 +39,7 @@ actor MockAuthService: AuthServiceProtocol {
                 fullName: fullName,
                 phoneNumber: phoneNumber ?? "",
                 email: email,
-                availableRoles: roles.isEmpty ? [.renter] : roles,
-                activeRole: activeRole,
+                role: role,
                 profilePhotoURL: profilePhotoURL
             )
         }
@@ -53,8 +51,9 @@ actor MockAuthService: AuthServiceProtocol {
         let password: String
         let fullName: String?
         let phoneNumber: String?
-        let roles: [String]
-        let activeRole: String
+        let role: String?
+        let roles: [String]?
+        let activeRole: String?
         let profilePhotoURL: String?
         let isEmailVerified: Bool?
         let isProfileCompleted: Bool?
@@ -131,8 +130,7 @@ actor MockAuthService: AuthServiceProtocol {
             password: "pending-\(UUID().uuidString)",
             fullName: nil,
             phoneNumber: nil,
-            roles: [.renter, .owner],
-            activeRole: .renter,
+            role: .renter,
             profilePhotoURL: nil,
             isEmailVerified: false,
             isProfileCompleted: false
@@ -225,10 +223,6 @@ actor MockAuthService: AuthServiceProtocol {
         guard submission.phoneNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
             throw AuthError.phoneNumberRequired
         }
-        guard submission.selectedRoles.isEmpty == false else {
-            throw AuthError.unexpected
-        }
-
         guard var account = accountsByEmail[session.email], account.id == session.userID else {
             throw AuthError.registrationSessionExpired
         }
@@ -237,8 +231,7 @@ actor MockAuthService: AuthServiceProtocol {
 
         account.fullName = submission.fullName.trimmingCharacters(in: .whitespacesAndNewlines)
         account.phoneNumber = submission.phoneNumber.trimmingCharacters(in: .whitespacesAndNewlines)
-        account.roles = submission.selectedRoles
-        account.activeRole = submission.selectedRoles.contains(.renter) ? .renter : .owner
+        account.role = submission.selectedRole
         account.profilePhotoURL = profilePhotoURL
         account.isProfileCompleted = true
         accountsByEmail[session.email] = account
@@ -397,8 +390,9 @@ actor MockAuthService: AuthServiceProtocol {
                 password: account.password,
                 fullName: account.fullName,
                 phoneNumber: account.phoneNumber,
-                roles: account.roles.map(\.rawValue),
-                activeRole: account.activeRole.rawValue,
+                role: account.role.rawValue,
+                roles: nil,
+                activeRole: nil,
                 profilePhotoURL: account.profilePhotoURL?.absoluteString,
                 isEmailVerified: account.isEmailVerified,
                 isProfileCompleted: account.isProfileCompleted
@@ -428,9 +422,12 @@ actor MockAuthService: AuthServiceProtocol {
         var accountsByEmail: [String: RegisteredAccount] = [:]
 
         for storedAccount in storedAccounts {
-            let roles = Set(storedAccount.roles.compactMap(UserRole.init(rawValue:)))
-            let availableRoles = roles.isEmpty ? Set([UserRole.renter]) : roles
-            let activeRole = UserRole(rawValue: storedAccount.activeRole) ?? availableRoles.first ?? .renter
+            let legacyRoles = Set((storedAccount.roles ?? []).compactMap(UserRole.init(rawValue:)))
+            let resolvedRole =
+                UserRole(rawValue: storedAccount.role ?? "")
+                ?? UserRole(rawValue: storedAccount.activeRole ?? "")
+                ?? legacyRoles.first
+                ?? .renter
             let profileCompletedFromLegacy = (storedAccount.fullName?.isEmpty == false) && (storedAccount.phoneNumber?.isEmpty == false)
 
             accountsByEmail[storedAccount.email] = RegisteredAccount(
@@ -439,8 +436,7 @@ actor MockAuthService: AuthServiceProtocol {
                 password: storedAccount.password,
                 fullName: storedAccount.fullName,
                 phoneNumber: storedAccount.phoneNumber,
-                roles: availableRoles,
-                activeRole: activeRole,
+                role: resolvedRole,
                 profilePhotoURL: storedAccount.profilePhotoURL.flatMap(URL.init(string:)),
                 isEmailVerified: storedAccount.isEmailVerified ?? true,
                 isProfileCompleted: storedAccount.isProfileCompleted ?? profileCompletedFromLegacy
@@ -451,7 +447,7 @@ actor MockAuthService: AuthServiceProtocol {
     }
 }
 
-struct MockFirestoreService: FirestoreServiceProtocol {
+struct MockDatabaseService: DatabaseServiceProtocol {
     func fetchDocument(path: String) async throws -> [String: Any] {
         ["id": path.replacingOccurrences(of: "/", with: "-")]
     }

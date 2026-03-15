@@ -20,6 +20,7 @@ final class AuthFlowViewModel: ObservableObject {
     @Published var verificationCode: String = ""
     @Published var fullName: String = ""
     @Published var phoneNumber: String = ""
+    @Published var selectedRole: UserRole = .renter
 
     @Published var passwordRecoveryEmail: String = ""
     @Published var passwordRecoveryCode: String = ""
@@ -160,6 +161,7 @@ final class AuthFlowViewModel: ObservableObject {
         existingAccountEmailForSheet = nil
         knownExistingRegistrationEmail = nil
         passwordUpdatedEmailForSheet = nil
+        selectedRole = .renter
         notice = nil
         clearFieldErrors()
         isLoading = false
@@ -174,6 +176,7 @@ final class AuthFlowViewModel: ObservableObject {
         registrationPassword = ""
         confirmPassword = ""
         requiresRegistrationPasswordSetup = true
+        selectedRole = .renter
         existingAccountEmailForSheet = nil
         passwordUpdatedEmailForSheet = nil
         notice = nil
@@ -425,7 +428,7 @@ final class AuthFlowViewModel: ObservableObject {
             if requiresRegistrationPasswordSetup {
                 navigateToRegistrationPassword()
             } else {
-                navigateToProfileSetup()
+                navigateToRoleSelection()
             }
             return
         }
@@ -454,7 +457,7 @@ final class AuthFlowViewModel: ObservableObject {
             if requiresRegistrationPasswordSetup {
                 navigateToRegistrationPassword()
             } else {
-                navigateToProfileSetup()
+                navigateToRoleSelection()
             }
             notice = nil
         } catch {
@@ -504,7 +507,7 @@ final class AuthFlowViewModel: ObservableObject {
             registrationPassword = ""
             confirmPassword = ""
             requiresRegistrationPasswordSetup = false
-            navigateToProfileSetup()
+            navigateToRoleSelection()
             notice = nil
         } catch {
             applyErrorState(error, for: .registrationPassword)
@@ -571,7 +574,7 @@ final class AuthFlowViewModel: ObservableObject {
         let submission = AuthProfileSetupSubmission(
             fullName: trimmedName,
             phoneNumber: trimmedPhone,
-            selectedRoles: [.renter, .owner],
+            selectedRole: selectedRole,
             acceptsTerms: true,
             acceptsPrivacy: true
         )
@@ -590,6 +593,10 @@ final class AuthFlowViewModel: ObservableObject {
             isLoading = false
             return nil
         }
+    }
+
+    func continueToProfileSetupFromRoleSelection() {
+        navigateToProfileSetup()
     }
 
     func startPasswordRecovery() async {
@@ -928,7 +935,7 @@ final class AuthFlowViewModel: ObservableObject {
         verifiedSession = session
         pendingCredentialsForCompletion = credentials
         requiresRegistrationPasswordSetup = false
-        navigateToProfileSetup()
+        navigateToRoleSelection()
     }
 
     private func resetPostAuthenticationState() {
@@ -944,11 +951,34 @@ final class AuthFlowViewModel: ObservableObject {
         passwordResetCompletedEmail = nil
         existingAccountEmailForSheet = nil
         passwordUpdatedEmailForSheet = nil
+        selectedRole = .renter
     }
 
     private func handleSignInError(_ error: Error, step: AuthFlowStep) {
         applyErrorState(error, for: step)
         isLoading = false
+    }
+
+    private func navigateToRoleSelection() {
+        var updatedPath = navigationPath
+
+        if let roleSelectionIndex = updatedPath.firstIndex(of: .roleSelection) {
+            updatedPath = Array(updatedPath.prefix(roleSelectionIndex + 1))
+            navigationPath = updatedPath
+            return
+        }
+
+        if let registrationPasswordIndex = updatedPath.firstIndex(of: .registrationPassword) {
+            updatedPath = Array(updatedPath.prefix(registrationPasswordIndex + 1))
+        } else if let verificationIndex = updatedPath.firstIndex(of: .emailVerification) {
+            updatedPath = Array(updatedPath.prefix(verificationIndex + 1))
+        }
+
+        if updatedPath.last != .roleSelection {
+            updatedPath.append(.roleSelection)
+        }
+
+        navigationPath = updatedPath
     }
 
     private func navigateToProfileSetup() {
@@ -960,7 +990,9 @@ final class AuthFlowViewModel: ObservableObject {
             return
         }
 
-        if let registrationPasswordIndex = updatedPath.firstIndex(of: .registrationPassword) {
+        if let roleSelectionIndex = updatedPath.firstIndex(of: .roleSelection) {
+            updatedPath = Array(updatedPath.prefix(roleSelectionIndex + 1))
+        } else if let registrationPasswordIndex = updatedPath.firstIndex(of: .registrationPassword) {
             updatedPath = Array(updatedPath.prefix(registrationPasswordIndex + 1))
         } else if let verificationIndex = updatedPath.firstIndex(of: .emailVerification) {
             updatedPath = Array(updatedPath.prefix(verificationIndex + 1))

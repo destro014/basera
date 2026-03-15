@@ -3,7 +3,6 @@ import Foundation
 
 @MainActor
 final class ProfileHubViewModel: ObservableObject {
-    @Published var selectedRole: UserRole
     @Published private(set) var profileBundle: UserProfileBundle = .init(renterProfile: nil, ownerProfile: nil)
     @Published private(set) var isLoading = false
     @Published var isSaving = false
@@ -15,11 +14,10 @@ final class ProfileHubViewModel: ObservableObject {
     init(user: AppUser, repository: ProfileRepositoryProtocol) {
         self.user = user
         self.repository = repository
-        self.selectedRole = user.activeRole
     }
 
-    var availableRoles: [UserRole] {
-        Array(user.availableRoles).sorted { $0.rawValue < $1.rawValue }
+    var role: UserRole {
+        user.role
     }
 
     var renterProfile: RenterProfile {

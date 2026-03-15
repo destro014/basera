@@ -2,7 +2,7 @@
 
 Basera uses role-based navigation.
 
-Users can switch roles.
+Users keep one fixed role per account.
 
 ---
 
@@ -32,7 +32,7 @@ Profile
 
 ## Shared Navigation
 
-Accessible from both roles:
+Accessible from renter and owner apps:
 
 Notifications  
 Settings  

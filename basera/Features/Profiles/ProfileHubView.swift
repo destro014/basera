@@ -2,11 +2,9 @@ import SwiftUI
 
 struct ProfileHubView: View {
     @StateObject private var viewModel: ProfileHubViewModel
-    let onSwitchRole: (UserRole) -> Void
 
-    init(user: AppUser, repository: ProfileRepositoryProtocol, onSwitchRole: @escaping (UserRole) -> Void) {
+    init(user: AppUser, repository: ProfileRepositoryProtocol) {
         _viewModel = StateObject(wrappedValue: ProfileHubViewModel(user: user, repository: repository))
-        self.onSwitchRole = onSwitchRole
     }
 
     var body: some View {
@@ -17,35 +15,20 @@ struct ProfileHubView: View {
                 ScrollView {
                     VStack(spacing: AppTheme.Spacing.large) {
                         ProfileSectionView(
-                            title: "Active role",
-                            subtitle: "One account can hold renter and owner profiles."
+                            title: "Account role",
+                            subtitle: "Your role is fixed for this account."
                         ) {
-                            Picker(selection: $viewModel.selectedRole) {
-                                ForEach(viewModel.availableRoles, id: \.self) { role in
-                                    Text(role.title)
-                                        .baseraTextStyle(AppTheme.Typography.labelMedium)
-                                        .tag(role)
-                                }
-                            } label: {
-                                Text("Role")
-                                    .baseraTextStyle(AppTheme.Typography.labelLarge)
-                                    .foregroundStyle(AppTheme.Colors.textPrimary)
-                            }
-                            .pickerStyle(.segmented)
-                            .tint(AppTheme.Colors.brandPrimary)
-
-                            BaseraButton(title: "Switch to \(viewModel.selectedRole.title)", style: .secondary) {
-                                onSwitchRole(viewModel.selectedRole)
-                            }
+                            Text(viewModel.role.title)
+                                .baseraTextStyle(AppTheme.Typography.titleMedium)
+                                .foregroundStyle(AppTheme.Colors.textPrimary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                         }
 
                         VStack(spacing: AppTheme.Spacing.medium) {
-                            ForEach(viewModel.availableRoles, id: \.self) { role in
-                                ProfileCompletionStatusView(status: viewModel.completionStatus(for: role))
-                            }
+                            ProfileCompletionStatusView(status: viewModel.completionStatus(for: viewModel.role))
                         }
 
-                        if viewModel.selectedRole == .renter {
+                        if viewModel.role == .renter {
                             RenterProfileFormView(profile: viewModel.renterProfile, isSaving: viewModel.isSaving) { profile in
                                 Task { await viewModel.saveRenterProfile(profile) }
                             }
@@ -79,9 +62,8 @@ struct ProfileHubView: View {
 #Preview {
     NavigationView {
         ProfileHubView(
-            user: PreviewData.user(activeRole: .owner),
-            repository: MockProfileRepository(),
-            onSwitchRole: { _ in }
+            user: PreviewData.user(role: .owner),
+            repository: MockProfileRepository()
         )
     }
     .navigationViewStyle(StackNavigationViewStyle())

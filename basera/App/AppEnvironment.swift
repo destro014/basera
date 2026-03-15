@@ -4,7 +4,7 @@ import Foundation
 @MainActor
 final class AppEnvironment: ObservableObject {
     let authService: AuthServiceProtocol
-    let firestoreService: FirestoreServiceProtocol
+    let databaseService: DatabaseServiceProtocol
     let storageService: StorageServiceProtocol
     let notificationsService: NotificationsServiceProtocol
     let remoteConfigService: RemoteConfigServiceProtocol
@@ -28,7 +28,7 @@ final class AppEnvironment: ObservableObject {
 
     init(
         authService: AuthServiceProtocol,
-        firestoreService: FirestoreServiceProtocol,
+        databaseService: DatabaseServiceProtocol,
         storageService: StorageServiceProtocol,
         notificationsService: NotificationsServiceProtocol,
         remoteConfigService: RemoteConfigServiceProtocol,
@@ -48,7 +48,7 @@ final class AppEnvironment: ObservableObject {
         reviewsRepository: ReviewsRepositoryProtocol
     ) {
         self.authService = authService
-        self.firestoreService = firestoreService
+        self.databaseService = databaseService
         self.storageService = storageService
         self.notificationsService = notificationsService
         self.remoteConfigService = remoteConfigService
@@ -69,29 +69,27 @@ final class AppEnvironment: ObservableObject {
     }
 
     static func bootstrap() -> AppEnvironment {
-        if AppRuntimeConfiguration.useFirebaseInfrastructure {
-            return firebaseEnvironment()
+        if AppRuntimeConfiguration.useMockInfrastructure {
+            return mockEnvironment()
         }
 
-        return mockEnvironment()
+        return supabaseEnvironment()
     }
 
-    private static func firebaseEnvironment() -> AppEnvironment {
-        FirebaseBootstrapper.configureIfNeeded()
-
-        let firestoreService = FirebaseFirestoreService()
-        let storageService = FirebaseStorageService()
-        let notificationsService = FirebaseNotificationsService()
-        let remoteConfigService = FirebaseRemoteConfigService()
-        let authService = FirebaseAuthService(firestoreService: firestoreService)
+    private static func supabaseEnvironment() -> AppEnvironment {
+        let databaseService = SupabaseDatabaseService()
+        let storageService = SupabaseStorageService()
+        let notificationsService = SupabaseNotificationsService()
+        let remoteConfigService = SupabaseRemoteConfigService(databaseService: databaseService)
+        let authService = SupabaseAuthService(databaseService: databaseService)
         let agreementConfirmationService = MockAgreementConfirmationService()
         let agreementPDFService = MockAgreementPDFService()
         let paymentGatewayService = MockPaymentGatewayService()
         let biometricLoginManager = DeviceBiometricLoginManager()
 
-        let authRepository = FirebaseAuthRepository(authService: authService)
-        let listingsRepository = FirebaseListingsRepository(firestoreService: firestoreService)
-        let profileRepository = FirebaseProfileRepository(firestoreService: firestoreService)
+        let authRepository = SupabaseAuthRepository(authService: authService)
+        let listingsRepository = SupabaseListingsRepository(databaseService: databaseService)
+        let profileRepository = SupabaseProfileRepository(databaseService: databaseService)
         let interestsRepository = MockInterestsRepository()
         let agreementsRepository = MockAgreementsRepository(confirmationService: agreementConfirmationService)
         let tenancyRepository = MockTenancyRepository()
@@ -100,15 +98,15 @@ final class AppEnvironment: ObservableObject {
             billingRepository: billingRepository,
             gatewayService: paymentGatewayService
         )
-        let notificationsRepository = FirebaseNotificationsRepository(
+        let notificationsRepository = SupabaseNotificationsRepository(
             notificationsService: notificationsService,
-            firestoreService: firestoreService
+            databaseService: databaseService
         )
         let reviewsRepository = MockReviewsRepository()
 
         return AppEnvironment(
             authService: authService,
-            firestoreService: firestoreService,
+            databaseService: databaseService,
             storageService: storageService,
             notificationsService: notificationsService,
             remoteConfigService: remoteConfigService,
@@ -131,7 +129,7 @@ final class AppEnvironment: ObservableObject {
 
     private static func mockEnvironment() -> AppEnvironment {
         let authService = MockAuthService()
-        let firestoreService = MockFirestoreService()
+        let databaseService = MockDatabaseService()
         let storageService = MockStorageService()
         let notificationsService = MockNotificationsService()
         let remoteConfigService = MockRemoteConfigService()
@@ -156,7 +154,7 @@ final class AppEnvironment: ObservableObject {
 
         return AppEnvironment(
             authService: authService,
-            firestoreService: firestoreService,
+            databaseService: databaseService,
             storageService: storageService,
             notificationsService: notificationsService,
             remoteConfigService: remoteConfigService,

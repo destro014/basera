@@ -1,6 +1,6 @@
 import Foundation
 
-protocol FirestoreServiceProtocol {
+protocol DatabaseServiceProtocol {
     func fetchDocument(path: String) async throws -> [String: Any]
     func setDocument(path: String, data: [String: Any]) async throws
     func fetchCollection(path: String) async throws -> [[String: Any]]

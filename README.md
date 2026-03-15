@@ -2,7 +2,7 @@
 
 **Basera** is a rental management mobile application that connects renters with property owners and manages the full rental lifecycle — from property discovery to agreements, billing, payments, and move-out.
 
-The platform is designed initially for **Nepal** and built using **SwiftUI** with a **Firebase backend**.
+The platform is designed initially for **Nepal** and built using **SwiftUI** with a **Supabase backend**.
 
 Domain: **basera.app**
 
@@ -30,11 +30,10 @@ Basera supports:
 Technology stack:
 
 - SwiftUI
-- Firebase Authentication
-- Firestore
-- Firebase Storage
-- Firebase Cloud Messaging
-- Firebase Remote Config
+- Supabase Auth
+- Supabase Postgres (JSON document style tables)
+- Supabase Storage
+- Supabase Realtime / notification data fanout
 
 Development environment:
 
@@ -54,11 +53,10 @@ Development environment:
 
 ## Profiles
 
-Users may register as:
+Users register as exactly one role:
 
 - renter
 - property owner
-- both roles under one account
 
 ### Renter profile fields
 
@@ -286,26 +284,20 @@ After tenancy ends:
 
 ---
 
-# Firebase Backend
+# Supabase Backend
 
-Basera uses Firebase services:
+Basera uses Supabase services:
 
-- Authentication
-- Firestore
+- Auth
+- Database
 - Storage
-- Firebase Cloud Messaging
-- Remote Config
+- Realtime/notifications data
+- App configuration values
 
 Data structure is documented in:
 
 ```
-docs/firebase-schema.md
-```
-
-Incremental Firebase wiring and environment setup:
-
-```
-docs/firebase-integration.md
+docs/supabase-schema.md
 ```
 
 ---
@@ -335,7 +327,7 @@ Basera/
     PRD.md
     user-flows.md
     screens.md
-    firebase-schema.md
+    supabase-schema.md
     acceptance-criteria.md
     implementation-phases.md
     codex-prompts.md
@@ -369,7 +361,7 @@ Unit tests focus on:
 - invoice calculations
 - payment state updates
 - agreement locking
-- role switching
+- single-role account setup
 - state transitions
 
 Tests live in:

@@ -82,15 +82,6 @@ final class AppRootViewModel: ObservableObject {
         biometricPrompt = nil
     }
 
-    func switchRole(_ role: UserRole, environment: AppEnvironment) {
-        guard case .signedIn(let user) = route else { return }
-        guard user.availableRoles.contains(role) else { return }
-
-        let updated = user.updatingActiveRole(role)
-        environment.currentUser = updated
-        route = .signedIn(updated)
-    }
-
     func signOut(environment: AppEnvironment) async {
         try? await environment.authRepository.signOut()
         environment.currentUser = nil

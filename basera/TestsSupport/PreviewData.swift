@@ -1,14 +1,13 @@
 import Foundation
 
 enum PreviewData {
-    static func user(id: String = "preview-user-001", activeRole: UserRole) -> AppUser {
+    static func user(id: String = "preview-user-001", role: UserRole) -> AppUser {
         AppUser(
             id: id,
             fullName: "Sita Basera",
             phoneNumber: "+9779800000000",
             email: "sita@example.com",
-            availableRoles: [.renter, .owner],
-            activeRole: activeRole,
+            role: role,
             profilePhotoURL: nil
         )
     }

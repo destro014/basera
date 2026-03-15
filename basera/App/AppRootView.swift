@@ -35,9 +35,6 @@ struct AppRootView: View {
             case .signedIn(let user):
                 HomeShellView(
                     user: user,
-                    onSwitchRole: { role in
-                        viewModel.switchRole(role, environment: environment)
-                    },
                     onSignOut: {
                         Task {
                             await viewModel.signOut(environment: environment)
@@ -225,6 +222,15 @@ private struct SignedOutAuthFlowView: View {
                         await viewModel.completeRegistrationPassword()
                     }
                 }
+            )
+        case .roleSelection:
+            RoleSelectionView(
+                selectedRole: Binding(
+                    get: { viewModel.selectedRole },
+                    set: { viewModel.selectedRole = $0 }
+                ),
+                isLoading: viewModel.isLoading,
+                onContinue: viewModel.continueToProfileSetupFromRoleSelection
             )
         case .profileSetup:
             ProfileCreationView(
