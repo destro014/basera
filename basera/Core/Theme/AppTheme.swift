@@ -62,21 +62,21 @@ enum AppTheme {
         static let neutralOnSecondary = Palette.Neutral.onSecondary
         static let neutralOnTertiary = Palette.Neutral.onTertiary
 
-        static let textPrimary = Palette.Text.primary
-        static let textSecondary = Palette.Text.secondary
-        static let textDisabled = Palette.Text.disabled
+        static let textPrimary = Palette.Mapped.Text.primary
+        static let textSecondary = Palette.Mapped.Text.secondary
+        static let textDisabled = Palette.Mapped.Text.disabled
 
-        static let backgroundPrimary = Palette.Background.primary
+        static let backgroundPrimary = Palette.Mapped.Background.primary
 
-        static let surfacePrimary = Palette.Surface.primary
-        static let surfaceDisabled = Palette.Surface.disabled
+        static let surfacePrimary = Palette.Mapped.Surface.primary
+        static let surfaceDisabled = Palette.Mapped.Surface.disabled
 
-        static let onSurfacePrimary = Palette.OnSurface.primary
-        static let onSurfaceDisabled = Palette.OnSurface.disabled
+        static let onSurfacePrimary = Palette.Mapped.OnSurface.primary
+        static let onSurfaceDisabled = Palette.Mapped.OnSurface.disabled
 
-        static let borderPrimary = Palette.Border.primary
-        static let borderSecondary = Palette.Border.secondary
-        static let borderDisabled = Palette.Border.disabled
+        static let borderPrimary = Palette.Mapped.Border.primary
+        static let borderSecondary = Palette.Mapped.Border.secondary
+        static let borderDisabled = Palette.Mapped.Border.disabled
     }
 
     enum Spacing {
