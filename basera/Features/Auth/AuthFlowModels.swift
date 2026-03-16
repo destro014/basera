@@ -95,6 +95,7 @@ enum AuthError: LocalizedError, Equatable {
     case biometricUnavailable
     case biometricAuthenticationFailed
     case biometricCredentialsMissing
+    case supabaseConfigurationMissing
     case unexpected
 
     var errorDescription: String? {
@@ -139,6 +140,8 @@ enum AuthError: LocalizedError, Equatable {
             "Biometric verification failed. Try again or use password login."
         case .biometricCredentialsMissing:
             "Saved credentials are missing. Login with email and password."
+        case .supabaseConfigurationMissing:
+            "Supabase is not configured in this build. Add BASERA_SUPABASE_URL and BASERA_SUPABASE_ANON_KEY in your run scheme."
         case .unexpected:
             "Something went wrong. Please try again."
         }

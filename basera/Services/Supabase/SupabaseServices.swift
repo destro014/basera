@@ -1059,6 +1059,10 @@ actor SupabaseAuthService: AuthServiceProtocol {
             return authError
         }
 
+        if case SupabaseServiceError.missingConfiguration = error {
+            return .supabaseConfigurationMissing
+        }
+
         guard case let SupabaseServiceError.requestFailed(_, message) = error else {
             return fallback
         }
