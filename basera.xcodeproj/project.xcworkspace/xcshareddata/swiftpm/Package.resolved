@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/destro014/vd-swift",
       "state" : {
-        "revision" : "fdb564087f483661922114ce56ade6b8805c8c14",
-        "version" : "1.0.0"
+        "revision" : "7765f1e93f6e57ac30bdbc0be23f4444e8c2a478",
+        "version" : "1.0.1"
       }
     }
   ],

@@ -1,547 +1,967 @@
-// VdPreviewGallery.swift — Vroxal Design System
+// VdComponentGallery.swift — Vroxal Design System
 // ─────────────────────────────────────────────────────────────
-// Full token gallery for verifying Colors, Typography and Scale.
-// Open this file in Xcode and enable the canvas:
-//   Editor → Canvas  (or ⌥⌘↩)
+// Component gallery for the consuming app.
+// Mirrors the structure of VdPreviewGallery (token gallery).
+//
+// Open in Xcode and enable the canvas:
+//   Editor → Canvas  (⌥⌘↩)
+//
+// SECTIONS
+//   Actions    — VdButton · VdIconButton
+//   Display    — VdBadge
+//   Forms      — VdTextField · VdTextArea · VdSelectField
+//              · VdCodeInput · VdCheckbox · VdRadioButton
+//              · VdSelectionCard
+//   Feedback   — VdAlert · VdSnackbar · VdLoadingState
 // ─────────────────────────────────────────────────────────────
 
 import SwiftUI
 import VroxalDesign
 
 // ═════════════════════════════════════════════════════════════
-// MARK: — Top-level preview entry point
+// MARK: — Entry point
 // ═════════════════════════════════════════════════════════════
 
-#Preview("Vd Token Gallery") {
-    NavigationStack {
-        List {
-            NavigationLink("Colors") { VdColorGallery() }
-            NavigationLink("Typography") { VdTypographyGallery() }
-            NavigationLink("Scale") { VdScaleGallery() }
+struct VdPreviewApp: View {
+    var body: some View {
+        NavigationStack {
+            List {
+                Section("Actions") {
+                    NavigationLink("VdButton") { VdButtonGallery() }
+                    NavigationLink("VdIconButton") { VdIconButtonGallery() }
+                }
+                Section("Display") {
+                    NavigationLink("VdBadge") { VdBadgeGallery() }
+                }
+                Section("Forms") {
+                    NavigationLink("VdTextField") { VdTextFieldGallery() }
+                    NavigationLink("VdTextArea") { VdTextAreaGallery() }
+                    NavigationLink("VdSelectField") { VdSelectFieldGallery() }
+                    NavigationLink("VdCodeInput") { VdCodeInputGallery() }
+                    NavigationLink("VdCheckbox") { VdCheckboxGallery() }
+                    NavigationLink("VdRadioButton") { VdRadioButtonGallery() }
+                    NavigationLink("VdSelectionCard") { VdSelectionCardGallery() }
+                }
+                Section("Feedback") {
+                    NavigationLink("VdAlert") { VdAlertGallery() }
+                    NavigationLink("VdSnackbar") { VdSnackbarGallery() }
+                    NavigationLink("VdLoadingState") { VdLoadingStateGallery() }
+                }
+            }
+            .scrollContentBackground(.hidden)
+            .background(Color.vdBackgroundDefaultBase)
+            .navigationTitle("Components")
+            .navigationBarTitleDisplayMode(.large)
         }
-        .scrollContentBackground(.hidden)
-        .background(Color.vdBackground)
-        .navigationTitle("Vroxal Design")
-        .navigationBarTitleDisplayMode(.large)
     }
 }
 
+#Preview("Vd Component Gallery") {
+    VdPreviewApp()
+}
 
 // ═════════════════════════════════════════════════════════════
-// MARK: — Colors Gallery
+// MARK: — VdButton
 // ═════════════════════════════════════════════════════════════
 
-struct VdColorGallery: View {
+private struct VdButtonGallery: View {
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: VdSpacing.xxl) {
+        galleryScroll {
 
-                // ── Raw palette ───────────────────────────────
-                sectionHeader("Raw Palette", subtitle: "root.json → Color.*")
+            gallerySection("Styles × Primary") {
+                VdButton("Solid",       style: .solid,       action: {})
+                VdButton("Subtle",      style: .subtle,      action: {})
+                VdButton("Outlined",    style: .outlined,    action: {})
+                VdButton("Transparent", style: .transparent, action: {})
+            }
 
-                paletteRow("BlueGlow", colors: [
-                    ("#DEDBFD", "50"), ("#CEC9FC", "100"), ("#BDB7FB", "200"),
-                    ("#9C92F8", "300"), ("#7B6EF6", "400"), ("#5a4af4", "500"),
-                    ("#483bc3", "600"), ("#362C92", "700"), ("#1F1A55", "800"), ("#120F31", "900")
-                ])
-                paletteRow("Green", colors: [
-                    ("#e7f3ee", "50"), ("#cfe7dd", "100"), ("#9fcfbb", "200"),
-                    ("#6eb799", "300"), ("#3e9f77", "400"), ("#0e8755", "500"),
-                    ("#0b6c44", "600"), ("#085133", "700"), ("#063622", "800"), ("#031b11", "900")
-                ])
-                paletteRow("Red", colors: [
-                    ("#fbe9ea", "50"), ("#f8d2d4", "100"), ("#f0a5a9", "200"),
-                    ("#e9787e", "300"), ("#e14b53", "400"), ("#da1e28", "500"),
-                    ("#ae1820", "600"), ("#831218", "700"), ("#570c10", "800"), ("#2c0608", "900")
-                ])
-                paletteRow("Orange", colors: [
-                    ("#fcf0e6", "50"), ("#f8e0cc", "100"), ("#f1c299", "200"),
-                    ("#eaa366", "300"), ("#e38533", "400"), ("#dc6600", "500"),
-                    ("#b05200", "600"), ("#843d00", "700"), ("#582900", "800"), ("#2c1400", "900")
-                ])
-                paletteRow("Blue", colors: [
-                    ("#eaf1fb", "50"), ("#d6e3f6", "100"), ("#adc7ee", "200"),
-                    ("#83aae5", "300"), ("#5a8edd", "400"), ("#3172d4", "500"),
-                    ("#275baa", "600"), ("#1d447f", "700"), ("#142e55", "800"), ("#0a172a", "900")
-                ])
-                paletteRow("Grey", colors: [
-                    ("#F6F5FF", "50"), ("#E7E6F5", "100"), ("#D7D5E5", "200"),
-                    ("#9F9CBA", "300"), ("#797791", "400"), ("#5A5870", "500"),
-                    ("#48465C", "600"), ("#323045", "700"), ("#19172B", "800"), ("#04021A", "900")
-                ])
-
-                divider()
-
-                // ── Semantic — Text ───────────────────────────
-                sectionHeader("Text Tokens", subtitle: "light.json + dark.json → Color.Text.*")
-
-                semanticGroup("Default") {
-                    semanticRow("vdTextPrimary",    .vdTextPrimary,    "Text/Default/Primary")
-                    semanticRow("vdTextSecondary",  .vdTextSecondary,  "Text/Default/Secondary")
-                    semanticRow("vdTextTertiary",   .vdTextTertiary,   "Text/Default/Tertiary")
-                    semanticRow("vdTextDisabled",   .vdTextDisabled,   "Text/Default/Disabled")
-                }
-                semanticGroup("Accent (Primary)") {
-                    semanticRow("vdTextAccent",          .vdTextAccent,          "Text/Primary/Primary")
-                    semanticRow("vdTextAccentSecondary", .vdTextAccentSecondary, "Text/Primary/Secondary")
-                    semanticRow("vdTextOnPrimary",       .vdTextOnPrimary,       "Text/Primary/OnPrimary")
-                }
-                semanticGroup("Status") {
-                    semanticRow("vdTextSuccess", .vdTextSuccess, "Text/Success/Primary")
-                    semanticRow("vdTextError",   .vdTextError,   "Text/Error/Primary")
-                    semanticRow("vdTextWarning", .vdTextWarning, "Text/Warning/Primary")
-                    semanticRow("vdTextInfo",    .vdTextInfo,    "Text/Info/Primary")
-                    semanticRow("vdTextNeutral", .vdTextNeutral, "Text/Neutral/Primary")
-                }
-
-                divider()
-
-                // ── Semantic — Background ─────────────────────
-                sectionHeader("Background Tokens", subtitle: "Color.Background.*")
-
-                semanticGroup("Default") {
-                    semanticRow("vdBackground",      .vdBackground,      "Background/Default/Primary")
-                    semanticRow("vdSurface",         .vdSurface,         "Background/Default/Secondary")
-                    semanticRow("vdSurfaceAlt",      .vdSurfaceAlt,      "Background/Default/Tertiary")
-                    semanticRow("vdBackgroundDisabled", .vdBackgroundDisabled, "Background/Default/Disabled")
-                }
-                semanticGroup("Primary (brand)") {
-                    semanticRow("vdBgPrimary",        .vdBgPrimary,        "Background/Primary/Primary")
-                    semanticRow("vdBgPrimaryHover",   .vdBgPrimaryHover,   "Background/Primary/PrimaryHover")
-                    semanticRow("vdBgPrimarySubtle",  .vdBgPrimarySubtle,  "Background/Primary/Secondary")
-                    semanticRow("vdBgPrimaryTertiary",.vdBgPrimaryTertiary,"Background/Primary/Tertiary")
-                }
-                semanticGroup("Status") {
-                    semanticRow("vdBgSuccess",       .vdBgSuccess,       "Background/Success/Primary")
-                    semanticRow("vdBgSuccessSubtle", .vdBgSuccessSubtle, "Background/Success/Secondary")
-                    semanticRow("vdBgError",         .vdBgError,         "Background/Error/Primary")
-                    semanticRow("vdBgErrorSubtle",   .vdBgErrorSubtle,   "Background/Error/Secondary")
-                    semanticRow("vdBgWarning",       .vdBgWarning,       "Background/Warning/Primary")
-                    semanticRow("vdBgWarningSubtle", .vdBgWarningSubtle, "Background/Warning/Secondary")
-                    semanticRow("vdBgInfo",          .vdBgInfo,          "Background/Info/Primary")
-                    semanticRow("vdBgInfoSubtle",    .vdBgInfoSubtle,    "Background/Info/Secondary")
-                    semanticRow("vdBgNeutral",       .vdBgNeutral,       "Background/Neutral/Primary")
-                    semanticRow("vdBgNeutralSubtle", .vdBgNeutralSubtle, "Background/Neutral/Secondary")
-                }
-
-                divider()
-
-                // ── Semantic — Border ─────────────────────────
-                sectionHeader("Border Tokens", subtitle: "Color.Border.*")
-
-                semanticGroup("Default") {
-                    semanticRow("vdBorderDefault",  .vdBorderDefault,  "Border/Default/Primary")
-                    semanticRow("vdBorderSubtle",   .vdBorderSubtle,   "Border/Default/Secondary")
-                    semanticRow("vdBorderTertiary", .vdBorderTertiary, "Border/Default/Tertiary")
-                    semanticRow("vdBorderDisabled", .vdBorderDisabled, "Border/Default/Disabled")
-                }
-                semanticGroup("Status") {
-                    semanticRow("vdBorderPrimary", .vdBorderPrimary, "Border/Primary/Primary")
-                    semanticRow("vdBorderSuccess", .vdBorderSuccess, "Border/Success/Primary")
-                    semanticRow("vdBorderError",   .vdBorderError,   "Border/Error/Primary")
-                    semanticRow("vdBorderWarning", .vdBorderWarning, "Border/Warning/Primary")
-                    semanticRow("vdBorderInfo",    .vdBorderInfo,    "Border/Info/Primary")
-                    semanticRow("vdBorderNeutral", .vdBorderNeutral, "Border/Neutral/Primary")
-                }
-
-                divider()
-
-                // ── Semantic — Icon ───────────────────────────
-                sectionHeader("Icon Tokens", subtitle: "Color.Icon.*")
-
-                semanticGroup("Default") {
-                    iconRow("vdIconPrimary",   .vdIconPrimary,   "Icon/Default/Primary")
-                    iconRow("vdIconSecondary", .vdIconSecondary, "Icon/Default/Secondary")
-                    iconRow("vdIconTertiary",  .vdIconTertiary,  "Icon/Default/Tertiary")
-                    iconRow("vdIconDisabled",  .vdIconDisabled,  "Icon/Default/Disabled")
-                }
-                semanticGroup("Brand & Status") {
-                    iconRow("vdIconAccent",   .vdIconAccent,   "Icon/Primary/Primary")
-                    iconRow("vdIconSuccess",  .vdIconSuccess,  "Icon/Success/Primary")
-                    iconRow("vdIconError",    .vdIconError,    "Icon/Error/Primary")
-                    iconRow("vdIconWarning",  .vdIconWarning,  "Icon/Warning/Primary")
-                    iconRow("vdIconInfo",     .vdIconInfo,     "Icon/Info/Primary")
-                    iconRow("vdIconNeutral",  .vdIconNeutral,  "Icon/Neutral/Primary")
+            gallerySection("Colors") {
+                LazyVGrid(columns: [.init(.flexible()), .init(.flexible())], spacing: VdSpacing.sm) {
+                    VdButton("Primary", color: .primary, action: {})
+                    VdButton("Neutral", color: .neutral, action: {})
+                    VdButton("Success", color: .success, action: {})
+                    VdButton("Error",   color: .error,   action: {})
+                    VdButton("Warning", color: .warning, action: {})
+                    VdButton("Info",    color: .info,    action: {})
                 }
             }
-            .padding(VdSpacing.lg)
+
+            gallerySection("Sizes") {
+                VdButton("Small",  size: .small,  action: {})
+                VdButton("Medium", size: .medium, action: {})
+                VdButton("Large",  size: .large,  action: {})
+            }
+
+            gallerySection("Rounded") {
+                HStack {
+                    VdButton("Rounded", rounded: true, action: {})
+                    VdButton("Square",  rounded: false, action: {})
+                }
+            }
+
+            gallerySection("Icons") {
+                VdButton("Left icon",  leftIcon: "arrow.left",  action: {})
+                VdButton("Right icon", rightIcon: "arrow.right", action: {})
+                VdButton("Both",       leftIcon: "lock", rightIcon: "chevron.right", action: {})
+            }
+
+            gallerySection("States") {
+                VdButton("Loading",  isLoading: true,  action: {})
+//                VdButton("Disabled", isDisabled: true, action: {})
+            }
         }
-        .background(Color.vdBackground)
-        .navigationTitle("Colors")
+        .navigationTitle("VdButton")
         .navigationBarTitleDisplayMode(.inline)
     }
 }
 
 // ═════════════════════════════════════════════════════════════
-// MARK: — Typography Gallery
+// MARK: — VdIconButton
 // ═════════════════════════════════════════════════════════════
 
-struct VdTypographyGallery: View {
+private struct VdIconButtonGallery: View {
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: VdSpacing.none) {
+        galleryScroll {
 
-                // ── Display ───────────────────────────────────
-                sectionHeader("Display", subtitle: "SemiBold · tracking negative")
-                typeRow("Display Large",  VdFont.displayLarge,  "60 / 72 / -1.5")
-                typeRow("Display Medium", VdFont.displayMedium, "48 / 56 / -1.0")
-                typeRow("Display Small",  VdFont.displaySmall,  "40 / 48 / -0.5")
+            gallerySection("Styles — Primary") {
+                HStack(spacing: VdSpacing.sm) {
+                    VdIconButton(icon: "square.grid.2x2", style: .solid,       action: {})
+                    VdIconButton(icon: "square.grid.2x2", style: .subtle,      action: {})
+                    VdIconButton(icon: "square.grid.2x2", style: .outlined,    action: {})
+                    VdIconButton(icon: "square.grid.2x2", style: .transparent, action: {})
+                }
+            }
 
-                divider()
+            gallerySection("Styles — Neutral") {
+                HStack(spacing: VdSpacing.sm) {
+                    VdIconButton(icon: "square.grid.2x2", color: .neutral, style: .solid,       action: {})
+                    VdIconButton(icon: "square.grid.2x2", color: .neutral, style: .subtle,      action: {})
+                    VdIconButton(icon: "square.grid.2x2", color: .neutral, style: .outlined,    action: {})
+                    VdIconButton(icon: "square.grid.2x2", color: .neutral, style: .transparent, action: {})
+                }
+            }
 
-                // ── Headline ──────────────────────────────────
-                sectionHeader("Headline", subtitle: "SemiBold · tracking -0.3")
-                typeRow("Headline Large",  VdFont.headlineLarge,  "34 / 40")
-                typeRow("Headline Medium", VdFont.headlineMedium, "28 / 36")
-                typeRow("Headline Small",  VdFont.headlineSmall,  "24 / 32")
+            gallerySection("Sizes") {
+                HStack(alignment: .bottom, spacing: VdSpacing.md) {
+                    VStack {
+                        VdIconButton(icon: "plus", size: .small,  action: {})
+                        Text("Small").vdFontInline(VdFont.labelSmall).foregroundStyle(Color.vdContentDefaultTertiary)
+                    }
+                    VStack {
+                        VdIconButton(icon: "plus", size: .medium, action: {})
+                        Text("Medium").vdFontInline(VdFont.labelSmall).foregroundStyle(Color.vdContentDefaultTertiary)
+                    }
+                    VStack {
+                        VdIconButton(icon: "plus", size: .large,  action: {})
+                        Text("Large").vdFontInline(VdFont.labelSmall).foregroundStyle(Color.vdContentDefaultTertiary)
+                    }
+                }
+            }
 
-                divider()
+            gallerySection("Rounded") {
+                HStack(spacing: VdSpacing.sm) {
+                    VdIconButton(icon: "heart",    style: .solid,       rounded: true, action: {})
+                    VdIconButton(icon: "star",     style: .subtle,      rounded: true, action: {})
+                    VdIconButton(icon: "bookmark", style: .outlined,    rounded: true, action: {})
+                    VdIconButton(icon: "ellipsis", color: .neutral, style: .transparent, rounded: true, action: {})
+                }
+            }
 
-                // ── Title ─────────────────────────────────────
-                sectionHeader("Title", subtitle: "SemiBold · tracking 0")
-                typeRow("Title Large",  VdFont.titleLarge,  "20 / 28")
-                typeRow("Title Medium", VdFont.titleMedium, "16 / 24")
-                typeRow("Title Small",  VdFont.titleSmall,  "14 / 20")
+            gallerySection("States") {
+                HStack(spacing: VdSpacing.sm) {
+                    VdIconButton(icon: "arrow.clockwise", isLoading: true,  action: {})
+                    VdIconButton(icon: "trash",           isDisabled: true, action: {})
+                }
+            }
+        }
+        .navigationTitle("VdIconButton")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
 
-                divider()
+// ═════════════════════════════════════════════════════════════
+// MARK: — VdBadge
+// ═════════════════════════════════════════════════════════════
 
-                // ── Label ─────────────────────────────────────
-                sectionHeader("Label", subtitle: "Medium (500) · tracking +0.2")
-                typeRow("Label Large",      VdFont.labelLarge,      "16 / 24")
-                typeRow("Label Medium",     VdFont.labelMedium,     "14 / 24")
-                typeRow("Label Small",      VdFont.labelSmall,      "12 / 16")
-                typeRow("Label Extra Small",VdFont.labelExtraSmall, "10 / 16")
+private struct VdBadgeGallery: View {
+    var body: some View {
+        galleryScroll {
 
-                divider()
+            gallerySection("Solid — all colors") {
+                FlowLayout(spacing: VdSpacing.sm) {
+                    VdBadge("Primary", color: .primary)
+                    VdBadge("Neutral", color: .neutral)
+                    VdBadge("Success", color: .success)
+                    VdBadge("Error",   color: .error)
+                    VdBadge("Warning", color: .warning)
+                    VdBadge("Info",    color: .info)
+                }
+            }
 
-                // ── Body ──────────────────────────────────────
-                sectionHeader("Body", subtitle: "Regular (400) · tracking 0")
-                typeRow("Body Extra Large", VdFont.bodyExtraLarge, "24 / 36")
-                typeRow("Body Large",       VdFont.bodyLarge,      "16 / 24")
-                typeRow("Body Medium",      VdFont.bodyMedium,     "14 / 24")
-                typeRow("Body Medium Italic", VdFont.bodyMediumItalic, "14 / 24 · italic")
-                typeRow("Body Small",       VdFont.bodySmall,      "12 / 16")
-                typeRow("Body Extra Small", VdFont.bodyExtraSmall, "10 / 16")
+            gallerySection("Subtle — all colors") {
+                FlowLayout(spacing: VdSpacing.sm) {
+                    VdBadge("Primary", color: .primary, style: .subtle)
+                    VdBadge("Neutral", color: .neutral, style: .subtle)
+                    VdBadge("Success", color: .success, style: .subtle)
+                    VdBadge("Error",   color: .error,   style: .subtle)
+                    VdBadge("Warning", color: .warning, style: .subtle)
+                    VdBadge("Info",    color: .info,    style: .subtle)
+                }
+            }
 
-                divider()
+            gallerySection("Sizes") {
+                HStack(alignment: .center, spacing: VdSpacing.sm) {
+                    VdBadge("Medium", size: .medium)
+                    VdBadge("Small",  size: .small)
+                }
+            }
 
-                // ── Live text sample ──────────────────────────
-                sectionHeader("Live Sample", subtitle: "All weights in context")
+            gallerySection("Rounded") {
+                HStack(spacing: VdSpacing.sm) {
+                    VdBadge("Rounded", rounded: true)
+                    VdBadge("Square",  rounded: false)
+                }
+            }
+        }
+        .navigationTitle("VdBadge")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// ═════════════════════════════════════════════════════════════
+// MARK: — VdTextField
+// ═════════════════════════════════════════════════════════════
+
+private struct VdTextFieldGallery: View {
+    @State private var text = ""
+
+    var body: some View {
+        galleryScroll {
+
+            gallerySection("Default") {
+                VdTextField("Label",
+                    text: .constant(""),
+                    placeholder: "Placeholder",
+                    state: .default,
+                    leadingIcon: "envelope",
+                    helperText: "Help or instruction text")
+            }
+
+            gallerySection("With value") {
+                VdTextField("Email",
+                    text: .constant("hello@vroxal.com"),
+                    state: .default,
+                    leadingIcon: "envelope")
+            }
+
+            gallerySection("Disabled") {
+                VdTextField("Label",
+                    text: .constant(""),
+                    placeholder: "Placeholder",
+                    state: .disabled,
+                    leadingIcon: "lock",
+                    helperText: "This field is disabled")
+            }
+
+            gallerySection("Error") {
+                VdTextField("Email",
+                    text: .constant("bad@"),
+                    state: .error,
+                    leadingIcon: "envelope",
+                    helperText: "Enter a valid email address")
+            }
+
+            gallerySection("Success") {
+                VdTextField("Email",
+                    text: .constant("hello@vroxal.com"),
+                    state: .success,
+                    leadingIcon: "envelope",
+                    helperText: "Looks good!")
+            }
+
+            gallerySection("Warning") {
+                VdTextField("Email",
+                    text: .constant("test@"),
+                    state: .warning,
+                    leadingIcon: "envelope",
+                    helperText: "Double-check this address")
+            }
+
+            gallerySection("Interactive") {
+                VdTextField("Your name",
+                    text: $text,
+                    placeholder: "Enter your name",
+                    state: .default,
+                    characterLimit: 40)
+            }
+        }
+        .navigationTitle("VdTextField")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// ═════════════════════════════════════════════════════════════
+// MARK: — VdTextArea
+// ═════════════════════════════════════════════════════════════
+
+private struct VdTextAreaGallery: View {
+    @State private var text = ""
+
+    var body: some View {
+        galleryScroll {
+
+            gallerySection("Default") {
+                VdTextArea(text: .constant(""),
+                    label: "Label",
+                    placeholder: "Placeholder",
+                    helperText: "Help or instruction text",
+                    isOptional: true,
+                    leadingIcon: "text.alignleft")
+            }
+
+            gallerySection("With value") {
+                VdTextArea(text: .constant("Nothing more exciting happening here in terms of content, but just filling up the space."),
+                    label: "Bio",
+                    leadingIcon: "text.alignleft",
+                    characterLimit: 250)
+            }
+
+            gallerySection("Error") {
+                VdTextArea(text: .constant(""),
+                    label: "Notes",
+                    helperText: "This field is required",
+                    state: .error)
+            }
+
+            gallerySection("Success") {
+                VdTextArea(text: .constant("Looking great!"),
+                    label: "Notes",
+                    helperText: "Saved successfully",
+                    state: .success)
+            }
+
+            gallerySection("Disabled") {
+                VdTextArea(text: .constant(""),
+                    label: "Notes",
+                    placeholder: "Placeholder",
+                    helperText: "This field is disabled",
+                    state: .disabled)
+            }
+
+            gallerySection("Interactive — live counter") {
+                VdTextArea(text: $text,
+                    label: "Message",
+                    placeholder: "Write something...",
+                    helperText: text.isEmpty ? "Required" : nil,
+                    characterLimit: 200)
+            }
+        }
+        .navigationTitle("VdTextArea")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// ═════════════════════════════════════════════════════════════
+// MARK: — VdSelectField
+// ═════════════════════════════════════════════════════════════
+
+private struct VdSelectFieldGallery: View {
+    @State private var country:  String? = nil
+    @State private var currency: String? = nil
+
+    private let countries  = ["Nepal", "India", "United States", "United Kingdom", "Australia", "Germany"]
+    private let currencies = ["USD ($)", "EUR (€)", "GBP (£)", "NPR (₨)", "INR (₹)"]
+
+    var body: some View {
+        galleryScroll {
+
+            gallerySection("Default") {
+                VdSelectField(selection: .constant(nil),
+                    options: countries,
+                    label: "Country",
+                    placeholder: "Select a country",
+                    helperText: "Help or instruction text",
+                    isOptional: true,
+                    leadingIcon: "globe")
+            }
+
+            gallerySection("With value") {
+                VdSelectField(selection: .constant("Nepal"),
+                    options: countries,
+                    label: "Country",
+                    leadingIcon: "globe")
+            }
+
+            gallerySection("Error") {
+                VdSelectField(selection: .constant(nil),
+                    options: countries,
+                    label: "Country",
+                    placeholder: "Select a country",
+                    helperText: "Please select a valid option",
+                    leadingIcon: "globe",
+                    state: .error)
+            }
+
+            gallerySection("Success") {
+                VdSelectField(selection: .constant("Nepal"),
+                    options: countries,
+                    label: "Country",
+                    helperText: "Great choice!",
+                    leadingIcon: "globe",
+                    state: .success)
+            }
+
+            gallerySection("Warning") {
+                VdSelectField(selection: .constant("Nepal"),
+                    options: countries,
+                    label: "Country",
+                    helperText: "Limited availability in this region",
+                    leadingIcon: "globe",
+                    state: .warning)
+            }
+
+            gallerySection("Disabled") {
+                VdSelectField(selection: .constant(nil),
+                    options: countries,
+                    label: "Country",
+                    placeholder: "Select a country",
+                    helperText: "This field is disabled",
+                    state: .disabled)
+            }
+
+            gallerySection("Interactive") {
+                VdSelectField(selection: $country,
+                    options: countries,
+                    label: "Country",
+                    placeholder: "Select your country",
+                    helperText: country == nil ? "Required" : nil,
+                    leadingIcon: "globe",
+                    state: country == nil ? .default : .success)
+
+                VdSelectField(selection: $currency,
+                    options: currencies,
+                    label: "Currency",
+                    placeholder: "Select currency",
+                    helperText: "Used for billing",
+                    leadingIcon: "banknote")
+            }
+        }
+        .navigationTitle("VdSelectField")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// ═════════════════════════════════════════════════════════════
+// MARK: — VdCodeInput
+// ═════════════════════════════════════════════════════════════
+
+private struct VdCodeInputGallery: View {
+    @State private var otp4 = ""
+    @State private var otp6 = ""
+
+    var body: some View {
+        galleryScroll {
+
+            gallerySection("4-digit") {
+                VdCodeInput(code: $otp4, length: 4)
+            }
+
+            gallerySection("6-digit") {
+                VdCodeInput(code: $otp6, length: 6)
+            }
+
+            gallerySection("Partially filled") {
+                VdCodeInput(code: .constant("123"), length: 6)
+            }
+
+            gallerySection("Fully filled") {
+                VdCodeInput(code: .constant("123456"), length: 6)
+            }
+
+            gallerySection("Error state") {
+                VdCodeInput(code: .constant("12"), length: 6, state: .error)
+            }
+
+            gallerySection("Disabled state") {
+                VdCodeInput(code: .constant("48"), length: 6, state: .disabled)
+            }
+
+            gallerySection("Custom length — 8 digit") {
+                VdCodeInput(code: .constant(""), length: 8)
+            }
+        }
+        .navigationTitle("VdCodeInput")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// ═════════════════════════════════════════════════════════════
+// MARK: — VdCheckbox
+// ═════════════════════════════════════════════════════════════
+
+private struct VdCheckboxGallery: View {
+    @State private var checked1  = false
+    @State private var checked2  = true
+    @State private var selectAll = false
+    @State private var items     = [false, true, false, false]
+
+    var body: some View {
+        galleryScroll {
+
+            gallerySection("States") {
+                HStack(spacing: VdSpacing.xl) {
+                    VStack(alignment: .leading, spacing: VdSpacing.sm) {
+                        VdCheckbox(isChecked: .constant(false), label: "Unchecked")
+                        VdCheckbox(isChecked: .constant(true), label: "Checked")
+                    }
+                    VStack(alignment: .leading, spacing: VdSpacing.sm) {
+                        VdCheckbox(isChecked: .constant(false), label: "Disabled", isDisabled: true)
+                        VdCheckbox(isChecked: .constant(true), label: "Disabled", isDisabled: true)
+                    }
+                }
+            }
+
+            gallerySection("Interactive — toggle") {
+                VdCheckbox(isChecked: $checked1, label: "Receive marketing emails")
+                VdCheckbox(isChecked: $checked2, label: "Agree to terms and conditions")
+            }
+
+            gallerySection("Select all pattern") {
                 VStack(alignment: .leading, spacing: VdSpacing.sm) {
-                    Text("Vroxal Design System")
-                        .vdFont(VdFont.displaySmall)
-                        .foregroundStyle(Color.vdTextPrimary)
-                    Text("Build consistent, accessible experiences across every platform.")
-                        .vdFont(VdFont.bodyLarge)
-                        .foregroundStyle(Color.vdTextSecondary)
-                    Text("TOKENS · COMPONENTS · PATTERNS")
-                        .vdFont(VdFont.labelSmall)
-                        .foregroundStyle(Color.vdTextAccent)
-                        .tracking(VdTracking.label)
+                    VdCheckbox(isChecked: $selectAll, label: "Select all")
+                        .onChange(of: selectAll) { newValue in
+                            items = items.map { _ in newValue }
+                        }
+                    Divider()
+                    ForEach(0..<items.count, id: \.self) { i in
+                        VdCheckbox(isChecked: $items[i], label: "Option \(i + 1)")
+                    }
                 }
-                .padding(VdSpacing.lg)
-                .background(Color.vdSurface)
-                .clipShape(RoundedRectangle(cornerRadius: VdRadius.lg))
-                .padding(.top, VdSpacing.md)
             }
-            .padding(VdSpacing.lg)
         }
-        .background(Color.vdBackground)
-        .navigationTitle("Typography")
+        .navigationTitle("VdCheckbox")
         .navigationBarTitleDisplayMode(.inline)
     }
 }
 
 // ═════════════════════════════════════════════════════════════
-// MARK: — Scale Gallery
+// MARK: — VdRadioButton
 // ═════════════════════════════════════════════════════════════
 
-struct VdScaleGallery: View {
+private struct VdRadioButtonGallery: View {
+    @State private var plan      = "starter"
+    @State private var frequency = "monthly"
+
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: VdSpacing.xxl) {
+        galleryScroll {
 
-                // ── Spacing ───────────────────────────────────
-                sectionHeader("VdSpacing", subtitle: "Scale.Spacing.* · brand.json → root.json")
-
-                VStack(alignment: .leading, spacing: VdSpacing.xs) {
-                    spacingBar("none / s0",   VdSpacing.none,  "0 pt")
-                    spacingBar("xxs  / s50",  VdSpacing.xxs,   "2 pt")
-                    spacingBar("xs   / s100", VdSpacing.xs,    "4 pt")
-                    spacingBar("sm   / s200", VdSpacing.sm,    "8 pt")
-                    spacingBar("smMd / s300", VdSpacing.smMd,  "12 pt")
-                    spacingBar("md   / s400", VdSpacing.md,    "16 pt")
-                    spacingBar("lg   / s600", VdSpacing.lg,    "24 pt")
-                    spacingBar("xl   / s800", VdSpacing.xl,    "32 pt")
-                    spacingBar("xxl  / s1000",VdSpacing.xxl,   "40 pt")
-                    spacingBar("xxxl / s1200",VdSpacing.xxxl,  "48 pt")
-                    spacingBar("huge / s1600",VdSpacing.huge,  "64 pt")
-                }
-
-                divider()
-
-                // ── Border Radius ─────────────────────────────
-                sectionHeader("VdRadius", subtitle: "Scale.Border.Radius.*")
-
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: VdSpacing.sm), count: 3), spacing: VdSpacing.sm) {
-                    radiusBox("none\n0pt",    VdRadius.none)
-                    radiusBox("xs\n4pt",      VdRadius.xs)
-                    radiusBox("sm\n8pt",      VdRadius.sm)
-                    radiusBox("md\n12pt",     VdRadius.md)
-                    radiusBox("lg\n16pt",     VdRadius.lg)
-                    radiusBox("xl\n24pt",     VdRadius.xl)
-                    radiusBox("xxl\n32pt",    VdRadius.xxl)
-                    radiusBox("xxxl\n40pt",   VdRadius.xxxl)
-                    radiusBox("full\n120pt",  VdRadius.full)
-                }
-
-                divider()
-
-                // ── Border Width ──────────────────────────────
-                sectionHeader("VdBorderWidth", subtitle: "Scale.Border.Width.*")
-
-                VStack(alignment: .leading, spacing: VdSpacing.md) {
-                    borderWidthRow("none / sm — 1pt", VdBorderWidth.sm)
-                    borderWidthRow("md — 2pt",        VdBorderWidth.md)
-                    borderWidthRow("lg — 4pt",        VdBorderWidth.lg)
-                    borderWidthRow("xl — 8pt",        VdBorderWidth.xl)
-                }
-
-                divider()
-
-                // ── Icon Size ─────────────────────────────────
-                sectionHeader("VdIconSize", subtitle: "Scale.Icon.Size.*")
-
-                HStack(alignment: .bottom, spacing: VdSpacing.lg) {
-                    iconSizeBox("xs\n16pt", VdIconSize.xs)
-                    iconSizeBox("sm\n20pt", VdIconSize.sm)
-                    iconSizeBox("md\n24pt", VdIconSize.md)
-                    iconSizeBox("lg\n32pt", VdIconSize.lg)
-                    iconSizeBox("xl\n40pt", VdIconSize.xl)
+            gallerySection("Standalone states") {
+                HStack(spacing: VdSpacing.xl) {
+                    VStack(alignment: .leading, spacing: VdSpacing.sm) {
+                        VdRadioButton(isSelected: .constant(false), label: "Unselected")
+                        VdRadioButton(isSelected: .constant(true), label: "Selected")
+                    }
+                    VStack(alignment: .leading, spacing: VdSpacing.sm) {
+                        VdRadioButton(isSelected: .constant(false), label: "Disabled", isDisabled: true)
+                        VdRadioButton(isSelected: .constant(true), label: "Disabled", isDisabled: true)
+                    }
                 }
             }
-            .padding(VdSpacing.lg)
+
+            gallerySection("VdRadioGroup — plan") {
+                VdRadioGroup(selection: $plan) {
+                    VdRadioOption(value: "starter", label: "Starter")
+                    VdRadioOption(value: "pro", label: "Pro")
+                    VdRadioOption(value: "enterprise", label: "Enterprise")
+                }
+            }
+
+            gallerySection("VdRadioGroup — billing") {
+                VdRadioGroup(selection: $frequency) {
+                    VdRadioOption(value: "monthly", label: "Monthly")
+                    VdRadioOption(value: "annually", label: "Annually")
+                }
+            }
         }
-        .background(Color.vdBackground)
-        .navigationTitle("Scale")
+        .navigationTitle("VdRadioButton")
         .navigationBarTitleDisplayMode(.inline)
     }
 }
 
 // ═════════════════════════════════════════════════════════════
-// MARK: — Shared helper views
+// MARK: — VdSelectionCard
 // ═════════════════════════════════════════════════════════════
 
-// ── Section header ────────────────────────────────────────────
-private func sectionHeader(_ title: String, subtitle: String) -> some View {
-    VStack(alignment: .leading, spacing: VdSpacing.xxs) {
-        Text(title)
-            .vdFont(VdFont.titleLarge)
-            .foregroundStyle(Color.vdTextPrimary)
-        Text(subtitle)
-            .vdFont(VdFont.labelSmall)
-            .foregroundStyle(Color.vdTextTertiary)
-    }
-    .padding(.top, VdSpacing.md)
-    .padding(.bottom, VdSpacing.xs)
-}
+private struct VdSelectionCardGallery: View {
+    @State private var checkA    = false
+    @State private var checkB    = true
+    @State private var checkC    = false
+    @State private var plan      = "pro"
 
-// ── Section divider ───────────────────────────────────────────
-private func divider() -> some View {
-    Rectangle()
-        .fill(Color.vdBorderTertiary)
-        .frame(height: 1)
-        .padding(.vertical, VdSpacing.sm)
-}
+    var body: some View {
+        galleryScroll {
 
-// ── Palette row (raw hex swatches) ────────────────────────────
-private func paletteRow(_ name: String, colors: [(String, String)]) -> some View {
-    VStack(alignment: .leading, spacing: VdSpacing.xxs) {
-        Text(name)
-            .vdFont(VdFont.labelSmall)
-            .foregroundStyle(Color.vdTextSecondary)
-        HStack(spacing: 3) {
-            ForEach(colors, id: \.1) { hex, shade in
-                VStack(spacing: 2) {
-                    RoundedRectangle(cornerRadius: VdRadius.xs)
-                        .fill(Color(hex: hex))
-                        .frame(height: 36)
-                    Text(shade)
-                        .vdFont(VdFont.labelExtraSmall)
-                        .foregroundStyle(Color.vdTextTertiary)
+            gallerySection("Checkbox mode") {
+                VStack(spacing: VdSpacing.sm) {
+                    VdSelectionCard(selectionStyle: .checkbox,
+                        isSelected: $checkA,
+                        icon: "bolt",
+                        title: "Fast delivery",
+                        description: "Arrive within 24 hours")
+                    VdSelectionCard(selectionStyle: .checkbox,
+                        isSelected: $checkB,
+                        icon: "shield",
+                        title: "Extended warranty",
+                        description: "Coverage for 2 years")
+                    VdSelectionCard(selectionStyle: .checkbox,
+                        isSelected: $checkC,
+                        icon: "gift",
+                        title: "Gift wrap",
+                        description: "Add a personalised message")
+                }
+            }
+
+            gallerySection("Radio mode — VdSelectionCardGroup") {
+                VdSelectionCardGroup(selection: $plan) {
+                    VdSelectionCardOption(value: "starter",
+                        icon: "leaf",
+                        title: "Starter",
+                        description: "For small teams")
+                    VdSelectionCardOption(value: "pro",
+                        icon: "star",
+                        title: "Pro",
+                        description: "For growing businesses")
+                    VdSelectionCardOption(value: "enterprise",
+                        icon: "building.2",
+                        title: "Enterprise",
+                        description: "Custom pricing")
                 }
             }
         }
+        .navigationTitle("VdSelectionCard")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
-private extension Color {
-    init(hex: String) {
-        let sanitized = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-        var value: UInt64 = 0
-        Scanner(string: sanitized).scanHexInt64(&value)
+// ═════════════════════════════════════════════════════════════
+// MARK: — VdAlert
+// ═════════════════════════════════════════════════════════════
 
-        let red, green, blue: Double
-        switch sanitized.count {
-        case 6:
-            red = Double((value >> 16) & 0xFF) / 255
-            green = Double((value >> 8) & 0xFF) / 255
-            blue = Double(value & 0xFF) / 255
-        default:
-            red = 0
-            green = 0
-            blue = 0
+private struct VdAlertGallery: View {
+    @State private var showPrimary = true
+    @State private var showError   = true
+
+    var body: some View {
+        galleryScroll {
+
+            gallerySection("All colors — default style") {
+                VStack(spacing: VdSpacing.sm) {
+                    VdAlert(color: .primary, title: "Primary",
+                        description: "An informational alert for brand-level messages.")
+                    VdAlert(color: .neutral, title: "Neutral",
+                        description: "A neutral alert for general information.")
+                    VdAlert(color: .success, title: "Success",
+                        description: "Operation completed successfully.")
+                    VdAlert(color: .error, title: "Error",
+                        description: "Something went wrong. Please try again.")
+                    VdAlert(color: .warning, title: "Warning",
+                        description: "This action cannot be undone.")
+                    VdAlert(color: .info, title: "Info",
+                        description: "Your session will expire in 5 minutes.")
+                }
+            }
+
+            gallerySection("With action — stacked") {
+                VdAlert(color: .error,
+                    title: "Upload failed",
+                    description: "File size exceeds the 10 MB limit.",
+                    action: "Try again",
+                    onAction: {})
+            }
+
+            gallerySection("With action — inline") {
+                VdAlert(color: .info,
+                    title: "Update available",
+                    description: "Version 2.1 is ready to install.",
+                    action: "Install now",
+                    actionInline: true,
+                    onAction: {})
+            }
+
+            gallerySection("Closable") {
+                if showPrimary {
+                    VdAlert(color: .primary,
+                        title: "Welcome back!",
+                        description: "You have 3 unread notifications.",
+                        closable: true,
+                        onClose: { showPrimary = false })
+                }
+                if showError {
+                    VdAlert(color: .error,
+                        title: "Payment failed",
+                        description: "Please update your payment method.",
+                        action: "Update card",
+                        closable: true,
+                        onAction: {},
+                        onClose: { showError = false })
+                }
+                if !showPrimary && !showError {
+                    VdButton("Reset", style: .outlined, action: {
+                        showPrimary = true
+                        showError   = true
+                    })
+                }
+            }
         }
-
-        self.init(.sRGB, red: red, green: green, blue: blue, opacity: 1)
+        .navigationTitle("VdAlert")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
-// ── Semantic group container ──────────────────────────────────
-private func semanticGroup<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
-    VStack(alignment: .leading, spacing: VdSpacing.xxs) {
+// ═════════════════════════════════════════════════════════════
+// MARK: — VdSnackbar
+// ═════════════════════════════════════════════════════════════
+
+private struct VdSnackbarGallery: View {
+    @State private var showBasic    = false
+    @State private var showWithIcon = false
+    @State private var showAction   = false
+    @State private var showClose    = false
+    @State private var showLong     = false
+
+    var body: some View {
+        galleryScroll {
+            gallerySection("Snackbar triggers") {
+                VStack(spacing: VdSpacing.sm) {
+                    VdButton("Show basic snackbar", style: .outlined, action: { showBasic = true })
+                    VdButton("Show with icon",      style: .outlined, action: { showWithIcon = true })
+                    VdButton("Show with action",    style: .outlined, action: { showAction = true })
+                    VdButton("Show with close",     style: .outlined, action: { showClose = true })
+                    VdButton("Show long message",   style: .outlined, action: { showLong = true })
+                }
+            }
+
+            gallerySection("Usage note") {
+                Text("Snackbars appear at the bottom of the screen. Tap a button above to trigger one. They auto-dismiss after the timeout unless a close button is shown.")
+                    .vdFontInline(VdFont.bodySmall)
+                    .foregroundStyle(Color.vdContentDefaultSecondary)
+            }
+        }
+        .vdSnackbar(
+            isPresented: $showBasic,
+            message: "Changes saved successfully")
+        .vdSnackbar(
+            isPresented: $showWithIcon,
+            message: "File uploaded")
+        .vdSnackbar(
+            isPresented: $showAction,
+            message: "Message deleted",
+            onAction: { showAction = false })
+        .vdSnackbar(
+            isPresented: $showClose,
+            message: "You have been signed out")
+        .vdSnackbar(
+            isPresented: $showLong,
+            message: "Your export is ready. Download it from the Files section before it expires in 24 hours.")
+        .navigationTitle("VdSnackbar")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// ═════════════════════════════════════════════════════════════
+// MARK: — VdLoadingState
+// ═════════════════════════════════════════════════════════════
+
+private struct VdLoadingStateGallery: View {
+    @State private var showOverlay = false
+    @State private var isLoading   = true
+
+    var body: some View {
+        galleryScroll {
+
+            gallerySection("Spinner only") {
+                VdLoadingState()
+                    .frame(maxWidth: .infinity)
+                    .padding(VdSpacing.lg)
+                    .background(Color.vdBackgroundDefaultSecondary)
+                    .clipShape(RoundedRectangle(cornerRadius: VdRadius.lg))
+            }
+
+            gallerySection("With title") {
+                VdLoadingState(title: "Loading your data")
+                    .frame(maxWidth: .infinity)
+                    .padding(VdSpacing.lg)
+                    .background(Color.vdBackgroundDefaultSecondary)
+                    .clipShape(RoundedRectangle(cornerRadius: VdRadius.lg))
+            }
+
+            gallerySection("With title + description") {
+                VdLoadingState(
+                    title: "Processing payment",
+                    description: "Please don't close the app. This usually takes a few seconds.")
+                .frame(maxWidth: .infinity)
+                .padding(VdSpacing.lg)
+                .background(Color.vdBackgroundDefaultSecondary)
+                .clipShape(RoundedRectangle(cornerRadius: VdRadius.lg))
+            }
+
+            gallerySection("Overlay (3 second demo)") {
+                ZStack {
+                    VStack(spacing: VdSpacing.md) {
+                        Text("Tap the button to trigger a full-screen overlay loading state for 3 seconds.")
+                            .vdFontInline(VdFont.bodyMedium)
+                            .foregroundStyle(Color.vdContentDefaultSecondary)
+                            .multilineTextAlignment(.center)
+                        VdButton("Show overlay", action: {
+                            showOverlay = true
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                                showOverlay = false
+                            }
+                        })
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(VdSpacing.lg)
+                    .background(Color.vdBackgroundDefaultSecondary)
+                    .clipShape(RoundedRectangle(cornerRadius: VdRadius.lg))
+
+                    if showOverlay {
+                        VdLoadingState(style: .overlay, title: "Saving changes...")
+                            .clipShape(RoundedRectangle(cornerRadius: VdRadius.lg))
+                    }
+                }
+            }
+
+            gallerySection("Skeleton — toggle") {
+                VStack(spacing: VdSpacing.md) {
+                    Toggle("Show skeleton", isOn: $isLoading)
+                        .tint(Color.vdBackgroundPrimaryBase)
+
+                    HStack(spacing: VdSpacing.md) {
+                        Circle()
+                            .fill(Color.vdBackgroundPrimarySecondary)
+                            .vdSkeleton(isLoading)
+                            .frame(width: 48, height: 48)
+
+                        VStack(alignment: .leading, spacing: VdSpacing.xs) {
+                            Text("Ada Lovelace")
+                                .vdFontInline(VdFont.labelMedium)
+                                .foregroundStyle(Color.vdContentDefaultBase)
+                                .vdSkeleton(isLoading)
+                            Text("ada@vroxal.com")
+                                .vdFontInline(VdFont.bodySmall)
+                                .foregroundStyle(Color.vdContentDefaultSecondary)
+                                .vdSkeleton(isLoading)
+                        }
+                        Spacer()
+                    }
+                    .padding(VdSpacing.md)
+                    .background(Color.vdBackgroundDefaultSecondary)
+                    .clipShape(RoundedRectangle(cornerRadius: VdRadius.lg))
+                }
+            }
+
+            gallerySection("Skeleton — card layout") {
+                VStack(spacing: VdSpacing.sm) {
+                    ForEach(0..<3, id: \.self) { _ in
+                        HStack(spacing: VdSpacing.md) {
+                            RoundedRectangle(cornerRadius: VdRadius.sm)
+                                .vdSkeleton()
+                                .frame(width: 48, height: 48)
+                            VStack(alignment: .leading, spacing: VdSpacing.xs) {
+                                RoundedRectangle(cornerRadius: VdRadius.xs)
+                                    .vdSkeleton()
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 14)
+                                RoundedRectangle(cornerRadius: VdRadius.xs)
+                                    .vdSkeleton()
+                                    .frame(width: 160, height: 12)
+                            }
+                        }
+                        .padding(VdSpacing.md)
+                        .background(Color.vdBackgroundDefaultSecondary)
+                        .clipShape(RoundedRectangle(cornerRadius: VdRadius.lg))
+                    }
+                }
+            }
+        }
+        .navigationTitle("VdLoadingState")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// ═════════════════════════════════════════════════════════════
+// MARK: — Shared layout helpers
+// ═════════════════════════════════════════════════════════════
+
+/// Wraps gallery content in a scroll view with consistent padding and background.
+private func galleryScroll<Content: View>(
+    @ViewBuilder content: () -> Content
+) -> some View {
+    ScrollView {
+        VStack(alignment: .leading, spacing: VdSpacing.xl) {
+            content()
+        }
+        .padding(VdSpacing.lg)
+    }
+    .background(Color.vdBackgroundDefaultBase)
+}
+
+/// Titled section container used throughout gallery screens.
+private func gallerySection<Content: View>(
+    _ title: String,
+    @ViewBuilder content: () -> Content
+) -> some View {
+    VStack(alignment: .leading, spacing: VdSpacing.sm) {
         Text(title)
-            .vdFont(VdFont.labelSmall)
-            .foregroundStyle(Color.vdTextTertiary)
-            .padding(.bottom, VdSpacing.xxs)
+            .vdFontInline(VdFont.labelSmall)
+            .foregroundStyle(Color.vdContentDefaultTertiary)
         content()
     }
-    .padding(.bottom, VdSpacing.sm)
 }
 
-// ── Semantic color row (with light/dark swatch) ───────────────
-private func semanticRow(_ token: String, _ color: Color, _ figmaPath: String) -> some View {
-    HStack(spacing: VdSpacing.md) {
-        // Swatch showing both light and dark
-        HStack(spacing: 2) {
-            RoundedRectangle(cornerRadius: VdRadius.xs)
-                .fill(color)
-                .frame(width: 32, height: 32)
-                .overlay(
-                    RoundedRectangle(cornerRadius: VdRadius.xs)
-                        .strokeBorder(Color.vdBorderTertiary.opacity(0.4), lineWidth: 0.5)
-                )
+// ─────────────────────────────────────────────────────────────
+// MARK: — FlowLayout
+// Simple left-to-right wrapping layout used for badge rows.
+// ─────────────────────────────────────────────────────────────
+
+private struct FlowLayout: Layout {
+    var spacing: CGFloat = 8
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let width = proposal.width ?? 0
+        var height: CGFloat = 0
+        var x: CGFloat = 0
+        var rowHeight: CGFloat = 0
+
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if x + size.width > width && x > 0 {
+                height += rowHeight + spacing
+                x = 0
+                rowHeight = 0
+            }
+            rowHeight = max(rowHeight, size.height)
+            x += size.width + spacing
         }
-        VStack(alignment: .leading, spacing: 1) {
-            Text(".\(token)")
-                .vdFont(VdFont.labelSmall)
-                .foregroundStyle(Color.vdTextPrimary)
-            Text(figmaPath)
-                .vdFont(VdFont.bodyExtraSmall)
-                .foregroundStyle(Color.vdTextTertiary)
-        }
-        Spacer()
+        height += rowHeight
+        return CGSize(width: width, height: height)
     }
-    .padding(.vertical, VdSpacing.xxs)
-}
 
-// ── Icon token row ────────────────────────────────────────────
-private func iconRow(_ token: String, _ color: Color, _ figmaPath: String) -> some View {
-    HStack(spacing: VdSpacing.md) {
-        Image(systemName: "star.fill")
-            .font(.system(size: VdIconSize.md))
-            .foregroundStyle(color)
-            .frame(width: 32, height: 32)
-        VStack(alignment: .leading, spacing: 1) {
-            Text(".\(token)")
-                .vdFont(VdFont.labelSmall)
-                .foregroundStyle(Color.vdTextPrimary)
-            Text(figmaPath)
-                .vdFont(VdFont.bodyExtraSmall)
-                .foregroundStyle(Color.vdTextTertiary)
-        }
-        Spacer()
-    }
-    .padding(.vertical, VdSpacing.xxs)
-}
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var x = bounds.minX
+        var y = bounds.minY
+        var rowHeight: CGFloat = 0
 
-// ── Typography row ────────────────────────────────────────────
-private func typeRow(_ label: String, _ style: VdTextStyle, _ spec: String) -> some View {
-    HStack(alignment: .firstTextBaseline) {
-        Text("Vroxal")
-            .vdFont(style)                          // ← was .font(font)
-            .foregroundStyle(Color.vdTextPrimary)
-            .minimumScaleFactor(0.4)
-            .lineLimit(1)
-            .frame(maxWidth: .infinity, alignment: .leading)
-        VStack(alignment: .trailing, spacing: 1) {
-            Text(label)
-                .vdFont(VdFont.labelSmall)
-                .foregroundStyle(Color.vdTextSecondary)
-            Text(spec)
-                .vdFont(VdFont.bodyExtraSmall)
-                .foregroundStyle(Color.vdTextTertiary)
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if x + size.width > bounds.maxX && x > bounds.minX {
+                y += rowHeight + spacing
+                x = bounds.minX
+                rowHeight = 0
+            }
+            subview.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(size))
+            rowHeight = max(rowHeight, size.height)
+            x += size.width + spacing
         }
     }
-    .padding(.vertical, VdSpacing.xs)
-    .overlay(alignment: .bottom) {
-        Rectangle()
-            .fill(Color.vdBorderTertiary.opacity(0.5))
-            .frame(height: 0.5)
-    }
-}
-
-// ── Spacing bar ───────────────────────────────────────────────
-private func spacingBar(_ label: String, _ value: CGFloat, _ pts: String) -> some View {
-    HStack(spacing: VdSpacing.sm) {
-        Text(label)
-            .vdFont(VdFont.labelSmall)
-            .foregroundStyle(Color.vdTextSecondary)
-            .frame(width: 100, alignment: .leading)
-        ZStack(alignment: .leading) {
-            RoundedRectangle(cornerRadius: 2)
-                .fill(Color.vdBgPrimarySubtle)
-                .frame(width: 200, height: 16)
-            RoundedRectangle(cornerRadius: 2)
-                .fill(Color.vdBgPrimary)
-                .frame(width: max(value, 2), height: 16)
-        }
-        Text(pts)
-            .vdFont(VdFont.labelSmall)
-            .foregroundStyle(Color.vdTextTertiary)
-    }
-}
-
-// ── Radius box ────────────────────────────────────────────────
-private func radiusBox(_ label: String, _ radius: CGFloat) -> some View {
-    RoundedRectangle(cornerRadius: min(radius, 36))
-        .fill(Color.vdBgPrimarySubtle)
-        .overlay(
-            RoundedRectangle(cornerRadius: min(radius, 36))
-                .strokeBorder(Color.vdBorderPrimary, lineWidth: VdBorderWidth.sm)
-        )
-        .frame(height: 72)
-        .overlay(
-            Text(label)
-                .vdFont(VdFont.labelSmall)
-                .foregroundStyle(Color.vdTextAccent)
-                .multilineTextAlignment(.center)
-        )
-}
-
-// ── Border width row ──────────────────────────────────────────
-private func borderWidthRow(_ label: String, _ width: CGFloat) -> some View {
-    HStack(spacing: VdSpacing.md) {
-        Text(label)
-            .vdFont(VdFont.labelSmall)
-            .foregroundStyle(Color.vdTextSecondary)
-            .frame(width: 120, alignment: .leading)
-        RoundedRectangle(cornerRadius: VdRadius.sm)
-            .strokeBorder(Color.vdBorderPrimary, lineWidth: width)
-            .frame(height: 36)
-    }
-}
-
-// ── Icon size box ─────────────────────────────────────────────
-private func iconSizeBox(_ label: String, _ size: CGFloat) -> some View {
-    VStack(spacing: VdSpacing.xs) {
-        Image(systemName: "square.grid.2x2.fill")
-            .font(.system(size: size))
-            .foregroundStyle(Color.vdIconAccent)
-        Text(label)
-            .vdFont(VdFont.labelExtraSmall)
-            .foregroundStyle(Color.vdTextTertiary)
-            .multilineTextAlignment(.center)
-    }
-    .frame(maxWidth: .infinity)
 }

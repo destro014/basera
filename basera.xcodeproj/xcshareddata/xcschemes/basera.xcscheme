@@ -50,6 +50,18 @@
             ReferencedContainer = "container:basera.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "BASERA_SUPABASE_URL"
+            value = "https://bcqzprzrqrxfjxfzkbcd.supabase.co"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "BASERA_SUPABASE_ANON_KEY"
+            value = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJjcXpwcnpycXJ4Zmp4ZnprYmNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NzA2MzQsImV4cCI6MjA4OTE0NjYzNH0.tchGZry2T21cb-tyMCcrRgFeU5fr3L9KZ4OgI0vNWrA"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

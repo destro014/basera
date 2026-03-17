@@ -1,4 +1,7 @@
 import Foundation
+import Security
+
+// MARK: - Error
 
 enum SupabaseServiceError: LocalizedError {
     case missingConfiguration(String)
@@ -25,6 +28,8 @@ enum SupabaseServiceError: LocalizedError {
         }
     }
 }
+
+// MARK: - Configuration
 
 private struct SupabaseConfiguration {
     let baseURL: URL
@@ -69,6 +74,8 @@ private struct SupabaseConfiguration {
     }
 }
 
+// MARK: - JSON Sanitizer
+
 private enum SupabaseJSON {
     private static let dateFormatter: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
@@ -108,14 +115,14 @@ private enum SupabaseJSON {
     static func sanitize(_ dictionary: [String: Any]) -> [String: Any] {
         var output: [String: Any] = [:]
         output.reserveCapacity(dictionary.count)
-
         for (key, value) in dictionary {
             output[key] = sanitize(value)
         }
-
         return output
     }
 }
+
+// MARK: - Database Service
 
 struct SupabaseDatabaseService: DatabaseServiceProtocol {
     func fetchDocument(path: String) async throws -> [String: Any] {
@@ -135,7 +142,6 @@ struct SupabaseDatabaseService: DatabaseServiceProtocol {
         else {
             throw SupabaseServiceError.missingDocument(path)
         }
-
         return payload
     }
 
@@ -170,7 +176,6 @@ struct SupabaseDatabaseService: DatabaseServiceProtocol {
         guard let rows = try parseJSONArray(data) as? [[String: Any]] else {
             throw SupabaseServiceError.invalidResponse
         }
-
         return rows.compactMap { $0["payload"] as? [String: Any] }
     }
 
@@ -183,7 +188,6 @@ struct SupabaseDatabaseService: DatabaseServiceProtocol {
 
     private func valuesEqual(_ lhs: Any?, _ rhs: Any) -> Bool {
         guard let lhs else { return false }
-
         switch (lhs, rhs) {
         case let (left as String, right as String):
             return left == right
@@ -238,20 +242,17 @@ struct SupabaseDatabaseService: DatabaseServiceProtocol {
         guard let url = components.url else {
             throw SupabaseServiceError.invalidResponse
         }
-
         return url
     }
 
     private func makeRequest(url: URL) throws -> URLRequest {
         let configuration = try SupabaseConfiguration.load()
-
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.timeoutInterval = 30
         request.setValue(configuration.anonKey, forHTTPHeaderField: "apikey")
         request.setValue("Bearer \(configuration.anonKey)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
         return request
     }
 
@@ -260,23 +261,20 @@ struct SupabaseDatabaseService: DatabaseServiceProtocol {
         guard let httpResponse = response as? HTTPURLResponse else {
             throw SupabaseServiceError.invalidResponse
         }
-
         guard (200...299).contains(httpResponse.statusCode) else {
             let message = String(data: data, encoding: .utf8) ?? "Unknown error"
             throw SupabaseServiceError.requestFailed(statusCode: httpResponse.statusCode, message: message)
         }
-
         return data
     }
 
     private func parseJSONArray(_ data: Data) throws -> Any {
-        if data.isEmpty {
-            return []
-        }
-
+        if data.isEmpty { return [] }
         return try JSONSerialization.jsonObject(with: data, options: [])
     }
 }
+
+// MARK: - Storage Service
 
 struct SupabaseStorageService: StorageServiceProtocol {
     func upload(data: Data, path: String) async throws -> URL {
@@ -306,7 +304,6 @@ struct SupabaseStorageService: StorageServiceProtocol {
         guard let httpResponse = response as? HTTPURLResponse else {
             throw SupabaseServiceError.invalidResponse
         }
-
         guard (200...299).contains(httpResponse.statusCode) else {
             let message = String(data: responseData, encoding: .utf8) ?? "Unknown error"
             throw SupabaseServiceError.requestFailed(statusCode: httpResponse.statusCode, message: message)
@@ -322,10 +319,11 @@ struct SupabaseStorageService: StorageServiceProtocol {
         for component in pathComponents {
             publicURL.appendPathComponent(component)
         }
-
         return publicURL
     }
 }
+
+// MARK: - Notifications Service
 
 actor SupabaseNotificationsService: NotificationsServiceProtocol {
     func registerForPushNotifications() async {}
@@ -339,6 +337,8 @@ actor SupabaseNotificationsService: NotificationsServiceProtocol {
         return []
     }
 }
+
+// MARK: - Remote Config Service
 
 final class SupabaseRemoteConfigService: RemoteConfigServiceProtocol {
     private let databaseService: DatabaseServiceProtocol
@@ -366,12 +366,21 @@ final class SupabaseRemoteConfigService: RemoteConfigServiceProtocol {
     }
 }
 
+// MARK: - Auth Service
+
 actor SupabaseAuthService: AuthServiceProtocol {
-    private enum PersistenceKeys {
-        static let accessToken = "supabaseAuth.accessToken"
-        static let refreshToken = "supabaseAuth.refreshToken"
-        static let currentUserEmail = "supabaseAuth.currentUserEmail"
+
+    // MARK: - Keychain keys
+    // Replaces UserDefaults — tokens are now stored securely in the Keychain
+
+    private enum KeychainKeys {
+        static let service = "com.basera.supabase-session"
+        static let accessToken = "accessToken"
+        static let refreshToken = "refreshToken"
+        static let email = "currentUserEmail"
     }
+
+    // MARK: - Internal types
 
     private struct PendingChallenge {
         let id: String
@@ -450,34 +459,35 @@ actor SupabaseAuthService: AuthServiceProtocol {
         }
     }
 
-    private let databaseService: DatabaseServiceProtocol
-    private let defaults: UserDefaults
+    // MARK: - Properties
 
+    private let databaseService: DatabaseServiceProtocol
     private var signedInUser: AppUser?
     private var pendingChallenges: [String: PendingChallenge] = [:]
     private var verifiedSessions: [String: VerifiedSessionContext] = [:]
     private var pendingPasswordRecoveryChallenges: [String: PendingChallenge] = [:]
     private var passwordResetSessions: [String: PasswordResetContext] = [:]
 
-    init(databaseService: DatabaseServiceProtocol, defaults: UserDefaults = .standard) {
+    init(databaseService: DatabaseServiceProtocol) {
         self.databaseService = databaseService
-        self.defaults = defaults
     }
+
+    // MARK: - AuthServiceProtocol
 
     func currentUser() async throws -> AppUser? {
         if let signedInUser {
             return signedInUser
         }
 
-        guard let storedAccessToken = defaults.string(forKey: PersistenceKeys.accessToken) else {
+        guard let savedToken = keychainLoad(key: KeychainKeys.accessToken) else {
             return nil
         }
 
         var activeSession = SupabaseSession(
-            accessToken: storedAccessToken,
-            refreshToken: defaults.string(forKey: PersistenceKeys.refreshToken),
+            accessToken: savedToken,
+            refreshToken: keychainLoad(key: KeychainKeys.refreshToken),
             userID: "",
-            email: defaults.string(forKey: PersistenceKeys.currentUserEmail) ?? ""
+            email: keychainLoad(key: KeychainKeys.email) ?? ""
         )
 
         let authUser: (id: String, email: String)
@@ -487,7 +497,7 @@ actor SupabaseAuthService: AuthServiceProtocol {
             if isUnauthorized(error), let refreshToken = activeSession.refreshToken {
                 activeSession = try await refreshAuthSession(
                     refreshToken: refreshToken,
-                    fallbackEmail: defaults.string(forKey: PersistenceKeys.currentUserEmail)
+                    fallbackEmail: keychainLoad(key: KeychainKeys.email)
                 )
                 persistSession(activeSession)
                 authUser = try await fetchAuthUser(accessToken: activeSession.accessToken)
@@ -504,7 +514,7 @@ actor SupabaseAuthService: AuthServiceProtocol {
 
         let user = profile.appUser
         signedInUser = user
-        defaults.set(user.email, forKey: PersistenceKeys.currentUserEmail)
+        keychainSave(user.email, key: KeychainKeys.email)
         return user
     }
 
@@ -609,7 +619,11 @@ actor SupabaseAuthService: AuthServiceProtocol {
         return session
     }
 
-    func completeProfileSetup(_ submission: AuthProfileSetupSubmission, for session: AuthenticatedEmailSession, profilePhotoURL: URL?) async throws -> AppUser {
+    func completeProfileSetup(
+        _ submission: AuthProfileSetupSubmission,
+        for session: AuthenticatedEmailSession,
+        profilePhotoURL: URL?
+    ) async throws -> AppUser {
         guard let context = verifiedSessions[session.id] else {
             throw AuthError.registrationSessionExpired
         }
@@ -647,6 +661,12 @@ actor SupabaseAuthService: AuthServiceProtocol {
             profilePhotoURL: profilePhotoURL
         )
         try await databaseService.setDocument(path: "user_profiles/\(profile.id)", data: profile.payload)
+
+        // Write user_roles, user_consents, registration_sessions in one DB call
+        try await callCompleteRegistration(
+            userID: session.userID,
+            role: submission.selectedRole.rawValue
+        )
 
         verifiedSessions[session.id] = nil
 
@@ -719,7 +739,6 @@ actor SupabaseAuthService: AuthServiceProtocol {
         guard newPassword.count >= 8 else {
             throw AuthError.passwordTooShort(minLength: 8)
         }
-
         guard let context = passwordResetSessions[session.id] else {
             throw AuthError.passwordResetSessionExpired
         }
@@ -734,12 +753,14 @@ actor SupabaseAuthService: AuthServiceProtocol {
     }
 
     func signOut() async throws {
-        if let accessToken = defaults.string(forKey: PersistenceKeys.accessToken) {
-            try? await signOutRemote(accessToken: accessToken)
+        if let token = keychainLoad(key: KeychainKeys.accessToken) {
+            try? await signOutRemote(accessToken: token)
         }
         signedInUser = nil
         clearPersistedSession()
     }
+
+    // MARK: - Private: challenge helpers
 
     private func issueEmailChallenge(for email: String, createUserIfNeeded: Bool) async throws -> AuthEmailVerificationChallenge {
         do {
@@ -793,6 +814,46 @@ actor SupabaseAuthService: AuthServiceProtocol {
             return nil
         }
     }
+
+    // MARK: - Private: registration completion
+
+    private func callCompleteRegistration(userID: String, role: String) async throws {
+        let request = try makeDatabaseRPCRequest(
+            function: "complete_user_registration",
+            body: [
+                "p_user_id": userID,
+                "p_role": role,
+                "p_consent_version": "v1.0"
+            ]
+        )
+        _ = try await performAuthRequest(request)
+    }
+
+    private func makeDatabaseRPCRequest(function: String, body: [String: Any]) throws -> URLRequest {
+        let configuration = try SupabaseConfiguration.load()
+        let endpoint = configuration.baseURL
+            .appendingPathComponent("rest")
+            .appendingPathComponent("v1")
+            .appendingPathComponent("rpc")
+            .appendingPathComponent(function)
+
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 30
+        request.setValue(configuration.anonKey, forHTTPHeaderField: "apikey")
+
+        if let token = keychainLoad(key: KeychainKeys.accessToken) {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        } else {
+            request.setValue("Bearer \(configuration.anonKey)", forHTTPHeaderField: "Authorization")
+        }
+
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: SupabaseJSON.sanitize(body))
+        return request
+    }
+
+    // MARK: - Private: Supabase Auth HTTP calls
 
     private func signInWithPassword(email: String, password: String) async throws -> SupabaseSession {
         let request = try makeAuthRequest(
@@ -908,6 +969,8 @@ actor SupabaseAuthService: AuthServiceProtocol {
         _ = try await performAuthRequest(request)
     }
 
+    // MARK: - Private: request builder
+
     private func makeAuthRequest(
         path: String,
         method: String,
@@ -967,11 +1030,10 @@ actor SupabaseAuthService: AuthServiceProtocol {
         return data
     }
 
-    private func parseErrorMessage(from data: Data) -> String {
-        guard data.isEmpty == false else {
-            return "Unknown error"
-        }
+    // MARK: - Private: response parsers
 
+    private func parseErrorMessage(from data: Data) -> String {
+        guard data.isEmpty == false else { return "Unknown error" }
         if let object = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
             for key in ["msg", "message", "error_description", "error"] {
                 if let value = object[key] as? String, value.isEmpty == false {
@@ -979,7 +1041,6 @@ actor SupabaseAuthService: AuthServiceProtocol {
                 }
             }
         }
-
         return String(data: data, encoding: .utf8) ?? "Unknown error"
     }
 
@@ -987,11 +1048,9 @@ actor SupabaseAuthService: AuthServiceProtocol {
         guard data.isEmpty == false else {
             throw SupabaseServiceError.invalidResponse
         }
-
         guard let object = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
             throw SupabaseServiceError.invalidResponse
         }
-
         return object
     }
 
@@ -1022,21 +1081,64 @@ actor SupabaseAuthService: AuthServiceProtocol {
         )
     }
 
+    // MARK: - Private: session persistence (Keychain)
+
     private func persistSession(_ session: SupabaseSession) {
-        defaults.set(session.accessToken, forKey: PersistenceKeys.accessToken)
+        keychainSave(session.accessToken, key: KeychainKeys.accessToken)
         if let refreshToken = session.refreshToken, refreshToken.isEmpty == false {
-            defaults.set(refreshToken, forKey: PersistenceKeys.refreshToken)
+            keychainSave(refreshToken, key: KeychainKeys.refreshToken)
         } else {
-            defaults.removeObject(forKey: PersistenceKeys.refreshToken)
+            keychainDelete(key: KeychainKeys.refreshToken)
         }
-        defaults.set(session.email, forKey: PersistenceKeys.currentUserEmail)
+        keychainSave(session.email, key: KeychainKeys.email)
     }
 
     private func clearPersistedSession() {
-        defaults.removeObject(forKey: PersistenceKeys.accessToken)
-        defaults.removeObject(forKey: PersistenceKeys.refreshToken)
-        defaults.removeObject(forKey: PersistenceKeys.currentUserEmail)
+        keychainDelete(key: KeychainKeys.accessToken)
+        keychainDelete(key: KeychainKeys.refreshToken)
+        keychainDelete(key: KeychainKeys.email)
     }
+
+    // MARK: - Private: Keychain helpers
+
+    private func keychainSave(_ value: String, key: String) {
+        guard let data = value.data(using: .utf8) else { return }
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: KeychainKeys.service,
+            kSecAttrAccount as String: key
+        ]
+        SecItemDelete(query as CFDictionary)
+        var addQuery = query
+        addQuery[kSecValueData as String] = data
+        addQuery[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+        SecItemAdd(addQuery as CFDictionary, nil)
+    }
+
+    private func keychainLoad(key: String) -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: KeychainKeys.service,
+            kSecAttrAccount as String: key,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        var item: CFTypeRef?
+        guard SecItemCopyMatching(query as CFDictionary, &item) == errSecSuccess,
+              let data = item as? Data else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    private func keychainDelete(key: String) {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: KeychainKeys.service,
+            kSecAttrAccount as String: key
+        ]
+        SecItemDelete(query as CFDictionary)
+    }
+
+    // MARK: - Private: error mapping + utilities
 
     private func isUnauthorized(_ error: Error) -> Bool {
         guard case let SupabaseServiceError.requestFailed(statusCode, _) = error else {
@@ -1104,11 +1206,9 @@ actor SupabaseAuthService: AuthServiceProtocol {
     private static func maskedEmail(from email: String) -> String {
         let components = email.split(separator: "@", maxSplits: 1).map(String.init)
         guard components.count == 2 else { return email }
-
         let local = components[0]
         let domain = components[1]
         guard local.isEmpty == false else { return email }
-
         let firstCharacter = local.prefix(1)
         let maskedCount = max(2, local.count - 1)
         return "\(firstCharacter)\(String(repeating: "*", count: maskedCount))@\(domain)"

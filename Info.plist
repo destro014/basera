@@ -6,8 +6,8 @@
 	<array>
 		<dict/>
 	</array>
-	<key>NSFaceIDUsageDescription</key>
-	<string>Use Face ID for faster and secure login to Basera.</string>
+	<key>NSFaceIDUsageDesctiption</key>
+	<string>Basera uses Face ID to sign you in quickly and securely.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Fonts/Rubik-Medium.ttf</string>

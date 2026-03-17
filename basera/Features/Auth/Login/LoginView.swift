@@ -1,8 +1,10 @@
 import SwiftUI
+import VroxalDesign
 
 struct LoginView: View {
     @Binding var email: String
     @Binding var password: String
+    @State private var isPasswordSecure = true
     @State private var passwordUpdatedSheetHeight: CGFloat = 280
 
     let notice: AuthStepNotice?
@@ -22,51 +24,56 @@ struct LoginView: View {
     var body: some View {
         GeometryReader { proxy in
             ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 0) {
+                VStack(alignment: .leading, spacing: VdSpacing.none) {
                     Spacer()
-                        .frame(height: AppTheme.Spacing.xxLarge)
+                        .frame(height: VdSpacing.xxl)
 
                     logoContainer
-                    //logo
+
                     Spacer()
-                        .frame(height: AppTheme.Spacing.xLarge)
-                    //header
+                        .frame(height: VdSpacing.lg)
+
                     headerContainer
+
                     Spacer()
-                        .frame(height: AppTheme.Spacing.xxLarge)
-                    //inputfield
+                        .frame(height: VdSpacing.xl)
+
                     inputContainer
+
                     if let notice {
                         Spacer()
-                            .frame(height: AppTheme.Spacing.large)
+                            .frame(height: VdSpacing.md)
 
-                        BaseraInlineMessageView(
-                            tone: tone(for: notice.style),
-                            message: notice.message
+                        VdAlert(
+                            color: alertColor(for: notice.style),
+                            title: alertTitle(for: notice.style),
+                            description: notice.message
                         )
 
                         Spacer()
-                            .frame(height: AppTheme.Spacing.large)
-
+                            .frame(height: VdSpacing.md)
                     } else {
                         Spacer()
-                            .frame(height: AppTheme.Spacing.xxLarge)
+                            .frame(height: VdSpacing.xl)
                     }
+
                     buttonContainer
+
                     Spacer()
-                        .frame(height: AppTheme.Spacing.large)
+                        .frame(height: VdSpacing.md)
+
                     registerContainer
                 }
                 .frame(
-                    maxWidth: 402,
+                    maxWidth: 420,
                     minHeight: max(proxy.size.height - 32, 0),
                     alignment: .top
                 )
-                .padding(.horizontal, proxy.size.width >= 520 ? 24 : 16)
-                .padding(.bottom, 8)
+                .padding(.horizontal, proxy.size.width >= 520 ? VdSpacing.lg : VdSpacing.md)
+                .padding(.bottom, VdSpacing.sm)
                 .frame(maxWidth: .infinity)
             }
-            .background(AppTheme.Colors.backgroundPrimary.ignoresSafeArea())
+            .background(Color.vdBackgroundDefaultBase.ignoresSafeArea())
             .sheet(isPresented: passwordUpdatedSheetBinding) {
                 passwordUpdatedSheet
                     .fixedSize(horizontal: false, vertical: true)
@@ -92,112 +99,130 @@ struct LoginView: View {
         Image("logo-horizontal")
             .resizable()
             .scaledToFit()
-            .frame(height: 40)
+            .frame(height: 44)
             .accessibilityHidden(true)
-
     }
+
     private var headerContainer: some View {
-        VStack(
-            alignment: .leading,
-            spacing: AppTheme.Spacing.xSmall
-        ) {
+        VStack(alignment: .leading, spacing: VdSpacing.xs) {
             Text("Login")
-                .baseraTextStyle(AppTheme.Typography.headlineLarge)
-                .foregroundStyle(AppTheme.Colors.textPrimary)
+                .vdFont(VdFont.headlineLarge)
+                .foregroundStyle(Color.vdContentDefaultBase)
 
-            Text(
-                "Enter email and password to login to your account"
-            )
-            .baseraTextStyle(AppTheme.Typography.bodyLarge)
-            .foregroundStyle(AppTheme.Colors.textSecondary)
+            Text("Enter email and password to login to your account")
+                .vdFont(VdFont.bodyLarge)
+                .foregroundStyle(Color.vdContentDefaultSecondary)
         }
-
     }
+
     private var inputContainer: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.large) {
-            BaseraTextField(
-                title: "Email",
-                prompt: "you@example.com",
+        VStack(alignment: .leading, spacing: VdSpacing.md) {
+            VdTextField(
+                "Email",
                 text: $email,
-                keyboardType: .emailAddress,
-                textContentType: .emailAddress,
-                textInputAutocapitalization: .never,
-                errorMessage: emailValidationMessage
+                placeholder: "you@example.com",
+                state: inputState(for: emailValidationMessage),
+                leadingIcon: "envelope",
+                helperText: emailValidationMessage
             )
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled(true)
+            .keyboardType(.emailAddress)
 
-            BaseraTextField(
-                title: "Password",
-                prompt: "Password",
+            VdTextField(
+                "Password",
                 text: $password,
-                textContentType: .password,
-                textInputAutocapitalization: .never,
-                isSecure: true,
-                allowsSecureTextToggle: true,
-                errorMessage: passwordValidationMessage
+                placeholder: "Password",
+                state: inputState(for: passwordValidationMessage),
+                isSecure: isPasswordSecure,
+                leadingIcon: "lock",
+                helperText: passwordValidationMessage,
+                trailingIcon: isPasswordSecure ? "eye" : "eye.slash",
+                onTrailingAction: { isPasswordSecure.toggle() }
             )
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled(true)
 
-            Button(action: onForgotPassword) {
-                Text("Forgot Password?")
-                    .baseraTextStyle(AppTheme.Typography.labelLarge)
-                    .foregroundStyle(AppTheme.Colors.brandPrimary)
-            }
-
-
+            VdButton(
+                "Forgot Password?",
+                color: .primary,
+                style: .transparent,
+                size: .small,
+                action: onForgotPassword
+            )
+            .disabled(isLoading)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-
     }
+
     private var buttonContainer: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
-            BaseraButton(
-                title: "Login",
-                style: .primary,
+        VStack(alignment: .leading, spacing: VdSpacing.sm) {
+            VdButton(
+                "Login",
+                color: .primary,
+                style: .solid,
+                size: .large,
+                rounded: true,
                 isLoading: isLoading,
                 action: onSubmit
             )
 
             if canUseBiometricLogin {
-                BaseraButton(
-                    title: biometricButtonTitle,
-                    style: .secondary,
+                VdButton(
+                    biometricButtonTitle,
+                    color: .primary,
+                    style: .outlined,
+                    size: .large,
+                    rounded: true,
                     leftIcon: "faceid",
-                    iconWeight: .bold,
-                    isDisabled: isLoading,
                     action: onBiometricLogin
-                    
                 )
+                .disabled(isLoading)
             }
         }
-    }
-    private var registerContainer: some View {
-        HStack(spacing: AppTheme.Spacing.xSmall) {
-            Text("Don't have an account?")
-                .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                .foregroundStyle(AppTheme.Colors.textSecondary)
 
+    }
+
+    private var registerContainer: some View {
+        HStack(spacing: VdSpacing.xs) {
+            Text("Don't have an account?")
+                .vdFont(VdFont.bodyMedium)
+                .foregroundStyle(Color.vdContentDefaultSecondary)
             Button(action: onNavigateToRegistration) {
-                Text("Register")
-                    .baseraTextStyle(
-                        AppTheme.Typography.labelLarge
-                    )
-                    .foregroundStyle(
-                        AppTheme.Colors.brandPrimary
-                    )
-            }
+                        Text("Register")
+                            .vdFont(VdFont.bodyMedium)
+                            .foregroundStyle(Color.vdContentPrimaryBase)
+                            .underline()
+                    }
+                    .buttonStyle(.plain)
+
         }
         .frame(maxWidth: .infinity, alignment: .center)
-
     }
 
-    private func tone(for style: AuthStepNotice.Style)
-        -> BaseraInlineMessageView.Tone
-    {
+    private func inputState(for validationMessage: String?) -> VdInputState {
+        validationMessage == nil ? .default : .error
+    }
+
+    private func alertColor(for style: AuthStepNotice.Style) -> VdAlertColor {
         switch style {
         case .info:
-            .info
+            return .info
         case .success:
-            .success
+            return .success
         case .error:
-            .error
+            return .error
+        }
+    }
+
+    private func alertTitle(for style: AuthStepNotice.Style) -> String {
+        switch style {
+        case .info:
+            return "Notice"
+        case .success:
+            return "Success"
+        case .error:
+            return "Error"
         }
     }
 
@@ -213,28 +238,34 @@ struct LoginView: View {
     }
 
     private var passwordUpdatedSheet: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
+        VStack(alignment: .leading, spacing: VdSpacing.md) {
             Spacer()
-                .frame(height: AppTheme.Spacing.xLarge)
+                .frame(height: VdSpacing.lg)
+
             Text("Password updated")
-                .baseraTextStyle(AppTheme.Typography.headlineLarge)
-                .foregroundStyle(AppTheme.Colors.textPrimary)
+                .vdFont(VdFont.headlineMedium)
+                .foregroundStyle(Color.vdContentDefaultBase)
 
             Text("Your password has been updated successfully. Now you can login to your account.")
-                .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                .foregroundStyle(AppTheme.Colors.textSecondary)
+                .vdFont(VdFont.bodyLarge)
+                .foregroundStyle(Color.vdContentDefaultSecondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
+
             Spacer()
-                .frame(height: AppTheme.Spacing.xLarge)
-            
-            BaseraButton(
-                title: "Continue to Login",
-                style: .primary,
+                .frame(height: VdSpacing.lg)
+
+            VdButton(
+                "Continue to Login",
+                color: .primary,
+                style: .solid,
+                size: .large,
+                rounded: true,
                 action: onContinueToLoginFromPasswordUpdatedSheet
             )
         }
-        .padding(.horizontal, AppTheme.Spacing.large)
-        .padding(.vertical, AppTheme.Spacing.xLarge)
+        .padding(.horizontal, VdSpacing.md)
+        .padding(.vertical, VdSpacing.lg)
+        .background(Color.vdBackgroundDefaultBase)
     }
 }
 
