@@ -73,6 +73,8 @@ struct LoginView: View {
                 .padding(.bottom, VdSpacing.sm)
                 .frame(maxWidth: .infinity)
             }
+            .baseraScreenBackground()
+
             .sheet(isPresented: passwordUpdatedSheetBinding) {
                 passwordUpdatedSheet
                     .fixedSize(horizontal: false, vertical: true)

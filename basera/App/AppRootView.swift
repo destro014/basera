@@ -91,7 +91,6 @@ private struct AppStartupLoadingView: View {
                 .frame(width: 180)
                 .accessibilityLabel("Basera")
 
-            VdLoadingState(title: "Preparing Basera...")
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         .baseraScreenBackground()
@@ -99,7 +98,7 @@ private struct AppStartupLoadingView: View {
 }
 
 #Preview {
-    AppRootView()
+    AppStartupLoadingView()
         .environmentObject(AppEnvironment.bootstrap())
 }
 
