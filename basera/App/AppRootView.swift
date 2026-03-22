@@ -291,6 +291,7 @@ private struct SignedOutAuthFlowView: View {
                     get: { viewModel.passwordRecoveryCode },
                     set: { viewModel.updatePasswordRecoveryCode($0) }
                 ),
+                notice: notice,
                 validationMessage: viewModel.passwordRecoveryCodeError,
                 isLoading: viewModel.isLoading,
                 canResendCode: viewModel.canResendCode,

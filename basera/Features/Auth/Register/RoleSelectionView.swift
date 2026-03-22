@@ -8,26 +8,16 @@ struct RoleSelectionView: View {
     let onContinue: () -> Void
 
     var body: some View {
-        GeometryReader { proxy in
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 0) {
-                    Spacer()
-                        .frame(height: VdSpacing.xl)
-                    headerContainer
-                    Spacer()
-                        .frame(height: VdSpacing.xl)
-                    optionsContainer
-                    Spacer()
-                        .frame(height: VdSpacing.xl)
-                    buttonContainer
-                }
-                .frame(maxWidth: 402, minHeight: max(proxy.size.height - 32, 0), alignment: .top)
-                .padding(.horizontal, proxy.size.width >= 520 ? 24 : 16)
-                .padding(.bottom, 8)
-                .frame(maxWidth: .infinity)
-            }
-            .background(Color.vdBackgroundDefaultBase.ignoresSafeArea())
-        }
+        AuthFormScreenLayout(
+            headerContent: { headerContainer },
+            inputContent: { optionsContainer },
+            noticeContent: {
+                Spacer()
+                    .frame(height: VdSpacing.xl)
+            },
+            actionContent: { buttonContainer },
+            footerContent: { EmptyView() }
+        )
     }
 
     private var headerContainer: some View {

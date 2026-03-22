@@ -14,38 +14,14 @@ struct OTPVerificationView: View {
     let onEditEmail: () -> Void
 
     var body: some View {
-        GeometryReader { proxy in
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 0) {
-                    Spacer()
-                        .frame(height: VdSpacing.xl)
-                    headerContainer
-                    Spacer()
-                        .frame(height: VdSpacing.xl)
-                    inputContainer
-                    if let notice {
-                        Spacer()
-                            .frame(height: VdSpacing.md)
-
-                        noticeContainer(notice)
-
-                        Spacer()
-                            .frame(height: VdSpacing.md)
-                    } else {
-                        Spacer()
-                            .frame(height: VdSpacing.xl)
-                    }
-                    buttonContainer
-                }
-                .frame(maxWidth: 402, minHeight: max(proxy.size.height - 32, 0), alignment: .top)
-                .padding(.horizontal, proxy.size.width >= 520 ? 24 : 16)
-                .padding(.bottom, 8)
-                .frame(maxWidth: .infinity)
-            }
-        }
+        AuthFormScreenLayout(
+            headerContent: { headerContainer },
+            inputContent: { inputContainer },
+            noticeContent: { noticeSection },
+            actionContent: { buttonContainer },
+            footerContent: { EmptyView() }
+        )
     }
-
-    
 
     private var headerContainer: some View {
         VStack(alignment: .leading, spacing: VdSpacing.xs) {
@@ -106,34 +82,28 @@ struct OTPVerificationView: View {
         }
     }
 
+    @ViewBuilder
+    private var noticeSection: some View {
+        if let notice {
+            Spacer()
+                .frame(height: VdSpacing.md)
+
+            noticeContainer(notice)
+
+            Spacer()
+                .frame(height: VdSpacing.md)
+        } else {
+            Spacer()
+                .frame(height: VdSpacing.xl)
+        }
+    }
+
     private func noticeContainer(_ notice: AuthStepNotice) -> some View {
         VdAlert(
-            color: alertColor(for: notice.style),
-            title: alertTitle(for: notice.style),
+            color: notice.style.authAlertColor,
+            title: notice.style.authAlertTitle,
             description: notice.message
         )
-    }
-
-    private func alertColor(for style: AuthStepNotice.Style) -> VdAlertColor {
-        switch style {
-        case .info:
-            return .info
-        case .success:
-            return .success
-        case .error:
-            return .error
-        }
-    }
-
-    private func alertTitle(for style: AuthStepNotice.Style) -> String {
-        switch style {
-        case .info:
-            return "Info"
-        case .success:
-            return "Success"
-        case .error:
-            return "Please Check"
-        }
     }
 }
 

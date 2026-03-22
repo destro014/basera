@@ -4,6 +4,7 @@ import VroxalDesign
 struct PasswordRecoveryOTPView: View {
     @Binding var code: String
 
+    let notice: AuthStepNotice?
     let validationMessage: String?
     let isLoading: Bool
     let canResendCode: Bool
@@ -13,34 +14,13 @@ struct PasswordRecoveryOTPView: View {
     let onEditEmail: () -> Void
 
     var body: some View {
-        GeometryReader { proxy in
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 0) {
-                    Spacer()
-                        .frame(height: VdSpacing.xxl)
-                    headerContainer
-                    Spacer()
-                        .frame(height: VdSpacing.xxl)
-                    inputContainer
-                    Spacer()
-                        .frame(height: VdSpacing.xxl)
-                    buttonContainer
-                }
-                .frame(maxWidth: 402, minHeight: max(proxy.size.height - 32, 0), alignment: .top)
-                .padding(.horizontal, proxy.size.width >= 520 ? 24 : 16)
-                .padding(.bottom, 8)
-                .frame(maxWidth: .infinity)
-            }
-            .background(Color.vdBackgroundDefaultBase.ignoresSafeArea())
-        }
-    }
-
-    private var logoContainer: some View {
-        Image("logo-horizontal")
-            .resizable()
-            .scaledToFit()
-            .frame(height: 40)
-            .accessibilityHidden(true)
+        AuthFormScreenLayout(
+            headerContent: { headerContainer },
+            inputContent: { inputContainer },
+            noticeContent: { noticeSection },
+            actionContent: { buttonContainer },
+            footerContent: { EmptyView() }
+        )
     }
 
     private var headerContainer: some View {
@@ -49,32 +29,31 @@ struct PasswordRecoveryOTPView: View {
                 .vdFont(VdFont.headlineLarge)
                 .foregroundStyle(Color.vdContentDefaultBase)
 
-            Text("Enter the code we sent you to your email address")
+            Text("Enter the code we sent to your email address to continue.")
                 .vdFont(VdFont.bodyLarge)
                 .foregroundStyle(Color.vdContentDefaultSecondary)
         }
     }
 
     private var inputContainer: some View {
-        VdTextField(
-            title: "Verification code",
-            prompt: "6-digit code",
-            text: $code,
-            keyboardType: .numberPad,
-            textContentType: .oneTimeCode,
-            textInputAutocapitalization: .never,
-            errorMessage: validationMessage
-        )
+        VStack(alignment: .leading, spacing: VdSpacing.xs) {
+            VdCodeInput(
+                code: $code,
+                length: 6,
+                state: validationMessage?.isEmpty == false ? .error : .default
+            )
+
+            if let validationMessage, validationMessage.isEmpty == false {
+                Text(validationMessage)
+                    .vdFont(VdFont.bodySmall)
+                    .foregroundStyle(Color.vdContentErrorBase)
+            }
+        }
     }
 
     private var buttonContainer: some View {
         VStack(alignment: .leading, spacing: VdSpacing.smMd) {
-            VdButton(
-                title: "Verify code",
-                style: .primary,
-                isLoading: isLoading,
-                action: onVerify
-            )
+            VdButton("Verify code", fullWidth: true, isLoading: isLoading, action: onVerify)
 
             HStack(spacing: 4) {
                 Text("Didn't receive the code?")
@@ -88,7 +67,7 @@ struct PasswordRecoveryOTPView: View {
                 } label: {
                     Text(resendButtonTitle)
                         .vdFont(VdFont.labelLarge)
-                        .foregroundStyle(canResendCode && !isLoading ? Color.vdBackgroundPrimaryBase : Color.vdContentDefaultSecondary.opacity(0.7))
+                        .foregroundStyle(canResendCode && !isLoading ? Color.vdContentPrimaryBase : Color.vdContentDefaultSecondary.opacity(0.7))
                 }
                 .disabled(!canResendCode || isLoading)
             }
@@ -103,11 +82,32 @@ struct PasswordRecoveryOTPView: View {
         }
     }
 
+    @ViewBuilder
+    private var noticeSection: some View {
+        if let notice {
+            Spacer()
+                .frame(height: VdSpacing.md)
+
+            VdAlert(
+                color: notice.style.authAlertColor,
+                title: notice.style.authAlertTitle,
+                description: notice.message
+            )
+
+            Spacer()
+                .frame(height: VdSpacing.md)
+        } else {
+            Spacer()
+                .frame(height: VdSpacing.xl)
+        }
+    }
+
 }
 
 #Preview {
     PasswordRecoveryOTPView(
         code: .constant(""),
+        notice: AuthStepNotice(style: .info, message: "A new code was sent to your email."),
         validationMessage: nil,
         isLoading: false,
         canResendCode: false,
