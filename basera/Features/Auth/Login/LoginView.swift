@@ -13,6 +13,7 @@ struct LoginView: View {
     let isLoading: Bool
     let canUseBiometricLogin: Bool
     let biometricButtonTitle: String
+    let biometricSystemImageName: String
     let passwordUpdatedEmail: String?
     let onSubmit: () -> Void
     let onBiometricLogin: () -> Void
@@ -174,7 +175,7 @@ struct LoginView: View {
                     style: .outlined,
                     size: .large,
                     rounded: true,
-                    fullWidth: true, isLoading: isLoading, leftIcon: "faceid",
+                    fullWidth: true, isLoading: isLoading, leftIcon: biometricSystemImageName,
                     action: onBiometricLogin
                 )
                 .disabled(isLoading)
@@ -288,6 +289,7 @@ private struct PasswordUpdatedSheetHeightPreferenceKey: PreferenceKey {
         isLoading: false,
         canUseBiometricLogin: true,
         biometricButtonTitle: "Use Face ID",
+        biometricSystemImageName: "faceid",
         passwordUpdatedEmail: nil,
         onSubmit: {},
         onBiometricLogin: {},

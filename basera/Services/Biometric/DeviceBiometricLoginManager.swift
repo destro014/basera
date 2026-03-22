@@ -43,17 +43,16 @@ final class DeviceBiometricLoginManager: BiometricLoginManagerProtocol {
     }
 
     var isBiometricLoginEnabled: Bool {
-        defaults.bool(forKey: Keys.enabled)
+        defaults.bool(forKey: Keys.enabled) || hasStoredCredentials
     }
 
     var enrolledBiometricEmail: String? {
-        guard isBiometricLoginEnabled else { return nil }
         guard let credentials = loadCredentialsFromKeychain() else { return nil }
         return normalized(email: credentials.email)
     }
 
     var canAttemptBiometricLogin: Bool {
-        guard isBiometryAvailable, isBiometricLoginEnabled, let credentials = loadCredentialsFromKeychain() else {
+        guard isBiometryAvailable, let credentials = loadCredentialsFromKeychain() else {
             return false
         }
 
@@ -202,6 +201,10 @@ final class DeviceBiometricLoginManager: BiometricLoginManagerProtocol {
     private var promptedEnrollmentEmails: Set<String> {
         let stored = defaults.stringArray(forKey: Keys.promptedEmails) ?? []
         return Set(stored.map { normalized(email: $0) })
+    }
+
+    private var hasStoredCredentials: Bool {
+        loadCredentialsFromKeychain() != nil
     }
 
     private func normalized(email: String) -> String {
