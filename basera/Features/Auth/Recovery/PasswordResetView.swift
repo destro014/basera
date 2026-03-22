@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct PasswordResetView: View {
     @Binding var newPassword: String
@@ -15,25 +16,25 @@ struct PasswordResetView: View {
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 0) {
                     Spacer()
-                        .frame(height: AppTheme.Spacing.xxLarge)
+                        .frame(height: VdSpacing.xxl)
                     headerContainer
                     Spacer()
-                        .frame(height: AppTheme.Spacing.xxLarge)
+                        .frame(height: VdSpacing.xxl)
                     inputContainer
                     if let notice {
                         Spacer()
-                            .frame(height: AppTheme.Spacing.large)
+                            .frame(height: VdSpacing.md)
 
-                        BaseraInlineMessageView(
+                        VdAlert(
                             tone: tone(for: notice.style),
                             message: notice.message
                         )
 
                         Spacer()
-                            .frame(height: AppTheme.Spacing.large)
+                            .frame(height: VdSpacing.md)
                     } else {
                         Spacer()
-                            .frame(height: AppTheme.Spacing.xxLarge)
+                            .frame(height: VdSpacing.xxl)
                     }
                     buttonContainer
                 }
@@ -42,7 +43,7 @@ struct PasswordResetView: View {
                 .padding(.bottom, 8)
                 .frame(maxWidth: .infinity)
             }
-            .background(AppTheme.Colors.backgroundPrimary.ignoresSafeArea())
+            .background(Color.vdBackgroundDefaultBase.ignoresSafeArea())
         }
     }
 
@@ -55,20 +56,20 @@ struct PasswordResetView: View {
     }
 
     private var headerContainer: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.xSmall) {
+        VStack(alignment: .leading, spacing: VdSpacing.xs) {
             Text("Create new password")
-                .baseraTextStyle(AppTheme.Typography.headlineLarge)
-                .foregroundStyle(AppTheme.Colors.textPrimary)
+                .vdFont(VdFont.headlineLarge)
+                .foregroundStyle(Color.vdContentDefaultBase)
 
             Text("Set a new password for your account. Use at least 8 characters.")
-                .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                .foregroundStyle(AppTheme.Colors.textSecondary)
+                .vdFont(VdFont.bodyLarge)
+                .foregroundStyle(Color.vdContentDefaultSecondary)
         }
     }
 
     private var inputContainer: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.large) {
-            BaseraTextField(
+        VStack(alignment: .leading, spacing: VdSpacing.md) {
+            VdTextField(
                 title: "New Password",
                 prompt: "Minimum 8 characters",
                 text: $newPassword,
@@ -79,7 +80,7 @@ struct PasswordResetView: View {
                 errorMessage: newPasswordValidationMessage
             )
 
-            BaseraTextField(
+            VdTextField(
                 title: "Confirm Password",
                 prompt: "Re-enter password",
                 text: $confirmPassword,
@@ -93,7 +94,7 @@ struct PasswordResetView: View {
     }
 
     private var buttonContainer: some View {
-        BaseraButton(
+        VdButton(
             title: "Update Password",
             style: .primary,
             isLoading: isLoading,
@@ -101,7 +102,7 @@ struct PasswordResetView: View {
         )
     }
 
-    private func tone(for style: AuthStepNotice.Style) -> BaseraInlineMessageView.Tone {
+    private func tone(for style: AuthStepNotice.Style) -> BaseraVdAlertTone {
         switch style {
         case .info:
             .info

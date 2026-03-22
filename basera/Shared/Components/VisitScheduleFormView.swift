@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct VisitScheduleFormView: View {
     @Binding var scheduledAt: Date
@@ -8,14 +9,14 @@ struct VisitScheduleFormView: View {
 
     var body: some View {
         BaseraCard {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
+            VStack(alignment: .leading, spacing: VdSpacing.smMd) {
                 Text("Schedule Property Visit")
-                    .baseraTextStyle(AppTheme.Typography.titleMedium)
+                    .vdFont(VdFont.titleMedium)
 
                 DatePicker("Date & Time", selection: $scheduledAt)
                     .datePickerStyle(.graphical)
 
-                BaseraTextField(
+                VdTextField(
                     title: "Note (optional)",
                     prompt: "Parking instructions, landmark, etc.",
                     text: $note,
@@ -23,7 +24,7 @@ struct VisitScheduleFormView: View {
                     textContentType: nil
                 )
 
-                BaseraButton(title: "Send Visit Proposal", style: .primary, isLoading: isSubmitting) {
+                VdButton(title: "Send Visit Proposal", style: .primary, isLoading: isSubmitting) {
                     onSubmit()
                 }
             }

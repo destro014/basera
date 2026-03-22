@@ -1,24 +1,28 @@
 import SwiftUI
+import VroxalDesign
 
 struct BaseraBadge: View {
     let text: String
-    let tone: Color
+    var color: VdBadgeColor = .neutral
+    var style: VdBadgeStyle = .subtle
+    var size: VdBadgeSize = .medium
+    var rounded: Bool = false
 
     var body: some View {
-        Text(text)
-            .baseraTextStyle(AppTheme.Typography.labelMedium)
-            .padding(.horizontal, AppTheme.Spacing.small)
-            .padding(.vertical, AppTheme.Spacing.xSmall)
-            .background(tone.opacity(0.2))
-            .foregroundStyle(tone)
-            .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.small, style: .continuous))
+        VdBadge(
+            text,
+            color: color,
+            style: style,
+            size: size,
+            rounded: rounded
+        )
     }
 }
 
 #Preview {
     HStack {
-        BaseraBadge(text: "Active", tone: AppTheme.Colors.successPrimary)
-        BaseraBadge(text: "Draft", tone: AppTheme.Colors.warningPrimary)
+        BaseraBadge(text: "Active", color: .success)
+        BaseraBadge(text: "Draft", color: .warning)
     }
     .padding()
 }

@@ -1,24 +1,25 @@
 import SwiftUI
+import VroxalDesign
 
 struct DepositSummaryCard: View {
     let deposit: TenancyRecord.DepositSummary
 
     var body: some View {
         BaseraCard {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+            VStack(alignment: .leading, spacing: VdSpacing.sm) {
                 Text("Deposit Summary")
-                    .baseraTextStyle(AppTheme.Typography.titleMedium)
+                    .vdFont(VdFont.titleMedium)
                 Text("Held: Rs. \(NSDecimalNumber(decimal: deposit.heldAmount).intValue)")
-                    .baseraTextStyle(AppTheme.Typography.bodyLarge)
+                    .vdFont(VdFont.bodyLarge)
                 Text("Total deposit: Rs. \(NSDecimalNumber(decimal: deposit.totalDeposit).intValue)")
-                    .baseraTextStyle(AppTheme.Typography.bodySmall)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .vdFont(VdFont.bodySmall)
+                    .foregroundStyle(Color.vdContentDefaultSecondary)
                 if let plannedRefundAmount = deposit.plannedRefundAmount {
                     Text("Planned refund: Rs. \(NSDecimalNumber(decimal: plannedRefundAmount).intValue)")
-                        .baseraTextStyle(AppTheme.Typography.bodySmall)
+                        .vdFont(VdFont.bodySmall)
                 }
                 if let deductionNotes = deposit.deductionNotes {
-                    BaseraInlineMessageView(tone: .info, message: deductionNotes)
+                    VdAlert(tone: .info, message: deductionNotes)
                 }
             }
         }

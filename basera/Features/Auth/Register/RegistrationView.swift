@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct RegistrationView: View {
     @Binding var email: String
@@ -18,31 +19,27 @@ struct RegistrationView: View {
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 0) {
                     Spacer()
-                        .frame(height: AppTheme.Spacing.xxLarge)
+                        .frame(height: VdSpacing.xxl)
                     logoContainer
                     Spacer()
-                        .frame(height: AppTheme.Spacing.xLarge)
+                        .frame(height: VdSpacing.lg)
                     headerContainer
                     Spacer()
-                        .frame(height: AppTheme.Spacing.xxLarge)
+                        .frame(height: VdSpacing.lg)
                     inputContainer
                     if let notice {
-                        
                         Spacer()
-                            .frame(height: AppTheme.Spacing.large)
-                        BaseraInlineMessageView(
-                            tone: tone(for: notice.style),
-                            message: notice.message
-                        )
+                            .frame(height: VdSpacing.md)
+                        noticeContainer(notice)
                         Spacer()
-                            .frame(height: AppTheme.Spacing.large)
+                            .frame(height: VdSpacing.md)
                     } else {
                         Spacer()
-                            .frame(height: AppTheme.Spacing.xxLarge)
+                            .frame(height: VdSpacing.xxl)
                     }
                     buttonContainer
                     Spacer()
-                        .frame(height: AppTheme.Spacing.large)
+                        .frame(height: VdSpacing.md)
                     loginContainer
                 }
                 .frame(maxWidth: 402, minHeight: max(proxy.size.height - 32, 0), alignment: .top)
@@ -50,7 +47,7 @@ struct RegistrationView: View {
                 .padding(.bottom, 8)
                 .frame(maxWidth: .infinity)
             }
-            .background(AppTheme.Colors.backgroundPrimary.ignoresSafeArea())
+            .background(Color.vdBackgroundDefaultBase.ignoresSafeArea())
             .sheet(isPresented: existingAccountSheetBinding) {
                 accountAlreadyExistsSheet
                     .fixedSize(horizontal: false, vertical: true)
@@ -81,64 +78,85 @@ struct RegistrationView: View {
     }
 
     private var headerContainer: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.xSmall) {
+        VStack(alignment: .leading, spacing: VdSpacing.xs) {
             Text("Create your account")
-                .baseraTextStyle(AppTheme.Typography.headlineLarge)
-                .foregroundStyle(AppTheme.Colors.textPrimary)
+                .vdFont(VdFont.headlineLarge)
+                .foregroundStyle(Color.vdContentDefaultBase)
 
             Text("Enter your email to receive an OTP and continue registration.")
-                .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                .foregroundStyle(AppTheme.Colors.textSecondary)
+                .vdFont(VdFont.bodyLarge)
+                .foregroundStyle(Color.vdContentDefaultSecondary)
         }
     }
 
     private var inputContainer: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.large) {
-            BaseraTextField(
-                title: "Email",
-                prompt: "you@example.com",
+        VStack(alignment: .leading, spacing: VdSpacing.md) {
+            VdTextField(
+                "Email",
                 text: $email,
-                keyboardType: .emailAddress,
-                textContentType: .emailAddress,
-                textInputAutocapitalization: .never,
-                errorMessage: emailValidationMessage
+                placeholder: "you@example.com",
+                state: inputState(for: emailValidationMessage),
+                leadingIcon: "envelope",
+                helperText: emailValidationMessage
             )
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled(true)
+            .keyboardType(.emailAddress)
+            .textContentType(.emailAddress)
         }
     }
 
     private var buttonContainer: some View {
-        BaseraButton(
-            title: "Continue",
-            style: .primary,
-            isLoading: isLoading,
-            action: onSubmit
-        )
+        VdButton("Continue", fullWidth: true, isLoading: isLoading, action: onSubmit)
     }
 
     private var loginContainer: some View {
-        HStack(spacing: AppTheme.Spacing.xSmall) {
+        HStack(spacing: VdSpacing.xs) {
             Text("Already have an account?")
-                .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                .foregroundStyle(AppTheme.Colors.textSecondary)
+                .vdFont(VdFont.bodyMedium)
+                .foregroundStyle(Color.vdContentDefaultSecondary)
 
             Button(action: onNavigateToLogin) {
                 Text("Login")
-                    .baseraTextStyle(AppTheme.Typography.labelLarge)
-                    .foregroundStyle(AppTheme.Colors.brandPrimary)
+                    .vdFont(VdFont.labelMedium)
+                    .foregroundStyle(Color.vdContentPrimaryBase)
             }
         }
         .frame(maxWidth: .infinity, alignment: .center)
     }
 
-    private func tone(for style: AuthStepNotice.Style) -> BaseraInlineMessageView.Tone {
+    private func noticeContainer(_ notice: AuthStepNotice) -> some View {
+        VdAlert(
+            color: alertColor(for: notice.style),
+            title: alertTitle(for: notice.style),
+            description: notice.message
+        )
+    }
+
+    private func alertColor(for style: AuthStepNotice.Style) -> VdAlertColor {
         switch style {
         case .info:
-            .info
+            return .info
         case .success:
-            .success
+            return .success
         case .error:
-            .error
+            return .error
         }
+    }
+
+    private func alertTitle(for style: AuthStepNotice.Style) -> String {
+        switch style {
+        case .info:
+            return "Info"
+        case .success:
+            return "Success"
+        case .error:
+            return "Please Check"
+        }
+    }
+
+    private func inputState(for validationMessage: String?) -> VdInputState {
+        validationMessage?.isEmpty == false ? .error : .default
     }
 
     private var existingAccountSheetBinding: Binding<Bool> {
@@ -153,27 +171,23 @@ struct RegistrationView: View {
     }
 
     private var accountAlreadyExistsSheet: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
+        VStack(alignment: .leading, spacing: VdSpacing.smMd) {
             Spacer()
-                .frame(height: AppTheme.Spacing.xLarge)
+                .frame(height: VdSpacing.lg)
             Text("Account already exists")
-                .baseraTextStyle(AppTheme.Typography.headlineLarge)
-                .foregroundStyle(AppTheme.Colors.textPrimary)
+                .vdFont(VdFont.headlineLarge)
+                .foregroundStyle(Color.vdContentDefaultBase)
 
             Text("There is already an account associated with \(existingAccountEmail ?? "this email"). Please proceed to login.")
-                .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                .foregroundStyle(AppTheme.Colors.textSecondary)
+                .vdFont(VdFont.bodyLarge)
+                .foregroundStyle(Color.vdContentDefaultSecondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
             Spacer()
-                .frame(height: AppTheme.Spacing.xLarge)
-            BaseraButton(
-                title: "Go to Login",
-                style: .primary,
-                action: onContinueToLoginFromExistingAccount
-            )
+                .frame(height: VdSpacing.lg)
+            VdButton("Go to Login", action: onContinueToLoginFromExistingAccount)
         }
-        .padding(.horizontal, AppTheme.Spacing.large)
-        .padding(.vertical, AppTheme.Spacing.xLarge)
+        .padding(.horizontal, VdSpacing.md)
+        .padding(.vertical, VdSpacing.lg)
     }
 }
 

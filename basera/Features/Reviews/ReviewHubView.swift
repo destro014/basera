@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct ReviewHubView: View {
     @EnvironmentObject private var environment: AppEnvironment
@@ -13,9 +14,10 @@ struct ReviewHubView: View {
         Group {
             switch viewModel.state {
             case .idle, .loading:
-                BaseraLoadingView(message: "Loading reviews")
+                VdLoadingState(title: "Loading reviews")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             case .error(let message):
-                BaseraErrorStateView(title: "Reviews unavailable", message: message) {
+                VdAlert(title: "Reviews unavailable", message: message) {
                     Task { await viewModel.load(using: environment.reviewsRepository) }
                 }
             case .loaded:
@@ -35,7 +37,7 @@ struct ReviewHubView: View {
     private var content: some View {
         ScrollView {
             BaseraPageContainer {
-                VStack(alignment: .leading, spacing: AppTheme.Spacing.large) {
+                VStack(alignment: .leading, spacing: VdSpacing.md) {
                     ratingSummaryCard
                     submissionSection
                     publicReviewsSection
@@ -51,12 +53,12 @@ struct ReviewHubView: View {
 
     private var submissionSection: some View {
         BaseraCard {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
+            VStack(alignment: .leading, spacing: VdSpacing.smMd) {
                 Text("Leave a review")
-                    .baseraTextStyle(AppTheme.Typography.titleMedium)
+                    .vdFont(VdFont.titleMedium)
 
                 if viewModel.submissionContexts.isEmpty {
-                    BaseraEmptyStateView(
+                    VdEmptyState(
                         title: "No review opportunities yet",
                         message: "You can review once a tenancy is active.",
                         systemImage: "star.bubble"
@@ -70,23 +72,23 @@ struct ReviewHubView: View {
 
                     if let context = viewModel.selectedContext {
                         if let review = context.existingReview {
-                            BaseraInlineMessageView(
+                            VdAlert(
                                 tone: .success,
                                 message: "Already submitted for this stage: \(review.ratingLabel)"
                             )
                         } else if !context.canSubmit {
-                            BaseraInlineMessageView(
+                            VdAlert(
                                 tone: .info,
                                 message: context.stage == .postMoveOut ? "Available after move-out completion." : "This stage is currently unavailable."
                             )
                         } else {
                             Stepper("Rating: \(viewModel.selectedRating)", value: $viewModel.selectedRating, in: 1...5)
-                            BaseraTextField(
+                            VdTextField(
                                 title: "Comment",
                                 prompt: "Share your experience",
                                 text: $viewModel.reviewComment
                             )
-                            BaseraButton(title: "Submit Public Review", style: .primary) {
+                            VdButton(title: "Submit Public Review", style: .primary) {
                                 Task { await viewModel.submit(using: environment.reviewsRepository) }
                             }
                         }
@@ -94,19 +96,19 @@ struct ReviewHubView: View {
                 }
 
                 if let banner = viewModel.bannerMessage {
-                    BaseraInlineMessageView(tone: .info, message: banner)
+                    VdAlert(tone: .info, message: banner)
                 }
             }
         }
     }
 
     private var publicReviewsSection: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+        VStack(alignment: .leading, spacing: VdSpacing.sm) {
             Text("Public reviews received")
-                .baseraTextStyle(AppTheme.Typography.titleMedium)
+                .vdFont(VdFont.titleMedium)
 
             if viewModel.receivedReviews.isEmpty {
-                BaseraEmptyStateView(
+                VdEmptyState(
                     title: "No reviews yet",
                     message: "Published reviews from renter and owner will appear here.",
                     systemImage: "star.slash"
@@ -130,13 +132,13 @@ struct ReviewHubView: View {
                     }
                 }
 
-                BaseraTextField(
+                VdTextField(
                     title: "Details",
                     prompt: "Optional context",
                     text: $viewModel.reportNote
                 )
 
-                BaseraButton(title: "Submit Report", style: .primary) {
+                VdButton(title: "Submit Report", style: .primary) {
                     Task {
                         await viewModel.report(reviewID: review.id, using: environment.reviewsRepository)
                         selectedReviewForReport = nil

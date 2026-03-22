@@ -5,6 +5,8 @@ import Foundation
 final class HomeShellViewModel: ObservableObject {
     enum Tab: Hashable {
         case primary
+        case explore
+        case messages
         case notifications
         case settings
     }

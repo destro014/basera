@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct BaseraActionTile: View {
     let title: String
@@ -6,23 +7,23 @@ struct BaseraActionTile: View {
     let systemImage: String
 
     var body: some View {
-        HStack(alignment: .center, spacing: AppTheme.Spacing.medium) {
+        HStack(alignment: .center, spacing: VdSpacing.smMd) {
             Image(systemName: systemImage)
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(AppTheme.Colors.brandPrimary)
+                .foregroundStyle(Color.vdContentPrimaryBase)
                 .frame(width: 36, height: 36)
-                .background(AppTheme.Colors.brandSecondary)
-                .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.medium, style: .continuous))
+                .background(Color.vdBackgroundPrimarySecondary)
+                .clipShape(RoundedRectangle(cornerRadius: VdRadius.md, style: .continuous))
 
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.xSmall) {
+            VStack(alignment: .leading, spacing: VdSpacing.xs) {
                 Text(title)
-                    .baseraTextStyle(AppTheme.Typography.labelLarge)
-                    .foregroundStyle(AppTheme.Colors.textPrimary)
+                    .vdFont(VdFont.labelLarge)
+                    .foregroundStyle(Color.vdContentDefaultBase)
 
                 if let subtitle, subtitle.isEmpty == false {
                     Text(subtitle)
-                        .baseraTextStyle(AppTheme.Typography.bodySmall)
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                        .vdFont(VdFont.bodySmall)
+                        .foregroundStyle(Color.vdContentDefaultSecondary)
                 }
             }
 
@@ -30,15 +31,15 @@ struct BaseraActionTile: View {
 
             Image(systemName: "chevron.right")
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(AppTheme.Colors.textSecondary)
+                .foregroundStyle(Color.vdContentDefaultSecondary)
         }
-        .padding(AppTheme.Spacing.medium)
-        .background(AppTheme.Colors.surfacePrimary)
+        .padding(VdSpacing.smMd)
+        .background(Color.vdBackgroundDefaultSecondary)
         .overlay {
-            RoundedRectangle(cornerRadius: AppTheme.Radius.medium, style: .continuous)
-                .stroke(AppTheme.Colors.borderSecondary, lineWidth: 1)
+            RoundedRectangle(cornerRadius: VdRadius.md, style: .continuous)
+                .stroke(Color.vdBorderDefaultSecondary, lineWidth: 1)
         }
-        .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.medium, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: VdRadius.md, style: .continuous))
     }
 }
 

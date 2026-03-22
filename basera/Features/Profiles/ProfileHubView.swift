@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct ProfileHubView: View {
     @StateObject private var viewModel: ProfileHubViewModel
@@ -10,21 +11,22 @@ struct ProfileHubView: View {
     var body: some View {
         Group {
             if viewModel.isLoading {
-                BaseraLoadingView(message: "Loading profiles...")
+                VdLoadingState(title: "Loading profiles...")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             } else {
                 ScrollView {
-                    VStack(spacing: AppTheme.Spacing.large) {
+                    VStack(spacing: VdSpacing.md) {
                         ProfileSectionView(
                             title: "Account role",
                             subtitle: "Your role is fixed for this account."
                         ) {
                             Text(viewModel.role.title)
-                                .baseraTextStyle(AppTheme.Typography.titleMedium)
-                                .foregroundStyle(AppTheme.Colors.textPrimary)
+                                .vdFont(VdFont.titleMedium)
+                                .foregroundStyle(Color.vdContentDefaultBase)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
 
-                        VStack(spacing: AppTheme.Spacing.medium) {
+                        VStack(spacing: VdSpacing.smMd) {
                             ProfileCompletionStatusView(status: viewModel.completionStatus(for: viewModel.role))
                         }
 
@@ -50,11 +52,11 @@ struct ProfileHubView: View {
         )) {
             Button(role: .cancel) {} label: {
                 Text("OK")
-                    .baseraTextStyle(AppTheme.Typography.labelLarge)
+                    .vdFont(VdFont.labelLarge)
             }
         } message: {
             Text(viewModel.errorMessage ?? "")
-                .baseraTextStyle(AppTheme.Typography.bodyMedium)
+                .vdFont(VdFont.bodyMedium)
         }
     }
 }

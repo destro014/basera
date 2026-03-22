@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct PaymentsHubView: View {
     @EnvironmentObject private var environment: AppEnvironment
@@ -20,8 +21,8 @@ struct PaymentsHubView: View {
                         Text(method.title).tag(method)
                     }
                 }
-                BaseraTextField(title: "Amount", text: $viewModel.amountText, keyboardType: .decimalPad)
-                BaseraTextField(title: "Note", text: $viewModel.note)
+                VdTextField(title: "Amount", text: $viewModel.amountText, keyboardType: .decimalPad)
+                VdTextField(title: "Note", text: $viewModel.note)
             }
 
             Section("Gateway placeholders") {
@@ -35,7 +36,7 @@ struct PaymentsHubView: View {
                 }
                 if let intent = viewModel.latestGatewayIntent {
                     Text(intent.gatewayDisplayMessage)
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                        .foregroundStyle(Color.vdContentDefaultSecondary)
                     Button("Mark placeholder as completed") {
                         Task { await viewModel.completeGatewayPayment(userID: userID, repository: environment.paymentsRepository, tenancyID: tenancy.id) }
                     }
@@ -61,7 +62,7 @@ struct PaymentsHubView: View {
                     VStack(alignment: .leading) {
                         Text("\(payment.kind.title) • \(payment.method.title) • Rs. \(NSDecimalNumber(decimal: payment.amount).stringValue)")
                         Text("\(payment.state.title)\(payment.offlineMarkedByOwner ? " • Offline marked" : "")")
-                            .foregroundStyle(AppTheme.Colors.textSecondary)
+                            .foregroundStyle(Color.vdContentDefaultSecondary)
                     }
                 }
             }
@@ -71,7 +72,7 @@ struct PaymentsHubView: View {
                     VStack(alignment: .leading) {
                         Text("Receipt \(receipt.id)")
                         Text("Rs. \(NSDecimalNumber(decimal: receipt.amount).stringValue) • \(receipt.method.title)")
-                            .foregroundStyle(AppTheme.Colors.textSecondary)
+                            .foregroundStyle(Color.vdContentDefaultSecondary)
                     }
                 }
             }
@@ -81,13 +82,13 @@ struct PaymentsHubView: View {
                     Text("Held: Rs. \(NSDecimalNumber(decimal: ledger.heldAmount).stringValue)")
                     Text("Planned refund: Rs. \(NSDecimalNumber(decimal: ledger.plannedRefundAmount).stringValue)")
                     Text("Remaining refund: Rs. \(NSDecimalNumber(decimal: ledger.remainingRefundAmount).stringValue)")
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                        .foregroundStyle(Color.vdContentDefaultSecondary)
                 }
 
                 if actor == .owner {
-                    BaseraTextField(title: "Deduction title", text: $deductionTitle)
-                    BaseraTextField(title: "Deduction amount", text: $deductionAmount, keyboardType: .decimalPad)
-                    BaseraTextField(title: "Refund amount", text: $refundAmount, keyboardType: .decimalPad)
+                    VdTextField(title: "Deduction title", text: $deductionTitle)
+                    VdTextField(title: "Deduction amount", text: $deductionAmount, keyboardType: .decimalPad)
+                    VdTextField(title: "Refund amount", text: $refundAmount, keyboardType: .decimalPad)
                     Button("Apply deduction and refund summary") {
                         Task {
                             await viewModel.updateDeposit(

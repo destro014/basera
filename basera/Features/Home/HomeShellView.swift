@@ -22,6 +22,18 @@ struct HomeShellView: View {
                 }
                 .tag(HomeShellViewModel.Tab.primary)
 
+            exploreTab
+                .tabItem {
+                    Label("Explore", systemImage: "safari")
+                }
+                .tag(HomeShellViewModel.Tab.explore)
+
+            messagesTab
+                .tabItem {
+                    Label("Messages", systemImage: "bubble.left.and.bubble.right")
+                }
+                .tag(HomeShellViewModel.Tab.messages)
+
             notificationsTab
                 .tabItem {
                     Label("Notifications", systemImage: "bell")
@@ -46,17 +58,10 @@ struct HomeShellView: View {
     private var primaryTab: some View {
         NavigationStack {
             rolePrimaryTab
-                .navigationDestination(isPresented: routedNotificationIsActive) {
-                    routedNotificationDestination
-                }
-                .navigationTitle("")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .title) {
-                        appLogo
-                            .padding(.leading, -2)
-                    }
-                }
+                .navigationDestination(isPresented: routedNotificationIsActive)
+            {
+                routedNotificationDestination
+            }
         }
     }
 
@@ -68,23 +73,24 @@ struct HomeShellView: View {
         }
     }
 
+    private var exploreTab: some View {
+        NavigationStack {
+            ExploreView()
+        }
+    }
+
+    private var messagesTab: some View {
+        NavigationStack {
+            ConversationListView(userID: viewModel.user.id)
+        }
+    }
+
     private var settingsTab: some View {
         SettingsView(
             user: viewModel.user,
             profileRepository: environment.profileRepository,
             onSignOut: onSignOut
         )
-    }
-
-    private var appLogo: some View {
-        Image("logo-horizontal")
-            .resizable()
-            .renderingMode(.original)
-            .scaledToFit()
-            .frame(width: 132, height: 34, alignment: .leading)
-            .fixedSize(horizontal: true, vertical: true)
-            .allowsHitTesting(false)
-            .accessibilityHidden(true)
     }
 
     private var primaryTabTitle: String {
@@ -109,7 +115,9 @@ struct HomeShellView: View {
     }
 
     @ViewBuilder
-    private func notificationDestination(for route: NotificationRoute) -> some View {
+    private func notificationDestination(for route: NotificationRoute)
+        -> some View
+    {
         switch route {
         case .interests(let listingID):
             interestsDestination(listingID: listingID)
@@ -186,7 +194,9 @@ struct HomeShellView: View {
     }
 
     private func refreshNotificationBadge() async {
-        await viewModel.refreshNotificationBadge(using: environment.notificationsRepository)
+        await viewModel.refreshNotificationBadge(
+            using: environment.notificationsRepository
+        )
     }
 }
 

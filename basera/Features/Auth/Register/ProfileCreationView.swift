@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct ProfileCreationView: View {
     @Binding var fullName: String
@@ -15,25 +16,22 @@ struct ProfileCreationView: View {
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 0) {
                     Spacer()
-                        .frame(height: AppTheme.Spacing.xxLarge)
+                        .frame(height: VdSpacing.xl)
                     headerContainer
                     Spacer()
-                        .frame(height: AppTheme.Spacing.xxLarge)
+                        .frame(height: VdSpacing.xl)
                     inputContainer
                     if let notice {
                         Spacer()
-                            .frame(height: AppTheme.Spacing.large)
+                            .frame(height: VdSpacing.md)
 
-                        BaseraInlineMessageView(
-                            tone: tone(for: notice.style),
-                            message: notice.message
-                        )
+                        noticeContainer(notice)
 
                         Spacer()
-                            .frame(height: AppTheme.Spacing.large)
+                            .frame(height: VdSpacing.md)
                     } else {
                         Spacer()
-                            .frame(height: AppTheme.Spacing.xxLarge)
+                            .frame(height: VdSpacing.xl)
                     }
                     buttonContainer
                 }
@@ -42,7 +40,7 @@ struct ProfileCreationView: View {
                 .padding(.bottom, 8)
                 .frame(maxWidth: .infinity)
             }
-            .background(AppTheme.Colors.backgroundPrimary.ignoresSafeArea())
+            .background(Color.vdBackgroundDefaultBase.ignoresSafeArea())
         }
     }
 
@@ -55,57 +53,76 @@ struct ProfileCreationView: View {
     }
 
     private var headerContainer: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.xSmall) {
-            Text("Complete profile setup")
-                .baseraTextStyle(AppTheme.Typography.headlineLarge)
-                .foregroundStyle(AppTheme.Colors.textPrimary)
+        VStack(alignment: .leading, spacing: VdSpacing.xs) {
+            Text("Complete your profile")
+                .vdFont(VdFont.headlineLarge)
+                .foregroundStyle(Color.vdContentDefaultBase)
 
             Text("Tell us your full name and phone number so owners and renters can trust account records.")
-                .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                .foregroundStyle(AppTheme.Colors.textSecondary)
+                .vdFont(VdFont.bodyLarge)
+                .foregroundStyle(Color.vdContentDefaultSecondary)
         }
     }
 
     private var inputContainer: some View {
-        VStack(spacing: AppTheme.Spacing.large) {
-            BaseraTextField(
-                title: "Full Name",
-                prompt: "Full Name",
+        VStack(spacing: VdSpacing.md) {
+            VdTextField(
+                "Full Name",
                 text: $fullName,
-                textContentType: .name,
-                errorMessage: fullNameValidationMessage
+                placeholder: "Full Name",
+                state: inputState(for: fullNameValidationMessage),
+                leadingIcon: "person.fill",
+                helperText: fullNameValidationMessage
             )
 
-            BaseraTextField(
-                title: "Phone Number",
-                prompt: "+97798XXXXXXXX",
+            VdTextField(
+                "Phone Number",
                 text: $phoneNumber,
-                keyboardType: .phonePad,
-                textContentType: .telephoneNumber,
-                textInputAutocapitalization: .never,
-                errorMessage: phoneNumberValidationMessage
+                placeholder: "+97798XXXXXXXX",
+                state: inputState(for: phoneNumberValidationMessage),
+                leadingIcon: "phone.fill",
+                helperText: phoneNumberValidationMessage
             )
         }
     }
 
     private var buttonContainer: some View {
-        BaseraButton(
-            title: "Complete Profile",
-            style: .primary,
-            isLoading: isLoading,
-            action: onSubmit
+        VdButton("Complete Profile",fullWidth:true, isLoading: isLoading, action: onSubmit)
+            .frame(maxWidth: .infinity)
+    }
+
+    private func noticeContainer(_ notice: AuthStepNotice) -> some View {
+        VdAlert(
+            color: alertColor(for: notice.style),
+            title: alertTitle(for: notice.style),
+            description: notice.message
         )
     }
 
-    private func tone(for style: AuthStepNotice.Style) -> BaseraInlineMessageView.Tone {
+    private func alertColor(for style: AuthStepNotice.Style) -> VdAlertColor {
         switch style {
         case .info:
-            .info
+            return .info
         case .success:
-            .success
+            return .success
         case .error:
-            .error
+            return .error
         }
+    }
+
+    private func alertTitle(for style: AuthStepNotice.Style) -> String {
+        switch style {
+        case .info:
+            return "Info"
+        case .success:
+            return "Success"
+        case .error:
+            return "Please Check"
+        }
+    }
+
+    private func inputState(for validationMessage: String?) -> VdInputState {
+        validationMessage?.isEmpty == false ? .error : .default
     }
 }
 

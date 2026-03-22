@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct ListingEditorView: View {
     @Environment(\.dismiss) private var dismiss
@@ -12,10 +13,10 @@ struct ListingEditorView: View {
     }
 
     var body: some View {
-        VStack(spacing: AppTheme.Spacing.medium) {
+        VStack(spacing: VdSpacing.smMd) {
             Text("Step \(viewModel.step.rawValue + 1) of \(ListingEditorViewModel.Step.allCases.count): \(viewModel.step.title)")
-                .baseraTextStyle(AppTheme.Typography.bodySmall)
-                .foregroundStyle(AppTheme.Colors.textSecondary)
+                .vdFont(VdFont.bodySmall)
+                .foregroundStyle(Color.vdContentDefaultSecondary)
 
             Form {
                 switch viewModel.step {
@@ -30,11 +31,11 @@ struct ListingEditorView: View {
             }
             .baseraListBackground()
 
-            HStack(spacing: AppTheme.Spacing.small) {
-                BaseraButton(title: "Back", style: .secondary, isDisabled: viewModel.step == .basics) {
+            HStack(spacing: VdSpacing.sm) {
+                VdButton(title: "Back", style: .secondary, isDisabled: viewModel.step == .basics) {
                     viewModel.goBack()
                 }
-                BaseraButton(title: viewModel.step == .preview ? (viewModel.isEditing ? "Save Changes" : "Save Draft") : "Next", style: .primary) {
+                VdButton(title: viewModel.step == .preview ? (viewModel.isEditing ? "Save Changes" : "Save Draft") : "Next", style: .primary) {
                     if viewModel.step == .preview {
                         onSave(viewModel.buildListing(status: .draft))
                         dismiss()
@@ -44,7 +45,7 @@ struct ListingEditorView: View {
                 }
             }
             .padding(.horizontal)
-            .padding(.bottom, AppTheme.Spacing.small)
+            .padding(.bottom, VdSpacing.sm)
         }
         .navigationTitle(viewModel.isEditing ? "Edit Listing" : "Create Listing")
         .navigationBarTitleDisplayMode(.inline)
@@ -76,7 +77,7 @@ struct ListingEditorView: View {
                     Label(media.title, systemImage: media.kind == .image ? "photo" : "video")
                     Spacer()
                     Text(media.uploadState == .placeholder ? "Placeholder" : "Ready")
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                        .foregroundStyle(Color.vdContentDefaultSecondary)
                     Button("Mock Upload") {
                         viewModel.markMediaReady(media.id)
                     }

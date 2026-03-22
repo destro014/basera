@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct BaseraAvatar: View {
     let initials: String
@@ -6,10 +7,10 @@ struct BaseraAvatar: View {
 
     var body: some View {
         Text(initials)
-            .baseraTextStyle(AppTheme.Typography.titleMedium)
-            .foregroundStyle(AppTheme.Colors.brandOnPrimary)
+            .vdFont(VdFont.titleMedium)
+            .foregroundStyle(Color.vdContentPrimaryOnBase)
             .frame(width: size, height: size)
-            .background(AppTheme.Colors.brandPrimary)
+            .background(Color.vdBackgroundPrimaryBase)
             .clipShape(Circle())
     }
 }

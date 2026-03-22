@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct AppRootView: View {
     @EnvironmentObject private var environment: AppEnvironment
@@ -8,7 +9,7 @@ struct AppRootView: View {
         Group {
             switch viewModel.route {
             case .loading:
-                BaseraLoadingView(message: "Preparing Basera...")
+                AppStartupLoadingView()
             case .onboarding:
                 OnboardingView(
                     notice: nil,
@@ -69,7 +70,6 @@ struct AppRootView: View {
             Text("You can use \(viewModel.biometricPrompt?.biometryDisplayName ?? "biometrics") for faster login next time.")
         }
         .baseraScreenBackground()
-
     }
 
     private func initialAuthStep(for entryPoint: AuthEntryPoint) -> AuthFlowStep {
@@ -79,6 +79,22 @@ struct AppRootView: View {
         case .registration:
             .registration
         }
+    }
+}
+
+private struct AppStartupLoadingView: View {
+    var body: some View {
+        VStack(spacing: VdSpacing.xl) {
+            Image("logo-vertical")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 180)
+                .accessibilityLabel("Basera")
+
+            VdLoadingState(title: "Preparing Basera...")
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        .baseraScreenBackground()
     }
 }
 

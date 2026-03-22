@@ -1,24 +1,25 @@
 import SwiftUI
+import VroxalDesign
 
 struct ProfilePhotoPickerField: View {
     @Binding var photoURL: URL?
 
     var body: some View {
         ProfileSectionView(title: "Profile Photo") {
-            HStack(spacing: AppTheme.Spacing.medium) {
+            HStack(spacing: VdSpacing.smMd) {
                 BaseraAvatar(initials: photoURL == nil ? "--" : "OK")
-                VStack(alignment: .leading, spacing: AppTheme.Spacing.xSmall) {
+                VStack(alignment: .leading, spacing: VdSpacing.xs) {
                     Text(photoURL == nil ? "No photo uploaded" : "Photo attached")
-                        .baseraTextStyle(AppTheme.Typography.bodyLarge)
+                        .vdFont(VdFont.bodyLarge)
                     Text("Mock upload for development previews")
-                        .baseraTextStyle(AppTheme.Typography.bodySmall)
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                        .vdFont(VdFont.bodySmall)
+                        .foregroundStyle(Color.vdContentDefaultSecondary)
                 }
 
                 Spacer()
             }
 
-            BaseraButton(title: photoURL == nil ? "Upload Photo" : "Remove Photo", style: .secondary) {
+            VdButton(title: photoURL == nil ? "Upload Photo" : "Remove Photo", style: .secondary) {
                 if photoURL == nil {
                     photoURL = URL(string: "https://example.com/mock/profile.jpg")
                 } else {

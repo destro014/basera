@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct OwnerInterestedRentersView: View {
     @EnvironmentObject private var environment: AppEnvironment
@@ -15,7 +16,7 @@ struct OwnerInterestedRentersView: View {
     var body: some View {
         List {
             if let assignment = viewModel.assignment {
-                BaseraInlineMessageView(
+                VdAlert(
                     tone: assignment.status == .accepted ? .success : .info,
                     message: "Assignment: \(assignment.status.label). Listing remains visible until agreement is signed."
                 )
@@ -24,14 +25,18 @@ struct OwnerInterestedRentersView: View {
             Section("Scheduled Visits") {
                 if viewModel.visits.isEmpty {
                     Text("No visits scheduled yet.")
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                        .foregroundStyle(Color.vdContentDefaultSecondary)
                 } else {
                     ForEach(viewModel.visits) { visit in
-                        VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+                        VStack(alignment: .leading, spacing: VdSpacing.sm) {
                             Text("Renter: \(visit.renterID)")
                             Text(visit.scheduledAt, style: .date)
                             Text(visit.scheduledAt, style: .time)
-                            BaseraBadge(text: visit.status.label, tone: visit.status == .confirmed ? AppTheme.Colors.successPrimary : AppTheme.Colors.warningPrimary)
+                            VdBadge(
+                                visit.status.label,
+                                color: visit.status == .confirmed ? .success : .warning,
+                                style: .subtle
+                            )
                         }
                     }
                 }
@@ -39,21 +44,21 @@ struct OwnerInterestedRentersView: View {
 
             Section("Interested Renters") {
                 ForEach(viewModel.interests) { interest in
-                    VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+                    VStack(alignment: .leading, spacing: VdSpacing.sm) {
                         Text(interest.renterSnapshot.fullName)
-                            .baseraTextStyle(AppTheme.Typography.titleSmall)
+                            .vdFont(VdFont.titleSmall)
                         Text("\(interest.renterSnapshot.occupation) • Family \(interest.renterSnapshot.familySize)")
-                            .baseraTextStyle(AppTheme.Typography.bodySmall)
-                            .foregroundStyle(AppTheme.Colors.textSecondary)
+                            .vdFont(VdFont.bodySmall)
+                            .foregroundStyle(Color.vdContentDefaultSecondary)
                         Text(interest.submittedMessage)
-                            .baseraTextStyle(AppTheme.Typography.bodySmall)
+                            .vdFont(VdFont.bodySmall)
                         HStack {
-                            BaseraBadge(text: interest.status.label, tone: statusTone(interest.status))
-                            BaseraBadge(text: interest.chatApproval.label, tone: chatTone(interest.chatApproval))
+                            VdBadge(interest.status.label, color: statusTone(interest.status), style: .subtle)
+                            VdBadge(interest.chatApproval.label, color: chatTone(interest.chatApproval), style: .subtle)
                         }
                         actionRow(for: interest)
                     }
-                    .padding(.vertical, AppTheme.Spacing.xSmall)
+                    .padding(.vertical, VdSpacing.xs)
                 }
             }
         }
@@ -92,28 +97,28 @@ struct OwnerInterestedRentersView: View {
     private func actionRow(for interest: InterestRequest) -> some View {
         HStack {
             if interest.status == .pending {
-                BaseraButton(title: "Accept", style: .primary) {
+                VdButton(title: "Accept", style: .primary) {
                     Task { await viewModel.accept(interest.id, using: environment.interestsRepository) }
                 }
-                BaseraButton(title: "Reject", style: .secondary) {
+                VdButton(title: "Reject", style: .secondary) {
                     Task { await viewModel.reject(interest.id, using: environment.interestsRepository) }
                 }
             } else if interest.canApproveChat {
-                BaseraButton(title: "Approve Chat", style: .primary) {
+                VdButton(title: "Approve Chat", style: .primary) {
                     Task { await viewModel.approveChat(interest.id, using: environment.interestsRepository) }
                 }
             } else if interest.canOpenChat {
                 NavigationLink("Open Chat") {
                     ConversationListView(userID: viewModel.ownerID)
                 }
-                BaseraButton(title: "Schedule Visit", style: .secondary) {
+                VdButton(title: "Schedule Visit", style: .secondary) {
                     scheduledAt = .now
                     visitNote = ""
                     schedulingRenterID = interest.renterID
                     isScheduleSheetPresented = true
                 }
                 if viewModel.canRequestAssignment(for: interest) {
-                    BaseraButton(title: "Request Assignment", style: .primary) {
+                    VdButton(title: "Request Assignment", style: .primary) {
                         Task {
                             await viewModel.requestAssignment(
                                 interestID: interest.id,
@@ -128,19 +133,19 @@ struct OwnerInterestedRentersView: View {
         }
     }
 
-    private func statusTone(_ status: InterestRequest.Status) -> Color {
+    private func statusTone(_ status: InterestRequest.Status) -> VdBadgeColor {
         switch status {
-        case .pending: AppTheme.Colors.warningPrimary
-        case .accepted: AppTheme.Colors.successPrimary
-        case .rejected: AppTheme.Colors.errorPrimary
+        case .pending: .warning
+        case .accepted: .success
+        case .rejected: .error
         }
     }
 
-    private func chatTone(_ state: InterestRequest.ChatApproval) -> Color {
+    private func chatTone(_ state: InterestRequest.ChatApproval) -> VdBadgeColor {
         switch state {
-        case .unavailable: AppTheme.Colors.textSecondary
-        case .awaitingOwnerApproval: AppTheme.Colors.warningPrimary
-        case .approved: AppTheme.Colors.successPrimary
+        case .unavailable: .neutral
+        case .awaitingOwnerApproval: .warning
+        case .approved: .success
         }
     }
 }

@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct OwnerProfileFormView: View {
     @State private var profile: OwnerProfile
@@ -13,28 +14,28 @@ struct OwnerProfileFormView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: AppTheme.Spacing.large) {
+            VStack(spacing: VdSpacing.md) {
                 ProfilePhotoPickerField(photoURL: $profile.profilePhotoURL)
 
                 ProfileSectionView(title: "Basic Details") {
-                    BaseraTextField(title: "Full Name", text: $profile.fullName, textContentType: .name)
-                    BaseraTextField(title: "Phone", text: $profile.phoneNumber, keyboardType: .phonePad, textContentType: .telephoneNumber)
-                    BaseraTextField(title: "Email", text: $profile.email, keyboardType: .emailAddress, textContentType: .emailAddress, textInputAutocapitalization: .never)
-                    BaseraTextField(title: "Address", text: $profile.address)
+                    VdTextField(title: "Full Name", text: $profile.fullName, textContentType: .name)
+                    VdTextField(title: "Phone", text: $profile.phoneNumber, keyboardType: .phonePad, textContentType: .telephoneNumber)
+                    VdTextField(title: "Email", text: $profile.email, keyboardType: .emailAddress, textContentType: .emailAddress, textInputAutocapitalization: .never)
+                    VdTextField(title: "Address", text: $profile.address)
                 }
 
                 IdentityVerificationIntroView()
                 NationalIDUploadView(uploadState: $profile.idDocumentState)
 
                 ProfileSectionView(title: "Bank and Payment Details", subtitle: "Used for monthly invoices, partial payments, and advance tracking") {
-                    BaseraTextField(title: "Bank Name", text: $profile.paymentDetails.bankName)
-                    BaseraTextField(title: "Account Name", text: $profile.paymentDetails.accountName)
-                    BaseraTextField(title: "Account Number", text: $profile.paymentDetails.accountNumber, keyboardType: .numberPad)
-                    BaseraTextField(title: "eSewa ID", text: $profile.paymentDetails.esewaID, keyboardType: .phonePad)
-                    BaseraTextField(title: "Fonepay Number", text: $profile.paymentDetails.fonepayNumber, keyboardType: .phonePad)
+                    VdTextField(title: "Bank Name", text: $profile.paymentDetails.bankName)
+                    VdTextField(title: "Account Name", text: $profile.paymentDetails.accountName)
+                    VdTextField(title: "Account Number", text: $profile.paymentDetails.accountNumber, keyboardType: .numberPad)
+                    VdTextField(title: "eSewa ID", text: $profile.paymentDetails.esewaID, keyboardType: .phonePad)
+                    VdTextField(title: "Fonepay Number", text: $profile.paymentDetails.fonepayNumber, keyboardType: .phonePad)
                 }
 
-                BaseraButton(
+                VdButton(
                     title: "Save Owner Profile",
                     style: .primary,
                     isLoading: isSaving,

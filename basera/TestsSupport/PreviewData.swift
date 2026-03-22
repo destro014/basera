@@ -183,6 +183,30 @@ extension PreviewData {
             lastMessagePreview: "Please bring your citizenship copy for verification.",
             lastUpdatedAt: Calendar.current.date(byAdding: .hour, value: -1, to: .now) ?? .now,
             unreadCount: 2
+        ),
+        ChatConversation(
+            id: "CHAT-101",
+            listingID: "L-102",
+            ownerID: "owner-bkt-01",
+            renterID: "preview-user-001",
+            participantName: "Owner: Asha Lama",
+            listingTitle: "Pet-friendly Apartment in Bhaktapur",
+            interestID: "INT-201",
+            lastMessagePreview: "Parking slot is available from next month.",
+            lastUpdatedAt: Calendar.current.date(byAdding: .hour, value: -5, to: .now) ?? .now,
+            unreadCount: 0
+        ),
+        ChatConversation(
+            id: "CHAT-102",
+            listingID: "L-104",
+            ownerID: "owner-ktm-02",
+            renterID: "preview-user-001",
+            participantName: "Owner: Nabin Adhikari",
+            listingTitle: "Furnished Room with Parking in Baneshwor",
+            interestID: "INT-202",
+            lastMessagePreview: "Thanks, we can discuss utility split in person.",
+            lastUpdatedAt: Calendar.current.date(byAdding: .day, value: -1, to: .now) ?? .now,
+            unreadCount: 1
         )
     ]
 
@@ -191,6 +215,14 @@ extension PreviewData {
             ChatMessage(id: "MSG-1", conversationID: "CHAT-100", senderID: "owner-xyz", body: "Namaste! Your interest is accepted and chat is approved.", sentAt: Calendar.current.date(byAdding: .hour, value: -5, to: .now) ?? .now),
             ChatMessage(id: "MSG-2", conversationID: "CHAT-100", senderID: "preview-user-001", body: "Thank you. Can we schedule a visit on Saturday?", sentAt: Calendar.current.date(byAdding: .hour, value: -4, to: .now) ?? .now),
             ChatMessage(id: "MSG-3", conversationID: "CHAT-100", senderID: "owner-xyz", body: "Yes, Saturday 11 AM works.", sentAt: Calendar.current.date(byAdding: .hour, value: -3, to: .now) ?? .now)
+        ],
+        "CHAT-101": [
+            ChatMessage(id: "MSG-4", conversationID: "CHAT-101", senderID: "preview-user-001", body: "Hi, is parking available for one bike and one car?", sentAt: Calendar.current.date(byAdding: .hour, value: -8, to: .now) ?? .now),
+            ChatMessage(id: "MSG-5", conversationID: "CHAT-101", senderID: "owner-bkt-01", body: "Bike parking is immediate, car parking starts next month.", sentAt: Calendar.current.date(byAdding: .hour, value: -7, to: .now) ?? .now)
+        ],
+        "CHAT-102": [
+            ChatMessage(id: "MSG-6", conversationID: "CHAT-102", senderID: "owner-ktm-02", body: "Would you like to visit this evening?", sentAt: Calendar.current.date(byAdding: .hour, value: -26, to: .now) ?? .now),
+            ChatMessage(id: "MSG-7", conversationID: "CHAT-102", senderID: "preview-user-001", body: "Tomorrow morning works better for me.", sentAt: Calendar.current.date(byAdding: .hour, value: -25, to: .now) ?? .now)
         ]
     ]
 }

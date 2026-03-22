@@ -180,7 +180,8 @@ actor MockInterestsRepository: InterestsRepositoryProtocol {
     }
 
     func fetchConversations(for userID: String) async throws -> [ChatConversation] {
-        conversations
+        seedConversationsIfNeeded(for: userID)
+        return conversations
             .filter { $0.ownerID == userID || $0.renterID == userID }
             .sorted { $0.lastUpdatedAt > $1.lastUpdatedAt }
     }
@@ -226,5 +227,81 @@ actor MockInterestsRepository: InterestsRepositoryProtocol {
             renterPendingResponses: interests.filter { $0.renterID == userID && $0.status == .pending }.count,
             renterChatApprovals: interests.filter { $0.renterID == userID && $0.chatApproval == .approved }.count
         )
+    }
+
+    private func seedConversationsIfNeeded(for userID: String) {
+        let hasExistingConversation = conversations.contains { $0.ownerID == userID || $0.renterID == userID }
+        guard !hasExistingConversation else { return }
+
+        let now = Date()
+
+        let firstConversation = ChatConversation(
+            id: "CHAT-SAMPLE-001-\(userID)",
+            listingID: "L-100",
+            ownerID: "owner-sample-001",
+            renterID: userID,
+            participantName: "Owner: Prakash Shrestha",
+            listingTitle: "Sunny Family Flat in Jawalakhel",
+            interestID: "INT-SAMPLE-001-\(userID)",
+            lastMessagePreview: "You can visit on Saturday at 11:00 AM.",
+            lastUpdatedAt: Calendar.current.date(byAdding: .minute, value: -25, to: now) ?? now,
+            unreadCount: 2
+        )
+
+        let secondConversation = ChatConversation(
+            id: "CHAT-SAMPLE-002-\(userID)",
+            listingID: "L-102",
+            ownerID: "owner-sample-002",
+            renterID: userID,
+            participantName: "Owner: Asha Lama",
+            listingTitle: "Pet-friendly Apartment in Bhaktapur",
+            interestID: "INT-SAMPLE-002-\(userID)",
+            lastMessagePreview: "Great, I will share the checklist before move-in.",
+            lastUpdatedAt: Calendar.current.date(byAdding: .hour, value: -2, to: now) ?? now,
+            unreadCount: 0
+        )
+
+        conversations.insert(contentsOf: [firstConversation, secondConversation], at: 0)
+
+        messagesByConversationID[firstConversation.id] = [
+            ChatMessage(
+                id: "MSG-SAMPLE-001-\(userID)",
+                conversationID: firstConversation.id,
+                senderID: "owner-sample-001",
+                body: "Namaste, your interest is approved.",
+                sentAt: Calendar.current.date(byAdding: .hour, value: -5, to: now) ?? now
+            ),
+            ChatMessage(
+                id: "MSG-SAMPLE-002-\(userID)",
+                conversationID: firstConversation.id,
+                senderID: userID,
+                body: "Thank you. Can we visit this weekend?",
+                sentAt: Calendar.current.date(byAdding: .hour, value: -4, to: now) ?? now
+            ),
+            ChatMessage(
+                id: "MSG-SAMPLE-003-\(userID)",
+                conversationID: firstConversation.id,
+                senderID: "owner-sample-001",
+                body: "You can visit on Saturday at 11:00 AM.",
+                sentAt: Calendar.current.date(byAdding: .hour, value: -3, to: now) ?? now
+            )
+        ]
+
+        messagesByConversationID[secondConversation.id] = [
+            ChatMessage(
+                id: "MSG-SAMPLE-004-\(userID)",
+                conversationID: secondConversation.id,
+                senderID: userID,
+                body: "I am interested in the apartment rules for pets.",
+                sentAt: Calendar.current.date(byAdding: .hour, value: -7, to: now) ?? now
+            ),
+            ChatMessage(
+                id: "MSG-SAMPLE-005-\(userID)",
+                conversationID: secondConversation.id,
+                senderID: "owner-sample-002",
+                body: "Small pets are allowed and water is included.",
+                sentAt: Calendar.current.date(byAdding: .hour, value: -6, to: now) ?? now
+            )
+        ]
     }
 }

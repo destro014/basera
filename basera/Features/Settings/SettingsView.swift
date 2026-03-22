@@ -1,6 +1,9 @@
 import SwiftUI
+import VroxalDesign
 
 struct SettingsView: View {
+    @EnvironmentObject private var environment: AppEnvironment
+
     let user: AppUser
     let profileRepository: ProfileRepositoryProtocol
     let onSignOut: () -> Void
@@ -11,21 +14,21 @@ struct SettingsView: View {
                 Section {
                     HStack {
                         BaseraAvatar(initials: initials)
-                        VStack(alignment: .leading, spacing: AppTheme.Spacing.xSmall) {
+                        VStack(alignment: .leading, spacing: VdSpacing.xs) {
                             Text(user.displayName)
-                                .baseraTextStyle(AppTheme.Typography.titleMedium)
-                                .foregroundStyle(AppTheme.Colors.textPrimary)
+                                .vdFont(VdFont.titleMedium)
+                                .foregroundStyle(Color.vdContentDefaultBase)
                             if user.email.isEmpty == false {
                                 Text(user.email)
-                                    .baseraTextStyle(AppTheme.Typography.bodySmall)
-                                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                                    .vdFont(VdFont.bodySmall)
+                                    .foregroundStyle(Color.vdContentDefaultSecondary)
                             }
                             Text(user.phoneNumber)
-                                .baseraTextStyle(AppTheme.Typography.bodySmall)
-                                .foregroundStyle(AppTheme.Colors.textSecondary)
+                                .vdFont(VdFont.bodySmall)
+                                .foregroundStyle(Color.vdContentDefaultSecondary)
                         }
                     }
-                    .listRowBackground(AppTheme.Colors.surfacePrimary)
+                    .listRowBackground(Color.vdBackgroundDefaultSecondary)
 
                     NavigationLink {
                         ProfileHubView(
@@ -35,26 +38,64 @@ struct SettingsView: View {
                     } label: {
                         HStack {
                             Text("Profile and Verification")
-                                .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                                .foregroundStyle(AppTheme.Colors.textPrimary)
+                                .vdFont(VdFont.bodyLarge)
+                                .foregroundStyle(Color.vdContentDefaultBase)
                             Spacer()
                         }
                     }
-                    .listRowBackground(AppTheme.Colors.surfacePrimary)
+                    .listRowBackground(Color.vdBackgroundDefaultSecondary)
                 } header: {
                     Text("Account")
-                        .baseraTextStyle(AppTheme.Typography.labelLarge)
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                        .vdFont(VdFont.labelLarge)
+                        .foregroundStyle(Color.vdContentDefaultSecondary)
+                }
+
+                Section {
+                    ForEach(quickActionItems, id: \.title) { item in
+                        NavigationLink {
+                            item.destination
+                        } label: {
+                            HStack {
+                                Label(item.title, systemImage: item.systemImage)
+                                    .vdFont(VdFont.bodyLarge)
+                                    .foregroundStyle(Color.vdContentDefaultBase)
+                                Spacer()
+                            }
+                        }
+                        .listRowBackground(Color.vdBackgroundDefaultSecondary)
+                    }
+                } header: {
+                    Text("Quick Actions")
+                        .vdFont(VdFont.labelLarge)
+                        .foregroundStyle(Color.vdContentDefaultSecondary)
+                }
+
+                Section {
+                    NavigationLink {
+                        VdPreviewGallery()
+                    } label: {
+                        HStack {
+                            Label("Vroxal Preview Gallery", systemImage: "square.grid.3x2")
+                                .vdFont(VdFont.bodyLarge)
+                                .foregroundStyle(Color.vdContentDefaultBase)
+                            Spacer()
+                        }
+                    }
+                    .listRowBackground(Color.vdBackgroundDefaultSecondary)
+                } header: {
+                    Text("Design System")
+                        .vdFont(VdFont.labelLarge)
+                        .foregroundStyle(Color.vdContentDefaultSecondary)
                 }
 
                 Section {
                     Button(action: onSignOut) {
                         Text("Sign Out")
-                            .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                            .foregroundStyle(AppTheme.Colors.errorPrimary)
+                            .vdFont(VdFont.bodyLarge)
+                            .foregroundStyle(Color.vdContentErrorBase)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .listRowBackground(AppTheme.Colors.surfacePrimary)
+                    .listRowBackground(Color.vdBackgroundDefaultSecondary)
                 }
             }
             .listStyle(.insetGrouped)
@@ -71,6 +112,63 @@ struct SettingsView: View {
             .map(String.init)
             .joined()
     }
+
+    private var quickActionItems: [QuickActionItem] {
+        switch user.role {
+        case .renter:
+            [
+                QuickActionItem(
+                    title: "My Interest Requests",
+                    systemImage: "paperplane",
+                    destination: AnyView(RenterInterestsView(renterID: user.id))
+                ),
+                QuickActionItem(
+                    title: "My Agreement",
+                    systemImage: "doc.richtext",
+                    destination: AnyView(
+                        AgreementHubView(currentUserID: user.id, party: .renter)
+                    )
+                ),
+                QuickActionItem(
+                    title: "Reviews & Ratings",
+                    systemImage: "star.bubble",
+                    destination: AnyView(
+                        ReviewHubView(userID: user.id, role: .renter)
+                            .environmentObject(environment)
+                    )
+                )
+            ]
+        case .owner:
+            [
+                QuickActionItem(
+                    title: "Manage My Listings",
+                    systemImage: "building.2",
+                    destination: AnyView(MyListingsView(ownerID: user.id))
+                ),
+                QuickActionItem(
+                    title: "Agreement Hub",
+                    systemImage: "doc.richtext",
+                    destination: AnyView(
+                        AgreementHubView(currentUserID: user.id, party: .owner)
+                    )
+                ),
+                QuickActionItem(
+                    title: "Reviews & Ratings",
+                    systemImage: "star.bubble",
+                    destination: AnyView(
+                        ReviewHubView(userID: user.id, role: .owner)
+                            .environmentObject(environment)
+                    )
+                )
+            ]
+        }
+    }
+}
+
+private struct QuickActionItem {
+    let title: String
+    let systemImage: String
+    let destination: AnyView
 }
 
 #Preview {

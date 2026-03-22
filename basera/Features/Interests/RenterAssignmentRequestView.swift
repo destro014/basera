@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct RenterAssignmentRequestView: View {
     let assignment: ListingAssignment
@@ -6,27 +7,27 @@ struct RenterAssignmentRequestView: View {
     let onDecline: () -> Void
 
     var body: some View {
-        VStack(spacing: AppTheme.Spacing.large) {
+        VStack(spacing: VdSpacing.md) {
             BaseraCard {
-                VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+                VStack(alignment: .leading, spacing: VdSpacing.sm) {
                     Text("Assignment Request")
-                        .baseraTextStyle(AppTheme.Typography.titleLarge)
+                        .vdFont(VdFont.titleLarge)
                     Text("Listing \(assignment.listingID)")
-                        .baseraTextStyle(AppTheme.Typography.bodyMedium)
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                        .vdFont(VdFont.bodyMedium)
+                        .foregroundStyle(Color.vdContentDefaultSecondary)
                     Text(assignment.note)
-                        .baseraTextStyle(AppTheme.Typography.bodyLarge)
+                        .vdFont(VdFont.bodyLarge)
                 }
             }
 
-            BaseraInlineMessageView(
+            VdAlert(
                 tone: .info,
                 message: "Accept assignment to unlock agreement creation. Listing remains public until agreement signing is complete."
             )
 
-            HStack(spacing: AppTheme.Spacing.medium) {
-                BaseraButton(title: "Decline", style: .secondary, action: onDecline)
-                BaseraButton(title: "Accept", style: .primary, action: onAccept)
+            HStack(spacing: VdSpacing.smMd) {
+                VdButton(title: "Decline", style: .secondary, action: onDecline)
+                VdButton(title: "Accept", style: .primary, action: onAccept)
             }
             Spacer()
         }

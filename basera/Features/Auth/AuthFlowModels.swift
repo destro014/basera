@@ -141,7 +141,7 @@ enum AuthError: LocalizedError, Equatable {
         case .biometricCredentialsMissing:
             "Saved credentials are missing. Login with email and password."
         case .supabaseConfigurationMissing:
-            "Supabase is not configured in this build. Add BASERA_SUPABASE_URL and BASERA_SUPABASE_ANON_KEY in your run scheme."
+            "Supabase is not configured. Set BASERA_SUPABASE_URL and BASERA_SUPABASE_ANON_KEY in your Xcode run scheme or Info.plist, then launch once to cache them on-device."
         case .unexpected:
             "Something went wrong. Please try again."
         }

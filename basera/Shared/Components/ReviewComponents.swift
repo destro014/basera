@@ -1,24 +1,25 @@
 import SwiftUI
+import VroxalDesign
 
 struct ReviewRatingSummaryCard: View {
     let summary: ReviewRatingSummary
 
     var body: some View {
         BaseraCard {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+            VStack(alignment: .leading, spacing: VdSpacing.sm) {
                 Text("Your public rating")
-                    .baseraTextStyle(AppTheme.Typography.titleMedium)
+                    .vdFont(VdFont.titleMedium)
 
                 if summary.reviewCount == 0 {
                     Text("No public reviews yet.")
-                        .baseraTextStyle(AppTheme.Typography.bodyMedium)
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                        .vdFont(VdFont.bodyMedium)
+                        .foregroundStyle(Color.vdContentDefaultSecondary)
                 } else {
                     Text(String(format: "%.1f ★", summary.averageRating))
-                        .baseraTextStyle(AppTheme.Typography.titleLarge)
+                        .vdFont(VdFont.titleLarge)
                     Text("Based on \(summary.reviewCount) review(s)")
-                        .baseraTextStyle(AppTheme.Typography.bodySmall)
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                        .vdFont(VdFont.bodySmall)
+                        .foregroundStyle(Color.vdContentDefaultSecondary)
                 }
             }
         }
@@ -31,23 +32,23 @@ struct PublicReviewCard: View {
 
     var body: some View {
         BaseraCard {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+            VStack(alignment: .leading, spacing: VdSpacing.sm) {
                 Text("\(review.reviewerName) • \(review.stage.title)")
-                    .baseraTextStyle(AppTheme.Typography.bodySmall)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .vdFont(VdFont.bodySmall)
+                    .foregroundStyle(Color.vdContentDefaultSecondary)
                 Text(review.ratingLabel)
-                    .baseraTextStyle(AppTheme.Typography.titleSmall)
+                    .vdFont(VdFont.titleSmall)
                 Text(review.comment)
-                    .baseraTextStyle(AppTheme.Typography.bodyMedium)
+                    .vdFont(VdFont.bodyMedium)
                 Button("Report review", action: onReportTapped)
-                    .baseraTextStyle(AppTheme.Typography.bodySmall)
+                    .vdFont(VdFont.bodySmall)
             }
         }
     }
 }
 
 #Preview {
-    VStack(spacing: AppTheme.Spacing.medium) {
+    VStack(spacing: VdSpacing.smMd) {
         ReviewRatingSummaryCard(summary: .init(averageRating: 4.7, reviewCount: 12))
         PublicReviewCard(review: PreviewData.mockReviews[0], onReportTapped: {})
     }

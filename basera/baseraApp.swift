@@ -8,8 +8,7 @@ struct BaseraApp: App {
 
     init() {
         VdFont.register()
-
-        BaseraFontRegistrar.registerIfNeeded()
+        SupabaseConfigurationWarmup.seedCacheFromRuntimeIfAvailable()
     }
 
     var body: some Scene {

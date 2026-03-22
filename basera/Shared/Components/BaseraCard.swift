@@ -1,11 +1,12 @@
 import SwiftUI
+import VroxalDesign
 
 struct BaseraCard<Content: View>: View {
     let backgroundColor: Color
     @ViewBuilder let content: Content
 
     init(
-        backgroundColor: Color = AppTheme.Colors.surfacePrimary,
+        backgroundColor: Color = Color.vdBackgroundDefaultSecondary,
         @ViewBuilder content: () -> Content
     ) {
         self.backgroundColor = backgroundColor
@@ -14,18 +15,18 @@ struct BaseraCard<Content: View>: View {
 
     var body: some View {
         content
-            .padding(AppTheme.Spacing.large)
+            .padding(VdSpacing.md)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(backgroundColor)
-            .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.large, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: VdRadius.lg, style: .continuous))
     }
 }
 
 #Preview {
     BaseraCard {
         Text("Basera card content")
-            .baseraTextStyle(AppTheme.Typography.bodyLarge)
-            .foregroundStyle(AppTheme.Colors.textPrimary)
+            .vdFont(VdFont.bodyLarge)
+            .foregroundStyle(Color.vdContentDefaultBase)
     }
     .padding()
 }

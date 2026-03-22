@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct RenterProfileFormView: View {
     @State private var profile: RenterProfile
@@ -13,47 +14,47 @@ struct RenterProfileFormView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: AppTheme.Spacing.large) {
+            VStack(spacing: VdSpacing.md) {
                 ProfilePhotoPickerField(photoURL: $profile.profilePhotoURL)
 
                 ProfileSectionView(title: "Basic Details") {
-                    BaseraTextField(title: "Full Name", text: $profile.fullName, textContentType: .name)
-                    BaseraTextField(title: "Phone", text: $profile.phoneNumber, keyboardType: .phonePad, textContentType: .telephoneNumber)
-                    BaseraTextField(title: "Email", text: $profile.email, keyboardType: .emailAddress, textContentType: .emailAddress, textInputAutocapitalization: .never)
-                    BaseraTextField(title: "Occupation", text: $profile.occupation)
+                    VdTextField(title: "Full Name", text: $profile.fullName, textContentType: .name)
+                    VdTextField(title: "Phone", text: $profile.phoneNumber, keyboardType: .phonePad, textContentType: .telephoneNumber)
+                    VdTextField(title: "Email", text: $profile.email, keyboardType: .emailAddress, textContentType: .emailAddress, textInputAutocapitalization: .never)
+                    VdTextField(title: "Occupation", text: $profile.occupation)
                 }
 
                 ProfileSectionView(title: "Household Preferences") {
                     Stepper(value: $profile.familySize, in: 1...20) {
                         Text("Family Size: \(profile.familySize)")
-                            .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                            .foregroundStyle(AppTheme.Colors.textPrimary)
+                            .vdFont(VdFont.bodyLarge)
+                            .foregroundStyle(Color.vdContentDefaultBase)
                     }
-                    .tint(AppTheme.Colors.brandPrimary)
+                    .tint(Color.vdContentPrimaryBase)
 
                     Toggle(isOn: $profile.hasPets) {
                         Text("Pets")
-                            .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                            .foregroundStyle(AppTheme.Colors.textPrimary)
+                            .vdFont(VdFont.bodyLarge)
+                            .foregroundStyle(Color.vdContentDefaultBase)
                     }
-                    .tint(AppTheme.Colors.brandPrimary)
+                    .tint(Color.vdContentPrimaryBase)
 
                     Picker(selection: $profile.smokingStatus) {
                         ForEach(SmokingStatus.allCases) { status in
                             Text(status.title)
-                                .baseraTextStyle(AppTheme.Typography.labelMedium)
+                                .vdFont(VdFont.labelMedium)
                                 .tag(status)
                         }
                     } label: {
                         Text("Smoking Status")
-                            .baseraTextStyle(AppTheme.Typography.labelLarge)
-                            .foregroundStyle(AppTheme.Colors.textPrimary)
+                            .vdFont(VdFont.labelLarge)
+                            .foregroundStyle(Color.vdContentDefaultBase)
                     }
                     .pickerStyle(.segmented)
-                    .tint(AppTheme.Colors.brandPrimary)
+                    .tint(Color.vdContentPrimaryBase)
                 }
 
-                BaseraButton(
+                VdButton(
                     title: "Save Renter Profile",
                     style: .primary,
                     isLoading: isSaving,

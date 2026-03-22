@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct MoveOutFlowView: View {
     @EnvironmentObject private var environment: AppEnvironment
@@ -18,7 +19,7 @@ struct MoveOutFlowView: View {
             Section("Tenancy closure state") {
                 Text(viewModel.tenancy.closureState.title)
                 Text("Owner cannot force tenancy closure outside this flow.")
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .foregroundStyle(Color.vdContentDefaultSecondary)
             }
 
             if party == .renter {
@@ -47,9 +48,9 @@ struct MoveOutFlowView: View {
     private var renterRequestSection: some View {
         Section("Renter move-out request") {
             DatePicker("Requested move-out date", selection: $viewModel.requestDate, displayedComponents: .date)
-            BaseraTextField(title: "Reason", text: $viewModel.requestReason)
-            BaseraTextField(title: "Condition notes", text: $viewModel.conditionNotes)
-            BaseraTextField(title: "Photo placeholders (comma separated)", text: $viewModel.photoPlaceholderInput)
+            VdTextField(title: "Reason", text: $viewModel.requestReason)
+            VdTextField(title: "Condition notes", text: $viewModel.conditionNotes)
+            VdTextField(title: "Photo placeholders (comma separated)", text: $viewModel.photoPlaceholderInput)
             Button("Submit move-out request") {
                 Task {
                     await viewModel.submitRenterMoveOutRequest(userID: userID, repository: environment.tenancyRepository)
@@ -66,13 +67,13 @@ struct MoveOutFlowView: View {
                 Text("Condition notes: \(request.conditionNotes)")
                 if request.photoPlaceholders.isEmpty == false {
                     Text("Photos: \(request.photoPlaceholders.joined(separator: ", "))")
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                        .foregroundStyle(Color.vdContentDefaultSecondary)
                 }
             } else {
                 Text("No request yet")
             }
 
-            BaseraTextField(title: "Owner note", text: $viewModel.ownerNote)
+            VdTextField(title: "Owner note", text: $viewModel.ownerNote)
             HStack {
                 Button("Approve request") {
                     Task {
@@ -95,8 +96,8 @@ struct MoveOutFlowView: View {
             } else {
                 ForEach($viewModel.checklistItems) { $item in
                     Toggle(item.title, isOn: $item.isCompleted)
-                    BaseraTextField(title: "Notes", text: $item.notes)
-                    BaseraTextField(title: "Photo placeholders", text: .constant(item.photoPlaceholders.joined(separator: ", ")))
+                    VdTextField(title: "Notes", text: $item.notes)
+                    VdTextField(title: "Photo placeholders", text: .constant(item.photoPlaceholders.joined(separator: ", ")))
                 }
                 Button("Save checklist + final meter") {
                     Task {
@@ -109,9 +110,9 @@ struct MoveOutFlowView: View {
 
     private var meterSection: some View {
         Section("Final meter readings") {
-            BaseraTextField(title: "Electricity", text: $viewModel.electricityReading)
-            BaseraTextField(title: "Water", text: $viewModel.waterReading)
-            BaseraTextField(title: "Internet", text: $viewModel.internetReading)
+            VdTextField(title: "Electricity", text: $viewModel.electricityReading)
+            VdTextField(title: "Water", text: $viewModel.waterReading)
+            VdTextField(title: "Internet", text: $viewModel.internetReading)
         }
     }
 
@@ -122,11 +123,11 @@ struct MoveOutFlowView: View {
                     Text(type.title).tag(type)
                 }
             }
-            BaseraTextField(title: "Deduction title", text: $viewModel.deductionTitle)
-            BaseraTextField(title: "Deduction amount", text: $viewModel.deductionAmount, keyboardType: .decimalPad)
-            BaseraTextField(title: "Deduction note", text: $viewModel.deductionNote)
-            BaseraTextField(title: "Refund amount", text: $viewModel.refundAmount, keyboardType: .decimalPad)
-            BaseraTextField(title: "Settlement summary", text: $viewModel.settlementSummary)
+            VdTextField(title: "Deduction title", text: $viewModel.deductionTitle)
+            VdTextField(title: "Deduction amount", text: $viewModel.deductionAmount, keyboardType: .decimalPad)
+            VdTextField(title: "Deduction note", text: $viewModel.deductionNote)
+            VdTextField(title: "Refund amount", text: $viewModel.refundAmount, keyboardType: .decimalPad)
+            VdTextField(title: "Settlement summary", text: $viewModel.settlementSummary)
             Button("Save settlement") {
                 Task {
                     await viewModel.submitSettlement(userID: userID, repository: environment.tenancyRepository)
@@ -155,7 +156,7 @@ struct MoveOutFlowView: View {
             Text(viewModel.tenancy.listingReactivation.isReady ? "Ready for future reuse" : "Pending before reuse")
             ForEach(viewModel.tenancy.listingReactivation.pendingItems, id: \.self) { item in
                 Text("• \(item)")
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .foregroundStyle(Color.vdContentDefaultSecondary)
             }
             if party == .owner {
                 NavigationLink("Leave owner review") {

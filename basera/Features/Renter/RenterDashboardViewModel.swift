@@ -40,7 +40,7 @@ final class RenterDashboardViewModel: ObservableObject {
     @Published var searchText = ""
     @Published var filters = ListingFilters()
     @Published private(set) var allListings: [Listing] = []
-    @Published private(set) var favoriteListingIDs: Set<String> = ["L-102"]
+    @Published private(set) var favoriteListingIDs: Set<String> = ["L-100", "L-102", "L-104"]
     @Published private(set) var interestByListingID: [String: InterestRequest.Status] = [:]
 
     var filteredListings: [Listing] {

@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct ChatScreenView: View {
     @EnvironmentObject private var environment: AppEnvironment
@@ -9,16 +10,16 @@ struct ChatScreenView: View {
     }
 
     var body: some View {
-        VStack(spacing: AppTheme.Spacing.small) {
+        VStack(spacing: VdSpacing.sm) {
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+                LazyVStack(alignment: .leading, spacing: VdSpacing.sm) {
                     ForEach(viewModel.messages) { message in
                         HStack {
                             if message.senderID == viewModel.currentUserID { Spacer() }
                             Text(message.body)
-                                .padding(AppTheme.Spacing.small)
-                                .background(message.senderID == viewModel.currentUserID ? AppTheme.Colors.brandPrimary.opacity(0.2) : AppTheme.Colors.surfacePrimary)
-                                .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.medium, style: .continuous))
+                                .padding(VdSpacing.sm)
+                                .background(message.senderID == viewModel.currentUserID ? Color.vdBackgroundPrimaryBase.opacity(0.2) : Color.vdBackgroundDefaultSecondary)
+                                .clipShape(RoundedRectangle(cornerRadius: VdRadius.md, style: .continuous))
                             if message.senderID != viewModel.currentUserID { Spacer() }
                         }
                     }
@@ -27,8 +28,8 @@ struct ChatScreenView: View {
             }
 
             HStack {
-                BaseraTextField(title: "Message", prompt: "Type your message", text: $viewModel.draftMessage)
-                BaseraButton(title: "Send", style: .primary) {
+                VdTextField(title: "Message", prompt: "Type your message", text: $viewModel.draftMessage)
+                VdButton(title: "Send", style: .primary) {
                     Task { await viewModel.send(using: environment.interestsRepository) }
                 }
             }

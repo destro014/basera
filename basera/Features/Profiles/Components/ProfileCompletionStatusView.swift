@@ -1,22 +1,23 @@
 import SwiftUI
+import VroxalDesign
 
 struct ProfileCompletionStatusView: View {
     let status: ProfileCompletionStatus
 
     var body: some View {
         ProfileSectionView(title: "\(status.role.title) Profile Completion") {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+            VStack(alignment: .leading, spacing: VdSpacing.sm) {
                 ProgressView(value: status.progressValue)
-                    .tint(status.isComplete ? AppTheme.Colors.successPrimary : AppTheme.Colors.warningPrimary)
+                    .tint(status.isComplete ? Color.vdContentSuccessBase : Color.vdContentWarningBase)
 
                 Text(status.summaryText)
-                    .baseraTextStyle(AppTheme.Typography.bodySmall)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .vdFont(VdFont.bodySmall)
+                    .foregroundStyle(Color.vdContentDefaultSecondary)
 
                 if status.missingFields.isEmpty == false {
                     Text("Missing: \(status.missingFields.joined(separator: ", "))")
-                        .baseraTextStyle(AppTheme.Typography.bodySmall)
-                        .foregroundStyle(AppTheme.Colors.warningPrimary)
+                        .vdFont(VdFont.bodySmall)
+                        .foregroundStyle(Color.vdContentWarningBase)
                 }
             }
         }

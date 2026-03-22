@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct MoveInChecklistView: View {
     @EnvironmentObject private var environment: AppEnvironment
@@ -27,7 +28,7 @@ struct MoveInChecklistView: View {
                         HStack {
                             Image(systemName: "photo")
                             Text(placeholder)
-                                .foregroundStyle(AppTheme.Colors.textSecondary)
+                                .foregroundStyle(Color.vdContentDefaultSecondary)
                         }
                     }
                 } header: {

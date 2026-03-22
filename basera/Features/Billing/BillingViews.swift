@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct InvoiceListView: View {
     @EnvironmentObject private var environment: AppEnvironment
@@ -24,7 +25,7 @@ struct InvoiceListView: View {
                     }
                 } else {
                     Text("Owner has not enabled renter-generated bill drafts.")
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                        .foregroundStyle(Color.vdContentDefaultSecondary)
                 }
             }
 
@@ -43,7 +44,7 @@ struct InvoiceListView: View {
                         VStack(alignment: .leading) {
                             Text(invoice.header.billingMonth.formatted(.dateTime.year().month()))
                             Text("Rs. \(NSDecimalNumber(decimal: invoice.totalAmount).stringValue) • \(invoice.status.title)")
-                                .foregroundStyle(AppTheme.Colors.textSecondary)
+                                .foregroundStyle(Color.vdContentDefaultSecondary)
                         }
                     }
                 }
@@ -93,7 +94,7 @@ struct InvoiceComposerView: View {
             Section("Invoice header") {
                 DatePicker("Billing month", selection: $viewModel.billMonth, displayedComponents: .date)
                 DatePicker("Due date", selection: $viewModel.dueDate, displayedComponents: .date)
-                BaseraTextField(title: "Rent amount", text: $viewModel.rentAmountText, keyboardType: .decimalPad)
+                VdTextField(title: "Rent amount", text: $viewModel.rentAmountText, keyboardType: .decimalPad)
             }
 
             Section("Electricity") {
@@ -107,14 +108,14 @@ struct InvoiceComposerView: View {
 
                     switch viewModel.electricityInputMode {
                     case .flat:
-                        BaseraTextField(title: "Flat amount", text: $viewModel.electricityFlatAmountText, keyboardType: .decimalPad)
+                        VdTextField(title: "Flat amount", text: $viewModel.electricityFlatAmountText, keyboardType: .decimalPad)
                     case .consumedUnits:
-                        BaseraTextField(title: "Units consumed", text: $viewModel.electricityUnitsText, keyboardType: .decimalPad)
-                        BaseraTextField(title: "Rate per unit", text: $viewModel.electricityRateText, keyboardType: .decimalPad)
+                        VdTextField(title: "Units consumed", text: $viewModel.electricityUnitsText, keyboardType: .decimalPad)
+                        VdTextField(title: "Rate per unit", text: $viewModel.electricityRateText, keyboardType: .decimalPad)
                     case .meterBased:
-                        BaseraTextField(title: "Previous reading", text: $viewModel.electricityPreviousReadingText, keyboardType: .decimalPad)
-                        BaseraTextField(title: "Current reading", text: $viewModel.electricityCurrentReadingText, keyboardType: .decimalPad)
-                        BaseraTextField(title: "Rate per unit", text: $viewModel.electricityRateText, keyboardType: .decimalPad)
+                        VdTextField(title: "Previous reading", text: $viewModel.electricityPreviousReadingText, keyboardType: .decimalPad)
+                        VdTextField(title: "Current reading", text: $viewModel.electricityCurrentReadingText, keyboardType: .decimalPad)
+                        VdTextField(title: "Rate per unit", text: $viewModel.electricityRateText, keyboardType: .decimalPad)
                     }
                 }
             }
@@ -137,16 +138,16 @@ struct InvoiceComposerView: View {
 
                         switch charge.mode {
                         case .flat(let amount):
-                            BaseraTextField(title: "Amount", text: Binding(
+                            VdTextField(title: "Amount", text: Binding(
                                 get: { NSDecimalNumber(decimal: amount).stringValue },
                                 set: { charge.mode = .flat(amount: Decimal(string: $0) ?? 0) }
                             ), keyboardType: .decimalPad)
                         case .variable(let quantity, let rate):
-                            BaseraTextField(title: "Quantity", text: Binding(
+                            VdTextField(title: "Quantity", text: Binding(
                                 get: { NSDecimalNumber(decimal: quantity).stringValue },
                                 set: { charge.mode = .variable(quantity: Decimal(string: $0) ?? 0, rate: rate) }
                             ), keyboardType: .decimalPad)
-                            BaseraTextField(title: "Rate", text: Binding(
+                            VdTextField(title: "Rate", text: Binding(
                                 get: { NSDecimalNumber(decimal: rate).stringValue },
                                 set: { charge.mode = .variable(quantity: quantity, rate: Decimal(string: $0) ?? 0) }
                             ), keyboardType: .decimalPad)
@@ -198,8 +199,8 @@ struct InvoiceComposerView: View {
         Section(title) {
             ForEach(notes) { note in
                 VStack(alignment: .leading) {
-                    BaseraTextField(title: "Title", text: Binding(get: { note.wrappedValue.title }, set: { note.wrappedValue.title = $0 }))
-                    BaseraTextField(title: "Amount", text: Binding(
+                    VdTextField(title: "Title", text: Binding(get: { note.wrappedValue.title }, set: { note.wrappedValue.title = $0 }))
+                    VdTextField(title: "Amount", text: Binding(
                         get: { NSDecimalNumber(decimal: note.wrappedValue.amount).stringValue },
                         set: { note.wrappedValue.amount = Decimal(string: $0) ?? 0 }
                     ), keyboardType: .decimalPad)
@@ -228,7 +229,7 @@ struct InvoicePreviewView: View {
                         VStack(alignment: .leading) {
                             Text(item.title)
                             if let detail = item.detail {
-                                Text(detail).foregroundStyle(AppTheme.Colors.textSecondary)
+                                Text(detail).foregroundStyle(Color.vdContentDefaultSecondary)
                             }
                         }
                         Spacer()
@@ -272,7 +273,8 @@ struct InvoiceDetailView: View {
                         }
                     }
             } else {
-                BaseraLoadingView(message: "Loading invoice")
+                VdLoadingState(title: "Loading invoice")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             }
         }
         .task {

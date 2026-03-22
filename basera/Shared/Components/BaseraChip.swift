@@ -1,16 +1,20 @@
 import SwiftUI
+import VroxalDesign
 
 struct BaseraChip: View {
     let text: String
+    var color: VdBadgeColor = .primary
+    var style: VdBadgeStyle = .subtle
+    var size: VdBadgeSize = .medium
 
     var body: some View {
-        Text(text)
-            .baseraTextStyle(AppTheme.Typography.labelLarge)
-            .padding(.horizontal, AppTheme.Spacing.medium)
-            .padding(.vertical, AppTheme.Spacing.small)
-            .background(AppTheme.Colors.brandSecondary.opacity(0.15))
-            .foregroundStyle(AppTheme.Colors.brandSecondary)
-            .clipShape(Capsule())
+        VdBadge(
+            text,
+            color: color,
+            style: style,
+            size: size,
+            rounded: true
+        )
     }
 }
 

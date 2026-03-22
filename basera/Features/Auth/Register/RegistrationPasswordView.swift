@@ -1,8 +1,10 @@
 import SwiftUI
+import VroxalDesign
 
 struct RegistrationPasswordView: View {
     @Binding var password: String
     @Binding var confirmPassword: String
+    @State private var previousPasswordValue = ""
 
     let notice: AuthStepNotice?
     let passwordValidationMessage: String?
@@ -15,25 +17,22 @@ struct RegistrationPasswordView: View {
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 0) {
                     Spacer()
-                        .frame(height: AppTheme.Spacing.xxLarge)
+                        .frame(height: VdSpacing.xl)
                     headerContainer
                     Spacer()
-                        .frame(height: AppTheme.Spacing.xxLarge)
+                        .frame(height: VdSpacing.xl)
                     inputContainer
                     if let notice {
                         Spacer()
-                            .frame(height: AppTheme.Spacing.large)
+                            .frame(height: VdSpacing.md)
 
-                        BaseraInlineMessageView(
-                            tone: tone(for: notice.style),
-                            message: notice.message
-                        )
+                        noticeContainer(notice)
 
                         Spacer()
-                            .frame(height: AppTheme.Spacing.large)
+                            .frame(height: VdSpacing.md)
                     } else {
                         Spacer()
-                            .frame(height: AppTheme.Spacing.xxLarge)
+                            .frame(height: VdSpacing.xl)
                     }
                     buttonContainer
                 }
@@ -42,76 +41,116 @@ struct RegistrationPasswordView: View {
                 .padding(.bottom, 8)
                 .frame(maxWidth: .infinity)
             }
-            .background(AppTheme.Colors.backgroundPrimary.ignoresSafeArea())
+            .background(Color.vdBackgroundDefaultBase.ignoresSafeArea())
         }
     }
 
     
 
     private var headerContainer: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.xSmall) {
+        VStack(alignment: .leading, spacing: VdSpacing.xs) {
             Text("Create password")
-                .baseraTextStyle(AppTheme.Typography.headlineLarge)
-                .foregroundStyle(AppTheme.Colors.textPrimary)
+                .vdFont(VdFont.headlineLarge)
+                .foregroundStyle(Color.vdContentDefaultBase)
 
             Text("Create a secure password before you complete your profile.")
-                .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                .foregroundStyle(AppTheme.Colors.textSecondary)
+                .vdFont(VdFont.bodyLarge)
+                .foregroundStyle(Color.vdContentDefaultSecondary)
         }
     }
 
     private var inputContainer: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.large) {
-            BaseraTextField(
-                title: "Password",
-                prompt: "Minimum 8 characters",
+        VStack(alignment: .leading, spacing: VdSpacing.md) {
+            VdTextField(
+                "Password",
                 text: $password,
-                textContentType: .newPassword,
-                textInputAutocapitalization: .never,
+                placeholder: "Minimum 8 characters",
+                state: inputState(for: passwordValidationMessage),
                 isSecure: true,
-                allowsSecureTextToggle: true,
-                errorMessage: passwordValidationMessage
+                leadingIcon: "lock",
+                helperText: passwordValidationMessage
             )
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled(true)
+            .textContentType(.newPassword)
+            .onChange(of: password) { newValue in
+                syncConfirmPasswordIfNeeded(with: newValue)
+            }
 
-            BaseraTextField(
-                title: "Confirm Password",
-                prompt: "Re-enter password",
+            VdTextField(
+                "Confirm Password",
                 text: $confirmPassword,
-                textContentType: .newPassword,
-                textInputAutocapitalization: .never,
+                placeholder: "Re-enter password",
+                state: inputState(for: confirmPasswordValidationMessage),
                 isSecure: true,
-                allowsSecureTextToggle: true,
-                errorMessage: confirmPasswordValidationMessage
+                leadingIcon: "lock",
+                helperText: confirmPasswordValidationMessage
             )
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled(true)
+            .textContentType(.newPassword)
         }
     }
 
     private var buttonContainer: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
-            BaseraButton(
-                title: "Create Password",
-                style: .primary,
-                isLoading: isLoading,
-                action: onSubmit
-            )
+        VStack(alignment: .leading, spacing: VdSpacing.sm) {
+            VdButton("Create Password", fullWidth: true, isLoading: isLoading, action: onSubmit)
+                .frame(maxWidth: .infinity)
 
             Text("By continuing, you agree to [Terms and Conditions](https://pramodpoudel.com.np/) and [Privacy Policy](https://pramodpoudel.com.np/).")
-                .baseraTextStyle(AppTheme.Typography.bodyMedium)
-                .foregroundStyle(AppTheme.Colors.textSecondary)
+                .vdFont(VdFont.bodyMedium)
+                .foregroundStyle(Color.vdContentDefaultSecondary)
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .tint(AppTheme.Colors.brandPrimary)
+                .tint(Color.vdContentPrimaryBase)
         }
     }
 
-    private func tone(for style: AuthStepNotice.Style) -> BaseraInlineMessageView.Tone {
+    private func noticeContainer(_ notice: AuthStepNotice) -> some View {
+        VdAlert(
+            color: alertColor(for: notice.style),
+            title: alertTitle(for: notice.style),
+            description: notice.message
+        )
+    }
+
+    private func alertColor(for style: AuthStepNotice.Style) -> VdAlertColor {
         switch style {
         case .info:
-            .info
+            return .info
         case .success:
-            .success
+            return .success
         case .error:
-            .error
+            return .error
+        }
+    }
+
+    private func alertTitle(for style: AuthStepNotice.Style) -> String {
+        switch style {
+        case .info:
+            return "Info"
+        case .success:
+            return "Success"
+        case .error:
+            return "Please Check"
+        }
+    }
+
+    private func inputState(for validationMessage: String?) -> VdInputState {
+        validationMessage?.isEmpty == false ? .error : .default
+    }
+
+    private func syncConfirmPasswordIfNeeded(with newValue: String) {
+        defer { previousPasswordValue = newValue }
+
+        guard newValue.isEmpty == false else { return }
+        guard confirmPassword.isEmpty || confirmPassword == previousPasswordValue else { return }
+
+        let grewBy = newValue.count - previousPasswordValue.count
+        let appearsToBeAutoFill = grewBy > 1 || (previousPasswordValue.isEmpty && newValue.count >= 8)
+
+        if appearsToBeAutoFill {
+            confirmPassword = newValue
         }
     }
 }

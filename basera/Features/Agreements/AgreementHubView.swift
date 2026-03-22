@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct AgreementHubView: View {
     @EnvironmentObject private var environment: AppEnvironment
@@ -10,7 +11,7 @@ struct AgreementHubView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: AppTheme.Spacing.large) {
+            VStack(spacing: VdSpacing.md) {
                 AgreementStatusTrackingView(agreement: viewModel.selectedAgreement)
 
                 if viewModel.currentParty == .owner {
@@ -43,13 +44,13 @@ struct AgreementHubView: View {
 
     private var ownerCreationCard: some View {
         BaseraCard {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
+            VStack(alignment: .leading, spacing: VdSpacing.smMd) {
                 Text("Owner agreement creation")
-                    .baseraTextStyle(AppTheme.Typography.titleMedium)
+                    .vdFont(VdFont.titleMedium)
                 Text("Create and edit all mandatory sections before signing. Agreement remains editable until both typed-name and OTP confirmation are completed.")
-                    .baseraTextStyle(AppTheme.Typography.bodyMedium)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
-                BaseraButton(title: "Create Draft", style: .secondary) {
+                    .vdFont(VdFont.bodyMedium)
+                    .foregroundStyle(Color.vdContentDefaultSecondary)
+                VdButton(title: "Create Draft", style: .secondary) {
                     Task { await viewModel.createOwnerDraft(using: environment.agreementsRepository) }
                 }
             }
@@ -58,9 +59,9 @@ struct AgreementHubView: View {
 
     private var editableSectionsCard: some View {
         BaseraCard {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
+            VStack(alignment: .leading, spacing: VdSpacing.smMd) {
                 Text("Editable sections (pre-sign)")
-                    .baseraTextStyle(AppTheme.Typography.titleMedium)
+                    .vdFont(VdFont.titleMedium)
                 LabeledContent("Monthly rent") {
                     TextField("NPR", value: $viewModel.editableTerms.monthlyRent, format: .number)
                         .textFieldStyle(.roundedBorder)
@@ -80,10 +81,10 @@ struct AgreementHubView: View {
                 DatePicker("End date", selection: $viewModel.editableTerms.endDate, displayedComponents: .date)
 
                 HStack {
-                    BaseraButton(title: "Save Edits", style: .secondary) {
+                    VdButton(title: "Save Edits", style: .secondary) {
                         Task { await viewModel.saveEdits(using: environment.agreementsRepository) }
                     }
-                    BaseraButton(title: "Submit for Signing", style: .primary) {
+                    VdButton(title: "Submit for Signing", style: .primary) {
                         Task { await viewModel.submitForSigning(using: environment.agreementsRepository) }
                     }
                 }
@@ -92,9 +93,9 @@ struct AgreementHubView: View {
     }
 
     private func editableTextField(_ title: String, text: Binding<String>) -> some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+        VStack(alignment: .leading, spacing: VdSpacing.sm) {
             Text(title)
-                .baseraTextStyle(AppTheme.Typography.labelLarge)
+                .vdFont(VdFont.labelLarge)
             TextField(title, text: text, axis: .vertical)
                 .lineLimit(2...4)
                 .textFieldStyle(.roundedBorder)
@@ -103,18 +104,18 @@ struct AgreementHubView: View {
 
     private var signatureCard: some View {
         BaseraCard {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
+            VStack(alignment: .leading, spacing: VdSpacing.smMd) {
                 Text("Typed-name + OTP confirmation")
-                    .baseraTextStyle(AppTheme.Typography.titleMedium)
+                    .vdFont(VdFont.titleMedium)
                 TextField("Type your full legal name", text: $viewModel.typedName)
                     .textFieldStyle(.roundedBorder)
-                BaseraButton(title: "Request OTP", style: .secondary) {
+                VdButton(title: "Request OTP", style: .secondary) {
                     Task { await viewModel.requestOTP(using: environment.agreementsRepository) }
                 }
                 if viewModel.otpChallenge != nil {
                     TextField("Enter OTP", text: $viewModel.otpCode)
                         .textFieldStyle(.roundedBorder)
-                    BaseraButton(title: "Confirm & Sign", style: .primary) {
+                    VdButton(title: "Confirm & Sign", style: .primary) {
                         Task { await viewModel.verifyOTPAndSign(using: environment.agreementsRepository) }
                     }
                 }
@@ -125,20 +126,20 @@ struct AgreementHubView: View {
     private var successState: some View {
         Group {
             if let message = viewModel.successMessage {
-                BaseraInlineMessageView(tone: .success, message: message)
+                VdAlert(tone: .success, message: message)
             }
         }
     }
 
     private var renewalScaffoldCard: some View {
         BaseraCard {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
+            VStack(alignment: .leading, spacing: VdSpacing.smMd) {
                 Text("Renewal entry point")
-                    .baseraTextStyle(AppTheme.Typography.titleMedium)
+                    .vdFont(VdFont.titleMedium)
                 Text("Generate a new draft version linked to signed history. Signed records remain immutable.")
-                    .baseraTextStyle(AppTheme.Typography.bodySmall)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
-                BaseraButton(title: "Create Renewal Draft", style: .secondary) {
+                    .vdFont(VdFont.bodySmall)
+                    .foregroundStyle(Color.vdContentDefaultSecondary)
+                VdButton(title: "Create Renewal Draft", style: .secondary) {
                     Task { await viewModel.createRenewal(using: environment.agreementsRepository) }
                 }
             }
@@ -162,17 +163,17 @@ private struct AgreementStatusTrackingView: View {
 
     var body: some View {
         BaseraCard {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
+            VStack(alignment: .leading, spacing: VdSpacing.smMd) {
                 Text("Agreement status tracking")
-                    .baseraTextStyle(AppTheme.Typography.titleMedium)
+                    .vdFont(VdFont.titleMedium)
                 Text(agreement?.status.title ?? "No agreement selected")
-                    .baseraTextStyle(AppTheme.Typography.bodyLarge)
+                    .vdFont(VdFont.bodyLarge)
                 if let history = agreement?.statusHistory {
                     ForEach(history.reversed()) { event in
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(event.title).baseraTextStyle(AppTheme.Typography.labelLarge)
-                            Text(event.detail).baseraTextStyle(AppTheme.Typography.bodySmall)
-                                .foregroundStyle(AppTheme.Colors.textSecondary)
+                            Text(event.title).vdFont(VdFont.labelLarge)
+                            Text(event.detail).vdFont(VdFont.bodySmall)
+                                .foregroundStyle(Color.vdContentDefaultSecondary)
                         }
                     }
                 }
@@ -187,9 +188,9 @@ private struct AgreementPreviewCard: View {
 
     var body: some View {
         BaseraCard {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
+            VStack(alignment: .leading, spacing: VdSpacing.smMd) {
                 Text("Agreement preview (\(viewerParty.title))")
-                    .baseraTextStyle(AppTheme.Typography.titleMedium)
+                    .vdFont(VdFont.titleMedium)
                 if let agreement {
                     Text("Owner: \(agreement.owner.fullName)")
                     Text("Renter: \(agreement.renter.fullName)")
@@ -199,12 +200,12 @@ private struct AgreementPreviewCard: View {
                     Text("Security deposit: NPR \(agreement.terms.securityDeposit.formatted())")
                     Text("Notice period: \(agreement.terms.noticePeriodDays) days")
                     Text("Digital record only (not legal enforcement).")
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                        .foregroundStyle(Color.vdContentDefaultSecondary)
                 } else {
                     Text("Create or select an agreement draft.")
                 }
             }
-            .baseraTextStyle(AppTheme.Typography.bodyMedium)
+            .vdFont(VdFont.bodyMedium)
         }
     }
 }
@@ -214,9 +215,9 @@ private struct AgreementDetailCard: View {
 
     var body: some View {
         BaseraCard {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+            VStack(alignment: .leading, spacing: VdSpacing.sm) {
                 Text("Agreement detail")
-                    .baseraTextStyle(AppTheme.Typography.titleMedium)
+                    .vdFont(VdFont.titleMedium)
                 Text("Agreement ID: \(agreement.id)")
                 Text("Tenancy ID: \(agreement.tenancyID)")
                 Text("Version: v\(agreement.version)")
@@ -224,9 +225,9 @@ private struct AgreementDetailCard: View {
                     Text("Renewed from: \(previous)")
                 }
                 Text(agreement.isLocked ? "Status: Locked after signing" : "Status: Editable before signing")
-                    .foregroundStyle(agreement.isLocked ? AppTheme.Colors.successPrimary : AppTheme.Colors.warningPrimary)
+                    .foregroundStyle(agreement.isLocked ? Color.vdContentSuccessBase : Color.vdContentWarningBase)
             }
-            .baseraTextStyle(AppTheme.Typography.bodyMedium)
+            .vdFont(VdFont.bodyMedium)
         }
     }
 }
@@ -236,14 +237,14 @@ private struct AgreementPDFCard: View {
 
     var body: some View {
         BaseraCard {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+            VStack(alignment: .leading, spacing: VdSpacing.sm) {
                 Text("PDF preview / download placeholder")
-                    .baseraTextStyle(AppTheme.Typography.titleMedium)
+                    .vdFont(VdFont.titleMedium)
                 Text("Architecture is wired through AgreementPDFServiceProtocol for server-side generation and future signed PDF storage.")
-                    .baseraTextStyle(AppTheme.Typography.bodySmall)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
-                BaseraButton(title: "Preview PDF (placeholder)", style: .secondary, action: {})
-                BaseraButton(title: "Download PDF (placeholder)", style: .subtle, action: {})
+                    .vdFont(VdFont.bodySmall)
+                    .foregroundStyle(Color.vdContentDefaultSecondary)
+                VdButton(title: "Preview PDF (placeholder)", style: .secondary, action: {})
+                VdButton(title: "Download PDF (placeholder)", style: .subtle, action: {})
             }
         }
     }

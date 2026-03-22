@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct NotificationCenterView: View {
     @EnvironmentObject private var environment: AppEnvironment
@@ -14,25 +15,34 @@ struct NotificationCenterView: View {
     }
 
     var body: some View {
-        VStack ( alignment:.leading , spacing: 0, ){
+        Group {
             if viewModel.notifications.isEmpty {
-                BaseraEmptyStateView(
-                    title: "No notifications yet",
-                    message:
-                        "Important updates about interests, agreements, billing, payments, move-out, and reviews will appear here.",
-                    systemImage: "bell.slash",
-                    actionTitle: "Refresh",
-                    action: {
-                        Task {
-                            await viewModel.load(
-                                repository: environment.notificationsRepository
-                            )
-                        }
+                ScrollView {
+                    BaseraPageContainer {
+                        VdEmptyState(
+                            title: "No notifications yet",
+                            description:
+                                "Important updates about interests, agreements, billing, payments, move-out, and reviews will appear here.",
+                            icon: "bell.slash",
+                            boxed: true,
+                            actions: true,
+                            primaryAction: true,
+                            secondaryAction: false,
+                            primaryActionTitle: "Refresh",
+                            onPrimaryAction: {
+                                Task {
+                                    await viewModel.load(
+                                        repository: environment.notificationsRepository
+                                    )
+                                }
+                            }
+                        )
+                        .padding(.top, VdSpacing.huge)
+                        .frame(maxWidth: .infinity)
                     }
-                )
+                }
             } else {
                 List {
-
                     Section {
                         ForEach(viewModel.notifications) { notification in
                             NavigationLink {
@@ -51,11 +61,12 @@ struct NotificationCenterView: View {
                             } label: {
                                 NotificationRowView(notification: notification)
                             }
+                            .listRowBackground(Color.vdBackgroundDefaultSecondary)
                         }
                     } header: {
                         HStack {
                             Text("Updates")
-                                .baseraTextStyle(AppTheme.Typography.titleSmall)
+                                .vdFont(VdFont.titleSmall)
                             Spacer()
                             if viewModel.badgeState.unreadCount > 0 {
                                 Button("Mark all read") {
@@ -66,19 +77,19 @@ struct NotificationCenterView: View {
                                         )
                                     }
                                 }
-                                .baseraTextStyle(
-                                    AppTheme.Typography.labelMedium
-                                )
+                                .vdFont(VdFont.labelMedium)
                             }
                         }
                     }
                 }
+                .listStyle(.insetGrouped)
+                .baseraListBackground()
             }
         }
-        .baseraListBackground()
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .baseraScreenBackground()
         .navigationTitle("Notifications")
         .navigationBarTitleDisplayMode(.large)
-
         .task {
             await environment.notificationsRepository
                 .registerForPushNotifications()
@@ -93,34 +104,34 @@ private struct NotificationRowView: View {
     let notification: AppNotification
 
     var body: some View {
-        HStack(alignment: .top, spacing: AppTheme.Spacing.medium) {
+        HStack(alignment: .top, spacing: VdSpacing.smMd) {
             Image(systemName: notification.type.systemImageName)
                 .foregroundStyle(
                     notification.isUnread
-                        ? AppTheme.Colors.brandPrimary
-                        : AppTheme.Colors.textSecondary
+                        ? Color.vdBackgroundPrimaryBase
+                        : Color.vdContentDefaultSecondary
                 )
                 .frame(width: 28)
 
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.xSmall) {
+            VStack(alignment: .leading, spacing: VdSpacing.xs) {
                 HStack {
                     Text(notification.title)
-                        .baseraTextStyle(AppTheme.Typography.titleSmall)
+                        .vdFont(VdFont.titleSmall)
                     if notification.isUnread {
                         Circle()
-                            .fill(AppTheme.Colors.brandPrimary)
+                            .fill(Color.vdBackgroundPrimaryBase)
                             .frame(width: 8, height: 8)
                     }
                 }
                 Text(notification.message)
-                    .baseraTextStyle(AppTheme.Typography.bodySmall)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .vdFont(VdFont.bodySmall)
+                    .foregroundStyle(Color.vdContentDefaultSecondary)
                 Text(notification.createdAt, style: .relative)
-                    .baseraTextStyle(AppTheme.Typography.labelSmall)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .vdFont(VdFont.labelSmall)
+                    .foregroundStyle(Color.vdContentDefaultSecondary)
             }
         }
-        .padding(.vertical, AppTheme.Spacing.xSmall)
+        .padding(.vertical, VdSpacing.xs)
     }
 }
 

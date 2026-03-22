@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct OwnerDashboardView: View {
     @EnvironmentObject private var environment: AppEnvironment
@@ -9,51 +10,24 @@ struct OwnerDashboardView: View {
     var body: some View {
         ScrollView {
             BaseraPageContainer {
-                VStack(alignment: .leading, spacing: AppTheme.Spacing.large) {
+                VStack(alignment: .leading, spacing: VdSpacing.md) {
                     BaseraCard {
-                        VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+                        VStack(alignment: .leading, spacing: VdSpacing.sm) {
                             Text("Owner Dashboard")
-                                .baseraTextStyle(AppTheme.Typography.titleLarge)
+                                .vdFont(VdFont.titleLarge)
                             Text("Manage listings, active tenants, billing, and agreements from one place.")
-                                .baseraTextStyle(AppTheme.Typography.bodyMedium)
-                                .foregroundStyle(AppTheme.Colors.textSecondary)
+                                .vdFont(VdFont.bodyMedium)
+                                .foregroundStyle(Color.vdContentDefaultSecondary)
                         }
-                    }
-
-                    VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
-                        Text("Quick Actions")
-                            .baseraTextStyle(AppTheme.Typography.titleMedium)
-
-                        NavigationLink {
-                            MyListingsView(ownerID: ownerID)
-                        } label: {
-                            BaseraActionTile(
-                                title: "Manage My Listings",
-                                subtitle: "Create, edit, pause, and preview listings",
-                                systemImage: "building.2"
-                            )
-                        }
-                        .buttonStyle(.plain)
-
-                        NavigationLink {
-                            ReviewHubView(userID: ownerID, role: .owner)
-                        } label: {
-                            BaseraActionTile(
-                                title: "Reviews & Ratings",
-                                subtitle: "Check renter feedback and your profile score",
-                                systemImage: "star.bubble"
-                            )
-                        }
-                        .buttonStyle(.plain)
                     }
 
                     if viewModel.activeTenancies.isEmpty {
-                        BaseraInlineMessageView(tone: .info, message: "No active tenants yet. Signed agreements appear here as active tenancies.")
+                        VdAlert(tone: .info, message: "No active tenants yet. Signed agreements appear here as active tenancies.")
                     } else {
                         ForEach(viewModel.activeTenancies) { tenancy in
-                            VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+                            VStack(alignment: .leading, spacing: VdSpacing.sm) {
                                 TenancySummaryCard(tenancy: tenancy, party: .owner)
-                                VStack(spacing: AppTheme.Spacing.small) {
+                                VStack(spacing: VdSpacing.sm) {
                                     NavigationLink {
                                         InvoiceListView(tenancy: tenancy, userID: ownerID, actor: .owner)
                                     } label: {
@@ -88,14 +62,14 @@ struct OwnerDashboardView: View {
 
                     if !viewModel.archivedTenancies.isEmpty {
                         BaseraCard {
-                            VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+                            VStack(alignment: .leading, spacing: VdSpacing.sm) {
                                 Text("Archived Tenancies")
-                                    .baseraTextStyle(AppTheme.Typography.titleMedium)
+                                    .vdFont(VdFont.titleMedium)
                                 ForEach(viewModel.archivedTenancies) { archived in
-                                    VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+                                    VStack(alignment: .leading, spacing: VdSpacing.sm) {
                                         Text(archived.listingTitle)
-                                            .baseraTextStyle(AppTheme.Typography.labelLarge)
-                                        VStack(spacing: AppTheme.Spacing.small) {
+                                            .vdFont(VdFont.labelLarge)
+                                        VStack(spacing: VdSpacing.sm) {
                                             NavigationLink {
                                                 AgreementHubView(currentUserID: ownerID, party: .owner)
                                             } label: {
@@ -135,6 +109,7 @@ struct OwnerDashboardView: View {
         .task {
             await viewModel.load(ownerID: ownerID, tenancyRepository: environment.tenancyRepository)
         }
+        .baseraScreenBackground()
     }
 }
 

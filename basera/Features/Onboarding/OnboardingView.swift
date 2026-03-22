@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct OnboardingView: View {
     let notice: AuthStepNotice?
@@ -8,7 +9,7 @@ struct OnboardingView: View {
     var body: some View {
         GeometryReader { proxy in
             ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
+                VStack(alignment: .leading, spacing: VdSpacing.smMd) {
 
                     Image("logo-horizontal")
                         .resizable()
@@ -16,20 +17,20 @@ struct OnboardingView: View {
                         .frame(height: 40)
                         .accessibilityHidden(true)
                     Spacer()
-                        .frame(height: AppTheme.Spacing.xLarge)
+                        .frame(height: VdSpacing.lg)
 
 
-                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xSmall) {
+                    VStack(alignment: .leading, spacing: VdSpacing.xs) {
                         Text("Welcome to Basera")
-                            .baseraTextStyle(AppTheme.Typography.headlineLarge)
-                            .foregroundStyle(AppTheme.Colors.textPrimary)
+                            .vdFont(VdFont.headlineLarge)
+                            .foregroundStyle(Color.vdContentDefaultBase)
 
                         Text("Manage the rental journey in one place, from discovery and approvals to agreements, monthly invoices, and move-out records.")
-                            .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                            .foregroundStyle(AppTheme.Colors.textSecondary)
+                            .vdFont(VdFont.bodyLarge)
+                            .foregroundStyle(Color.vdContentDefaultSecondary)
                     }
                     Spacer()
-                        .frame(height: AppTheme.Spacing.xxLarge)
+                        .frame(height: VdSpacing.xxl)
 
 
                         introPoint(
@@ -52,10 +53,10 @@ struct OnboardingView: View {
 
                         Spacer()
 
-                        HStack(spacing: AppTheme.Spacing.medium) {
-                            BaseraButton(title: "Register", style: .primary, action: onRegister)
+                        HStack(spacing: VdSpacing.smMd) {
+                            VdButton(title: "Register", style: .primary, action: onRegister)
                                 .frame(maxWidth: .infinity)
-                            BaseraButton(title: "Login", style: .secondary, action: onLogin)
+                            VdButton(title: "Login", style: .secondary, action: onLogin)
                                 .frame(maxWidth: .infinity)
                         }
                     
@@ -67,12 +68,12 @@ struct OnboardingView: View {
                 .padding(.bottom, 8)
                 .frame(maxWidth: .infinity)
             }
-            .background(AppTheme.Colors.backgroundPrimary.ignoresSafeArea())
+            .background(Color.vdBackgroundDefaultBase.ignoresSafeArea())
         }
     }
 
 
-    private func tone(for style: AuthStepNotice.Style) -> BaseraInlineMessageView.Tone {
+    private func tone(for style: AuthStepNotice.Style) -> BaseraVdAlertTone {
         switch style {
         case .info:
             .info
@@ -84,26 +85,26 @@ struct OnboardingView: View {
     }
 
     private func introPoint(iconName: String, title: String, message: String) -> some View {
-        HStack(alignment: .top, spacing: AppTheme.Spacing.medium) {
+        HStack(alignment: .top, spacing: VdSpacing.smMd) {
             Image(systemName: iconName)
                 .font(.system(size: 18, weight: .medium))
-                .foregroundStyle(AppTheme.Colors.textPrimary)
+                .foregroundStyle(Color.vdContentDefaultBase)
                 .frame(width: 24, height: 24)
 
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.xSmall) {
+            VStack(alignment: .leading, spacing: VdSpacing.xs) {
                 Text(title)
-                    .baseraTextStyle(AppTheme.Typography.titleMedium)
-                    .foregroundStyle(AppTheme.Colors.textPrimary)
+                    .vdFont(VdFont.titleMedium)
+                    .foregroundStyle(Color.vdContentDefaultBase)
 
                 Text(message)
-                    .baseraTextStyle(AppTheme.Typography.bodyMedium)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .vdFont(VdFont.bodyMedium)
+                    .foregroundStyle(Color.vdContentDefaultSecondary)
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(AppTheme.Spacing.large)
-        .background(AppTheme.Colors.surfacePrimary)
-        .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.large, style: .continuous))
+        .padding(VdSpacing.md)
+        .background(Color.vdBackgroundDefaultSecondary)
+        .clipShape(RoundedRectangle(cornerRadius: VdRadius.lg, style: .continuous))
     }
 }
 

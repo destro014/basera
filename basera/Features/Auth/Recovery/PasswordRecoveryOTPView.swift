@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct PasswordRecoveryOTPView: View {
     @Binding var code: String
@@ -16,13 +17,13 @@ struct PasswordRecoveryOTPView: View {
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 0) {
                     Spacer()
-                        .frame(height: AppTheme.Spacing.xxLarge)
+                        .frame(height: VdSpacing.xxl)
                     headerContainer
                     Spacer()
-                        .frame(height: AppTheme.Spacing.xxLarge)
+                        .frame(height: VdSpacing.xxl)
                     inputContainer
                     Spacer()
-                        .frame(height: AppTheme.Spacing.xxLarge)
+                        .frame(height: VdSpacing.xxl)
                     buttonContainer
                 }
                 .frame(maxWidth: 402, minHeight: max(proxy.size.height - 32, 0), alignment: .top)
@@ -30,7 +31,7 @@ struct PasswordRecoveryOTPView: View {
                 .padding(.bottom, 8)
                 .frame(maxWidth: .infinity)
             }
-            .background(AppTheme.Colors.backgroundPrimary.ignoresSafeArea())
+            .background(Color.vdBackgroundDefaultBase.ignoresSafeArea())
         }
     }
 
@@ -43,19 +44,19 @@ struct PasswordRecoveryOTPView: View {
     }
 
     private var headerContainer: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.xSmall) {
+        VStack(alignment: .leading, spacing: VdSpacing.xs) {
             Text("Verify your email")
-                .baseraTextStyle(AppTheme.Typography.headlineLarge)
-                .foregroundStyle(AppTheme.Colors.textPrimary)
+                .vdFont(VdFont.headlineLarge)
+                .foregroundStyle(Color.vdContentDefaultBase)
 
             Text("Enter the code we sent you to your email address")
-                .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                .foregroundStyle(AppTheme.Colors.textSecondary)
+                .vdFont(VdFont.bodyLarge)
+                .foregroundStyle(Color.vdContentDefaultSecondary)
         }
     }
 
     private var inputContainer: some View {
-        BaseraTextField(
+        VdTextField(
             title: "Verification code",
             prompt: "6-digit code",
             text: $code,
@@ -67,8 +68,8 @@ struct PasswordRecoveryOTPView: View {
     }
 
     private var buttonContainer: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
-            BaseraButton(
+        VStack(alignment: .leading, spacing: VdSpacing.smMd) {
+            VdButton(
                 title: "Verify code",
                 style: .primary,
                 isLoading: isLoading,
@@ -77,8 +78,8 @@ struct PasswordRecoveryOTPView: View {
 
             HStack(spacing: 4) {
                 Text("Didn't receive the code?")
-                    .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .vdFont(VdFont.bodyLarge)
+                    .foregroundStyle(Color.vdContentDefaultSecondary)
 
                 Button {
                     if canResendCode && !isLoading {
@@ -86,8 +87,8 @@ struct PasswordRecoveryOTPView: View {
                     }
                 } label: {
                     Text(resendButtonTitle)
-                        .baseraTextStyle(AppTheme.Typography.labelLarge)
-                        .foregroundStyle(canResendCode && !isLoading ? AppTheme.Colors.brandPrimary : AppTheme.Colors.textSecondary.opacity(0.7))
+                        .vdFont(VdFont.labelLarge)
+                        .foregroundStyle(canResendCode && !isLoading ? Color.vdBackgroundPrimaryBase : Color.vdContentDefaultSecondary.opacity(0.7))
                 }
                 .disabled(!canResendCode || isLoading)
             }
@@ -95,8 +96,8 @@ struct PasswordRecoveryOTPView: View {
 
             Button(action: onEditEmail) {
                 Text("Use a different email")
-                    .baseraTextStyle(AppTheme.Typography.labelLarge)
-                    .foregroundStyle(AppTheme.Colors.brandPrimary)
+                    .vdFont(VdFont.labelLarge)
+                    .foregroundStyle(Color.vdContentPrimaryBase)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }

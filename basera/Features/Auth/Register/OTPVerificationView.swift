@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct OTPVerificationView: View {
     @Binding var code: String
@@ -17,25 +18,22 @@ struct OTPVerificationView: View {
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 0) {
                     Spacer()
-                        .frame(height: AppTheme.Spacing.xxLarge)
+                        .frame(height: VdSpacing.xl)
                     headerContainer
                     Spacer()
-                        .frame(height: AppTheme.Spacing.xxLarge)
+                        .frame(height: VdSpacing.xl)
                     inputContainer
                     if let notice {
                         Spacer()
-                            .frame(height: AppTheme.Spacing.large)
+                            .frame(height: VdSpacing.md)
 
-                        BaseraInlineMessageView(
-                            tone: tone(for: notice.style),
-                            message: notice.message
-                        )
+                        noticeContainer(notice)
 
                         Spacer()
-                            .frame(height: AppTheme.Spacing.large)
+                            .frame(height: VdSpacing.md)
                     } else {
                         Spacer()
-                            .frame(height: AppTheme.Spacing.xxLarge)
+                            .frame(height: VdSpacing.xl)
                     }
                     buttonContainer
                 }
@@ -44,49 +42,47 @@ struct OTPVerificationView: View {
                 .padding(.bottom, 8)
                 .frame(maxWidth: .infinity)
             }
-            .background(AppTheme.Colors.backgroundPrimary.ignoresSafeArea())
         }
     }
 
     
 
     private var headerContainer: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.xSmall) {
+        VStack(alignment: .leading, spacing: VdSpacing.xs) {
             Text("Verify your email")
-                .baseraTextStyle(AppTheme.Typography.headlineLarge)
-                .foregroundStyle(AppTheme.Colors.textPrimary)
+                .vdFont(VdFont.headlineLarge)
+                .foregroundStyle(Color.vdContentDefaultBase)
 
             Text("Enter the code we sent to your email address to continue.")
-                .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                .foregroundStyle(AppTheme.Colors.textSecondary)
+                .vdFont(VdFont.bodyLarge)
+                .foregroundStyle(Color.vdContentDefaultSecondary)
         }
     }
 
     private var inputContainer: some View {
-        BaseraTextField(
-            title: "Verification code",
-            prompt: "6-digit code",
-            text: $code,
-            keyboardType: .numberPad,
-            textContentType: .oneTimeCode,
-            textInputAutocapitalization: .never,
-            errorMessage: validationMessage
-        )
+        VStack(alignment: .leading, spacing: VdSpacing.xs) {
+            VdCodeInput(
+                code: $code,
+                length: 6,
+                state: validationMessage?.isEmpty == false ? .error : .default
+            )
+            if let validationMessage, validationMessage.isEmpty == false {
+                Text(validationMessage)
+                    .vdFont(VdFont.bodySmall)
+                    .foregroundStyle(Color.vdContentErrorBase)
+            }
+        }
     }
 
     private var buttonContainer: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
-            BaseraButton(
-                title: "Verify email",
-                style: .primary,
-                isLoading: isLoading,
-                action: onVerify
-            )
+        VStack(alignment: .leading, spacing: VdSpacing.smMd) {
+            VdButton("Verify email", fullWidth: true, isLoading: isLoading, action: onVerify)
+                .frame(maxWidth: .infinity)
 
             HStack(spacing: 4) {
                 Text("Didn't receive the code?")
-                    .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .vdFont(VdFont.bodyLarge)
+                    .foregroundStyle(Color.vdContentDefaultSecondary)
 
                 Button {
                     if canResendCode && !isLoading {
@@ -94,8 +90,8 @@ struct OTPVerificationView: View {
                     }
                 } label: {
                     Text(resendButtonTitle)
-                        .baseraTextStyle(AppTheme.Typography.labelLarge)
-                        .foregroundStyle(canResendCode && !isLoading ? AppTheme.Colors.brandPrimary : AppTheme.Colors.textSecondary.opacity(0.7))
+                        .vdFont(VdFont.labelLarge)
+                        .foregroundStyle(canResendCode && !isLoading ? Color.vdContentPrimaryBase : Color.vdContentDefaultSecondary.opacity(0.7))
                 }
                 .disabled(!canResendCode || isLoading)
             }
@@ -103,21 +99,40 @@ struct OTPVerificationView: View {
 
             Button(action: onEditEmail) {
                 Text("Use a different email")
-                    .baseraTextStyle(AppTheme.Typography.labelLarge)
-                    .foregroundStyle(AppTheme.Colors.brandPrimary)
+                    .vdFont(.labelLarge)
+                    .foregroundStyle(Color.vdContentPrimaryBase)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
-    private func tone(for style: AuthStepNotice.Style) -> BaseraInlineMessageView.Tone {
+    private func noticeContainer(_ notice: AuthStepNotice) -> some View {
+        VdAlert(
+            color: alertColor(for: notice.style),
+            title: alertTitle(for: notice.style),
+            description: notice.message
+        )
+    }
+
+    private func alertColor(for style: AuthStepNotice.Style) -> VdAlertColor {
         switch style {
         case .info:
-            .info
+            return .info
         case .success:
-            .success
+            return .success
         case .error:
-            .error
+            return .error
+        }
+    }
+
+    private func alertTitle(for style: AuthStepNotice.Style) -> String {
+        switch style {
+        case .info:
+            return "Info"
+        case .success:
+            return "Success"
+        case .error:
+            return "Please Check"
         }
     }
 }

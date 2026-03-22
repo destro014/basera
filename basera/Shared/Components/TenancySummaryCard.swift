@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct TenancySummaryCard: View {
     let tenancy: TenancyRecord
@@ -6,19 +7,19 @@ struct TenancySummaryCard: View {
 
     var body: some View {
         BaseraCard {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+            VStack(alignment: .leading, spacing: VdSpacing.sm) {
                 HStack {
                     Text(tenancy.listingTitle)
-                        .baseraTextStyle(AppTheme.Typography.titleMedium)
+                        .vdFont(VdFont.titleMedium)
                     Spacer()
-                    BaseraBadge(text: tenancy.status.title, tone: AppTheme.Colors.infoPrimary)
+                    VdBadge(tenancy.status.title, color: .info, style: .subtle)
                 }
                 Text(tenancy.approximateLocation)
-                    .baseraTextStyle(AppTheme.Typography.bodySmall)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .vdFont(VdFont.bodySmall)
+                    .foregroundStyle(Color.vdContentDefaultSecondary)
                 Text(tenancy.address(for: party))
-                    .baseraTextStyle(AppTheme.Typography.bodySmall)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .vdFont(VdFont.bodySmall)
+                    .foregroundStyle(Color.vdContentDefaultSecondary)
                 HStack {
                     BaseraChip(text: "Rent Rs. \(NSDecimalNumber(decimal: tenancy.monthlyRent).intValue)/month")
                     BaseraChip(text: "Due Rs. \(NSDecimalNumber(decimal: tenancy.billSummary.amountDue).intValue)")

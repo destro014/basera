@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct ConversationListView: View {
     @EnvironmentObject private var environment: AppEnvironment
@@ -11,12 +12,13 @@ struct ConversationListView: View {
     var body: some View {
         List {
             if viewModel.conversations.isEmpty {
-                BaseraEmptyStateView(
+                VdEmptyState(
                     title: "No conversations yet",
                     message: "Chat is available only after owner approval in the interest flow.",
                     systemImage: "bubble.left.and.bubble.right"
                 )
                 .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
             } else {
                 ForEach(viewModel.conversations) { conversation in
                     NavigationLink {
@@ -24,11 +26,13 @@ struct ConversationListView: View {
                     } label: {
                         ConversationRowView(conversation: conversation)
                     }
+                    .listRowBackground(Color.vdBackgroundDefaultSecondary)
                 }
             }
         }
+        .listStyle(.insetGrouped)
         .baseraListBackground()
-        .navigationTitle("Conversations")
+        .navigationTitle("Messages")
         .task {
             await viewModel.load(using: environment.interestsRepository)
         }
@@ -39,20 +43,20 @@ private struct ConversationRowView: View {
     let conversation: ChatConversation
 
     var body: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.xSmall) {
+        VStack(alignment: .leading, spacing: VdSpacing.xs) {
             Text(conversation.participantName)
-                .baseraTextStyle(AppTheme.Typography.titleSmall)
+                .vdFont(VdFont.titleSmall)
             Text(conversation.listingTitle)
-                .baseraTextStyle(AppTheme.Typography.bodySmall)
-                .foregroundStyle(AppTheme.Colors.textSecondary)
+                .vdFont(VdFont.bodySmall)
+                .foregroundStyle(Color.vdContentDefaultSecondary)
             Text(conversation.lastMessagePreview)
                 .lineLimit(1)
-                .baseraTextStyle(AppTheme.Typography.bodySmall)
+                .vdFont(VdFont.bodySmall)
             if conversation.unreadCount > 0 {
-                BaseraBadge(text: "\(conversation.unreadCount) unread", tone: AppTheme.Colors.brandPrimary)
+                VdBadge("\(conversation.unreadCount) unread", color: .primary, style: .solid, rounded: true)
             }
         }
-        .padding(.vertical, AppTheme.Spacing.xSmall)
+        .padding(.vertical, VdSpacing.xs)
     }
 }
 

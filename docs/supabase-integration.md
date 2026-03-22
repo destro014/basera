@@ -34,7 +34,15 @@ Optional:
    - `BASERA_SUPABASE_DEBUG` = `1` to print Supabase auth request status in Xcode logs.
    - `BASERA_USE_MOCK_SERVICES` = `1` when you want to run fully mocked flows without backend.
 
-> Note: the app reads these values from either scheme environment variables or `Info.plist` keys with the same names.
+> Note: the app reads these values from scheme environment variables or `Info.plist` keys with the same names.
+> If values were loaded once successfully, Basera also caches them on-device and reuses them on next launch (useful when launching without an active Xcode scheme environment).
+
+### Clear cached Supabase config (optional)
+
+If you switch projects/environments and want to force a fresh config read:
+
+1. Remove the app from simulator/device, then reinstall.
+2. Or reset defaults during development by clearing app data in simulator.
 
 ## Supabase Dashboard Setup Checklist
 
@@ -94,7 +102,8 @@ with check (true);
 ## Common Failure Modes
 
 - **Immediate auth error after entering email:**
-  - missing `BASERA_SUPABASE_URL` or `BASERA_SUPABASE_ANON_KEY` in scheme.
+  - missing `BASERA_SUPABASE_URL` or `BASERA_SUPABASE_ANON_KEY` in scheme/`Info.plist`.
+  - unresolved placeholder values (for example, `$(BASERA_SUPABASE_URL)` without a matching build setting).
   - email auth provider disabled on Supabase.
 - **`invalid login credentials`:** wrong password or account not created yet.
 - **OTP errors:** email confirmation/provider configuration mismatch.

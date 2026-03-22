@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct ActiveTenancyDetailView: View {
     @EnvironmentObject private var environment: AppEnvironment
@@ -11,7 +12,7 @@ struct ActiveTenancyDetailView: View {
     var body: some View {
         ScrollView {
             if let tenancy = viewModel.tenancy {
-                VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
+                VStack(alignment: .leading, spacing: VdSpacing.smMd) {
                     TenancySummaryCard(tenancy: tenancy, party: party)
                     dueBillCard(tenancy)
                     DepositSummaryCard(deposit: tenancy.depositSummary)
@@ -28,9 +29,9 @@ struct ActiveTenancyDetailView: View {
 
                     if let agreement = viewModel.agreement {
                         BaseraCard {
-                            VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+                            VStack(alignment: .leading, spacing: VdSpacing.sm) {
                                 Text("Agreement")
-                                    .baseraTextStyle(AppTheme.Typography.titleMedium)
+                                    .vdFont(VdFont.titleMedium)
                                 Text("Status: \(agreement.status.title)")
                                 Text(agreement.isLocked ? "Signed agreement is locked." : "Agreement editable before signing.")
                             }
@@ -39,7 +40,7 @@ struct ActiveTenancyDetailView: View {
                 }
                 .padding()
             } else {
-                BaseraEmptyStateView(title: "No tenancy found", message: "This tenancy may be archived or unavailable.")
+                VdEmptyState(title: "No tenancy found", message: "This tenancy may be archived or unavailable.")
                     .padding()
             }
         }
@@ -56,13 +57,13 @@ struct ActiveTenancyDetailView: View {
 
     private func dueBillCard(_ tenancy: TenancyRecord) -> some View {
         BaseraCard {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+            VStack(alignment: .leading, spacing: VdSpacing.sm) {
                 Text("Current Billing")
-                    .baseraTextStyle(AppTheme.Typography.titleMedium)
+                    .vdFont(VdFont.titleMedium)
                 Text("Due: Rs. \(NSDecimalNumber(decimal: tenancy.billSummary.amountDue).intValue)")
                 Text("Due date: \(tenancy.billSummary.dueDate.formatted(date: .abbreviated, time: .omitted))")
                 Text("Carry-forward: Rs. \(NSDecimalNumber(decimal: tenancy.billSummary.carryForward).intValue)")
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .foregroundStyle(Color.vdContentDefaultSecondary)
                 HStack {
                     BaseraChip(text: tenancy.billSummary.allowsPartialPayment ? "Partial payment enabled" : "Partial payment disabled")
                     BaseraChip(text: tenancy.billSummary.allowsAdvancePayment ? "Advance payment enabled" : "Advance payment disabled")
@@ -73,11 +74,11 @@ struct ActiveTenancyDetailView: View {
 
     private func historicalAccessCard(_ tenancy: TenancyRecord) -> some View {
         BaseraCard {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+            VStack(alignment: .leading, spacing: VdSpacing.sm) {
                 Text("Historical access")
-                    .baseraTextStyle(AppTheme.Typography.titleMedium)
+                    .vdFont(VdFont.titleMedium)
                 Text("Agreement, invoice, and payment records stay available after tenancy closure.")
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .foregroundStyle(Color.vdContentDefaultSecondary)
                 HStack {
                     NavigationLink("Agreement") {
                         AgreementHubView(currentUserID: userID, party: party)
@@ -89,7 +90,7 @@ struct ActiveTenancyDetailView: View {
                         PaymentsHubView(tenancy: tenancy, userID: userID, actor: party == .owner ? .owner : .renter)
                     }
                 }
-                .baseraTextStyle(AppTheme.Typography.bodySmall)
+                .vdFont(VdFont.bodySmall)
             }
         }
     }

@@ -39,13 +39,15 @@ actor MockNotificationsRepository: NotificationsRepositoryProtocol {
     }
 
     func fetchNotifications(for userID: String) async throws -> [AppNotification] {
-        notificationsByUserID[userID, default: []]
+        seedNotificationsIfNeeded(for: userID)
+        return notificationsByUserID[userID, default: []]
             .sorted { $0.createdAt > $1.createdAt }
     }
 
     func fetchBadgeState(for userID: String) async throws -> NotificationBadgeState {
+        seedNotificationsIfNeeded(for: userID)
         let unreadCount = notificationsByUserID[userID, default: []]
-            .filter(\.isUnread)
+            .filter { $0.isUnread }
             .count
         return NotificationBadgeState(unreadCount: unreadCount)
     }
@@ -75,5 +77,49 @@ actor MockNotificationsRepository: NotificationsRepositoryProtocol {
                 metadata: $0.metadata
             )
         }
+    }
+
+    private func seedNotificationsIfNeeded(for userID: String) {
+        guard notificationsByUserID[userID, default: []].isEmpty else { return }
+
+        let now = Date()
+        notificationsByUserID[userID] = [
+            AppNotification(
+                id: "NOTIF-SAMPLE-001-\(userID)",
+                userID: userID,
+                audience: .both,
+                type: .interestAccepted,
+                title: "Interest accepted",
+                message: "Your request for a rental in Jawalakhel has been accepted.",
+                createdAt: Calendar.current.date(byAdding: .minute, value: -18, to: now) ?? now,
+                readAt: nil,
+                route: .interests(listingID: "L-100"),
+                metadata: ["listingID": "L-100"]
+            ),
+            AppNotification(
+                id: "NOTIF-SAMPLE-002-\(userID)",
+                userID: userID,
+                audience: .both,
+                type: .billGenerated,
+                title: "Monthly bill generated",
+                message: "Your latest invoice is ready for review and payment.",
+                createdAt: Calendar.current.date(byAdding: .hour, value: -6, to: now) ?? now,
+                readAt: nil,
+                route: .billing(invoiceID: "INV-501"),
+                metadata: ["invoiceID": "INV-501"]
+            ),
+            AppNotification(
+                id: "NOTIF-SAMPLE-003-\(userID)",
+                userID: userID,
+                audience: .both,
+                type: .reviewReminder,
+                title: "Leave a review",
+                message: "Share your experience with your latest tenancy.",
+                createdAt: Calendar.current.date(byAdding: .day, value: -1, to: now) ?? now,
+                readAt: nil,
+                route: .review(tenancyID: "TEN-300"),
+                metadata: ["tenancyID": "TEN-300"]
+            )
+        ]
     }
 }

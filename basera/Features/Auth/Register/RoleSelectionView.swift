@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct RoleSelectionView: View {
     @Binding var selectedRole: UserRole
@@ -11,13 +12,13 @@ struct RoleSelectionView: View {
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 0) {
                     Spacer()
-                        .frame(height: AppTheme.Spacing.xxLarge)
+                        .frame(height: VdSpacing.xl)
                     headerContainer
                     Spacer()
-                        .frame(height: AppTheme.Spacing.xxLarge)
+                        .frame(height: VdSpacing.xl)
                     optionsContainer
                     Spacer()
-                        .frame(height: AppTheme.Spacing.xxLarge)
+                        .frame(height: VdSpacing.xl)
                     buttonContainer
                 }
                 .frame(maxWidth: 402, minHeight: max(proxy.size.height - 32, 0), alignment: .top)
@@ -25,82 +26,52 @@ struct RoleSelectionView: View {
                 .padding(.bottom, 8)
                 .frame(maxWidth: .infinity)
             }
-            .background(AppTheme.Colors.backgroundPrimary.ignoresSafeArea())
+            .background(Color.vdBackgroundDefaultBase.ignoresSafeArea())
         }
     }
 
     private var headerContainer: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.xSmall) {
+        VStack(alignment: .leading, spacing: VdSpacing.xs) {
             Text("How will you use Basera?")
-                .baseraTextStyle(AppTheme.Typography.headlineLarge)
-                .foregroundStyle(AppTheme.Colors.textPrimary)
+                .vdFont(VdFont.headlineLarge)
+                .foregroundStyle(Color.vdContentDefaultBase)
         }
     }
 
     private var optionsContainer: some View {
-        VStack(spacing: AppTheme.Spacing.medium) {
-            optionCard(
-                role: .renter,
-                emoji: "🏠",
+        VStack(spacing: VdSpacing.smMd) {
+            VdSelectionCard(
+                selectionStyle: .radio,
+                isSelected: roleBinding(for: .renter),
+                icon: "house.fill",
                 title: "Find a place to rent",
-                subtitle: "I am looking for properties."
+                description: "I am looking for properties."
             )
 
-            optionCard(
-                role: .owner,
-                emoji: "🏢",
+            VdSelectionCard(
+                selectionStyle: .radio,
+                isSelected: roleBinding(for: .owner),
+                icon: "building.2.fill",
                 title: "List my property",
-                subtitle: "I want to rent out my property."
+                description: "I want to rent out my property."
             )
         }
     }
 
     private var buttonContainer: some View {
-        BaseraButton(
-            title: "Continue",
-            style: .primary,
-            isLoading: isLoading,
-            action: onContinue
-        )
+        VdButton("Continue", fullWidth: true, isLoading: isLoading, action: onContinue)
+            .frame(maxWidth: .infinity)
     }
 
-    private func optionCard(role: UserRole, emoji: String, title: String, subtitle: String) -> some View {
-        Button {
-            selectedRole = role
-        } label: {
-            HStack(alignment: .top, spacing: AppTheme.Spacing.medium) {
-                Text(emoji)
-                    .font(.system(size: 22))
-                    .padding(.top, 2)
-
-                VStack(alignment: .leading, spacing: AppTheme.Spacing.xSmall) {
-                    Text(title)
-                        .baseraTextStyle(AppTheme.Typography.titleMedium)
-                        .foregroundStyle(AppTheme.Colors.textPrimary)
-
-                    Text(subtitle)
-                        .baseraTextStyle(AppTheme.Typography.bodyMedium)
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+    private func roleBinding(for role: UserRole) -> Binding<Bool> {
+        Binding(
+            get: { selectedRole == role },
+            set: { isSelected in
+                if isSelected {
+                    selectedRole = role
                 }
-
-                Spacer(minLength: 0)
-
-                Image(systemName: selectedRole == role ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(selectedRole == role ? AppTheme.Colors.brandPrimary : AppTheme.Colors.borderPrimary)
             }
-            .padding(AppTheme.Spacing.large)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(AppTheme.Colors.surfacePrimary)
-            .overlay(
-                RoundedRectangle(cornerRadius: AppTheme.Radius.large, style: .continuous)
-                    .stroke(
-                        selectedRole == role ? AppTheme.Colors.brandPrimary : AppTheme.Colors.borderPrimary,
-                        lineWidth: selectedRole == role ? 2 : 1
-                    )
-            )
-            .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.large, style: .continuous))
-        }
-        .buttonStyle(.plain)
+        )
     }
 }
 

@@ -1,10 +1,9 @@
 import SwiftUI
+import VroxalDesign
 
 struct RenterDashboardView: View {
     @EnvironmentObject private var environment: AppEnvironment
     @StateObject private var viewModel = RenterDashboardViewModel()
-    @State private var isFilterSheetPresented = false
-    @State private var selectedListingForInterest: Listing?
     @StateObject private var tenancyViewModel = RenterActiveTenancyViewModel()
 
     let renterID: String
@@ -29,203 +28,31 @@ struct RenterDashboardView: View {
         Group {
             switch viewModel.state {
             case .idle, .loading:
-                BaseraLoadingView(message: "Finding rentals for you")
+                VdLoadingState(title: "Finding rentals for you")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             case .error(let message):
-                BaseraErrorStateView(title: "Unable to load Explore", message: message) {
+                VdAlert(title: "Unable to load Explore", message: message) {
                     Task { await viewModel.retry(using: environment.listingsRepository) }
                 }
             case .loaded:
                 exploreContent
             }
         }
-        .background(AppTheme.Colors.backgroundPrimary)
-        .sheet(isPresented: $isFilterSheetPresented) {
-            NavigationStack {
-                ScrollView {
-                    filterControls
-                        .padding()
-                }
-                .navigationTitle("Filters")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button("Done") {
-                            isFilterSheetPresented = false
-                        }
-                    }
-                }
-            }
-            .presentationDetents([.medium, .large])
-            .presentationDragIndicator(.visible)
-        }
+        .background(Color.vdBackgroundDefaultBase)
         .task {
             guard viewModel.state == .idle else { return }
             await viewModel.load(using: environment.listingsRepository)
-            await viewModel.refreshInterestStates(renterID: renterID, using: environment.interestsRepository)
             await tenancyViewModel.load(renterID: renterID, tenancyRepository: environment.tenancyRepository)
-        }
-        .sheet(item: $selectedListingForInterest) { listing in
-            NavigationStack {
-                InterestSubmissionView(
-                    listing: listing,
-                    renterID: renterID,
-                    renterSnapshot: renterSnapshot
-                )
-            }
-            .environmentObject(environment)
         }
     }
 
     private var exploreContent: some View {
         ScrollView {
             BaseraPageContainer {
-                VStack(alignment: .leading, spacing: AppTheme.Spacing.large) {
-                    searchAndFilters
+                VStack(alignment: .leading, spacing: VdSpacing.md) {
                     activeTenancySection
-                    renterWorkflowLinks
                     favoritesSection
-                    listingModePicker
-                    resultsSection
                 }
-            }
-        }
-    }
-
-    private var searchAndFilters: some View {
-        HStack(spacing: AppTheme.Spacing.small) {
-            BaseraCard(backgroundColor: AppTheme.Colors.backgroundPrimary) {
-                TextField("Search by area or title", text: $viewModel.searchText)
-                    .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                    .foregroundStyle(AppTheme.Colors.textPrimary)
-                    .tint(AppTheme.Colors.brandPrimary)
-                    .padding(.horizontal, AppTheme.Spacing.small)
-            }
-
-            Button {
-                isFilterSheetPresented = true
-            } label: {
-                VStack(spacing: AppTheme.Spacing.xSmall) {
-                    Image(systemName: "line.3.horizontal.decrease.circle")
-                        .font(.system(size: 20, weight: .semibold))
-                    Text("Filter")
-                        .baseraTextStyle(AppTheme.Typography.labelSmall)
-                }
-                .foregroundStyle(AppTheme.Colors.brandPrimary)
-                .frame(width: 64, height: 56)
-                .background(AppTheme.Colors.backgroundPrimary)
-                .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.medium, style: .continuous))
-                .overlay {
-                    RoundedRectangle(cornerRadius: AppTheme.Radius.medium, style: .continuous)
-                        .stroke(AppTheme.Colors.borderSecondary, lineWidth: 1)
-                }
-            }
-        }
-    }
-
-    private var filterControls: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
-                Text("Price Range (NPR \(Int(viewModel.filters.minPrice)) - \(Int(viewModel.filters.maxPrice)))")
-                    .baseraTextStyle(AppTheme.Typography.bodySmall)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
-
-                HStack {
-                    Slider(value: $viewModel.filters.minPrice, in: 8_000...50_000, step: 1_000)
-                        .tint(AppTheme.Colors.brandPrimary)
-                    Slider(value: $viewModel.filters.maxPrice, in: 8_000...50_000, step: 1_000)
-                        .tint(AppTheme.Colors.brandPrimary)
-                }
-            }
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: AppTheme.Spacing.small) {
-                    ForEach(Listing.PropertyType.allCases) { type in
-                        filterChip(
-                            title: type.rawValue,
-                            isSelected: viewModel.filters.selectedPropertyTypes.contains(type)
-                        ) {
-                            if viewModel.filters.selectedPropertyTypes.contains(type) {
-                                viewModel.filters.selectedPropertyTypes.remove(type)
-                            } else {
-                                viewModel.filters.selectedPropertyTypes.insert(type)
-                            }
-                        }
-                    }
-                }
-            }
-
-            dashboardToggle(title: "Parking required", isOn: $viewModel.filters.parkingRequired)
-            dashboardToggle(title: "Wi-Fi required", isOn: $viewModel.filters.wifiRequired)
-            dashboardToggle(title: "Pet allowed only", isOn: $viewModel.filters.petsAllowedOnly)
-
-            Picker(selection: $viewModel.filters.furnishing) {
-                segmentedOption("Any").tag(Optional<Listing.Furnishing>.none)
-                ForEach(Listing.Furnishing.allCases) { furnishing in
-                    segmentedOption(furnishing.rawValue).tag(Optional(furnishing))
-                }
-            } label: {
-                controlLabel("Furnishing")
-            }
-            .pickerStyle(.segmented)
-            .tint(AppTheme.Colors.brandPrimary)
-
-            Picker(selection: $viewModel.filters.tenantPreference) {
-                segmentedOption("Any").tag(Optional<Listing.TenantPreference>.none)
-                ForEach(Listing.TenantPreference.allCases) { preference in
-                    segmentedOption(preference.rawValue).tag(Optional(preference))
-                }
-            } label: {
-                controlLabel("Tenant Preference")
-            }
-            .tint(AppTheme.Colors.brandPrimary)
-
-            Stepper(value: $viewModel.filters.maximumRadiusInKM, in: 1...12) {
-                Text("Location radius: \(viewModel.filters.maximumRadiusInKM) KM")
-                    .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                    .foregroundStyle(AppTheme.Colors.textPrimary)
-            }
-            .tint(AppTheme.Colors.brandPrimary)
-
-            DatePicker(selection: $viewModel.filters.availableFrom, displayedComponents: .date) {
-                controlLabel("Available by")
-            }
-            .tint(AppTheme.Colors.brandPrimary)
-
-            Group {
-                dashboardToggle(title: "Electricity included", isOn: $viewModel.filters.includeElectricity)
-                dashboardToggle(title: "Water included", isOn: $viewModel.filters.includeWater)
-                dashboardToggle(title: "Internet included", isOn: $viewModel.filters.includeInternet)
-            }
-        }
-    }
-
-    private var listingModePicker: some View {
-        Picker(selection: $viewModel.discoveryMode) {
-            ForEach(RenterDashboardViewModel.DiscoveryMode.allCases) { mode in
-                segmentedOption(mode.rawValue).tag(mode)
-            }
-        } label: {
-            controlLabel("Mode")
-        }
-        .pickerStyle(.segmented)
-        .tint(AppTheme.Colors.brandPrimary)
-    }
-
-
-    @ViewBuilder
-    private var resultsSection: some View {
-        if viewModel.filteredListings.isEmpty {
-            if viewModel.hasAppliedFilters || !viewModel.searchText.isEmpty {
-                BaseraEmptyStateView(title: "No results", message: "Try adjusting search and filters.")
-            } else {
-                BaseraEmptyStateView(title: "No listings", message: "There are no listings available right now.")
-            }
-        } else {
-            switch viewModel.discoveryMode {
-            case .list:
-                listingsGrid
-            case .map:
-                mapPlaceholderView
             }
         }
     }
@@ -235,43 +62,91 @@ struct RenterDashboardView: View {
     @ViewBuilder
     private var activeTenancySection: some View {
         if let tenancy = tenancyViewModel.activeTenancy {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
-                Text("Active Tenancy")
-                    .baseraTextStyle(AppTheme.Typography.titleMedium)
+            VStack(alignment: .leading, spacing: VdSpacing.smMd) {
+                HStack {
+                    VStack(alignment: .leading, spacing: VdSpacing.xs) {
+                        Text("Current Rental")
+                            .vdFont(VdFont.titleMedium)
+                            .foregroundStyle(Color.vdContentDefaultBase)
+                        Text(tenancy.listingTitle)
+                            .vdFont(VdFont.bodySmall)
+                            .foregroundStyle(Color.vdContentDefaultSecondary)
+                            .lineLimit(1)
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "house.circle.fill")
+                        .font(.system(size: 30))
+                        .foregroundStyle(Color.vdContentPrimaryBase)
+                }
+
                 TenancySummaryCard(tenancy: tenancy, party: .renter)
-                VStack(spacing: AppTheme.Spacing.small) {
+
+                HStack(spacing: VdSpacing.sm) {
                     NavigationLink {
-                        ActiveTenancyDetailView(tenancyID: tenancy.id, userID: renterID, party: .renter)
+                        ActiveTenancyDetailView(
+                            tenancyID: tenancy.id,
+                            userID: renterID,
+                            party: .renter
+                        )
                     } label: {
-                        BaseraActionTile(title: "Open Tenancy Details", subtitle: "View assignment, agreement, and checklist", systemImage: "person.3")
+                        tenancyActionChip(
+                            title: "Details",
+                            systemImage: "person.3"
+                        )
                     }
                     .buttonStyle(.plain)
 
                     NavigationLink {
-                        PaymentsHubView(tenancy: tenancy, userID: renterID, actor: .renter)
+                        PaymentsHubView(
+                            tenancy: tenancy,
+                            userID: renterID,
+                            actor: .renter
+                        )
                     } label: {
-                        BaseraActionTile(title: "Payment History", subtitle: "Track completed and pending payments", systemImage: "creditcard")
+                        tenancyActionChip(
+                            title: "Payment History",
+                            systemImage: "creditcard"
+                        )
                     }
                     .buttonStyle(.plain)
                 }
+
                 Text("Owner contact: \(tenancy.ownerContact.fullName) • \(tenancy.ownerContact.phoneNumber)")
-                    .baseraTextStyle(AppTheme.Typography.bodySmall)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .vdFont(VdFont.bodySmall)
+                    .foregroundStyle(Color.vdContentDefaultSecondary)
+            }
+            .padding(VdSpacing.md)
+            .background(
+                LinearGradient(
+                    colors: [
+                        Color.vdBackgroundPrimarySecondary.opacity(0.65),
+                        Color.vdBackgroundDefaultSecondary
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .clipShape(RoundedRectangle(cornerRadius: VdRadius.lg, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: VdRadius.lg, style: .continuous)
+                    .stroke(Color.vdBorderPrimaryBase.opacity(0.22), lineWidth: 1)
             }
         } else {
-            BaseraInlineMessageView(tone: .info, message: "No active tenancy yet. It appears once your signed agreement is active.")
+            VdAlert(tone: .info, message: "No active tenancy yet. It appears once your signed agreement is active.")
         }
 
         if tenancyViewModel.archivedTenancies.isEmpty == false {
-            BaseraCard(backgroundColor: AppTheme.Colors.backgroundPrimary) {
-                VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+            BaseraCard(backgroundColor: Color.vdBackgroundDefaultBase) {
+                VStack(alignment: .leading, spacing: VdSpacing.sm) {
                     Text("Archived Tenancies")
-                        .baseraTextStyle(AppTheme.Typography.titleSmall)
+                        .vdFont(VdFont.titleSmall)
                     ForEach(tenancyViewModel.archivedTenancies) { archived in
-                        VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+                        VStack(alignment: .leading, spacing: VdSpacing.sm) {
                             Text(archived.listingTitle)
-                                .baseraTextStyle(AppTheme.Typography.labelLarge)
-                            VStack(spacing: AppTheme.Spacing.small) {
+                                .vdFont(VdFont.labelLarge)
+                            VStack(spacing: VdSpacing.sm) {
                                 NavigationLink {
                                     AgreementHubView(currentUserID: renterID, party: .renter)
                                 } label: {
@@ -300,109 +175,30 @@ struct RenterDashboardView: View {
         }
     }
 
-    private var renterWorkflowLinks: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
-            Text("Quick Actions")
-                .baseraTextStyle(AppTheme.Typography.titleMedium)
-
-            NavigationLink {
-                RenterInterestsView(renterID: renterID)
-            } label: {
-                BaseraActionTile(title: "My Interest Requests", subtitle: "View owner responses and pending requests", systemImage: "paperplane")
-            }
-            .buttonStyle(.plain)
-
-            NavigationLink {
-                ConversationListView(userID: renterID)
-            } label: {
-                BaseraActionTile(title: "Conversations", subtitle: "Continue approved chats with owners", systemImage: "bubble.left.and.bubble.right")
-            }
-            .buttonStyle(.plain)
-
-            NavigationLink {
-                AgreementHubView(currentUserID: renterID, party: .renter)
-            } label: {
-                BaseraActionTile(title: "My Agreement", subtitle: "Check agreement draft and signed status", systemImage: "doc.richtext")
-            }
-            .buttonStyle(.plain)
-
-            NavigationLink {
-                ReviewHubView(userID: renterID, role: .renter)
-            } label: {
-                BaseraActionTile(title: "Reviews & Rating", subtitle: "Manage ratings for your tenancy", systemImage: "star.bubble")
-            }
-            .buttonStyle(.plain)
-        }
-    }
-
-    private var listingsGrid: some View {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 280), spacing: AppTheme.Spacing.medium)], spacing: AppTheme.Spacing.medium) {
-            ForEach(viewModel.filteredListings) { listing in
-                NavigationLink {
-                    ListingDetailView(
-                        listing: listing,
-                        similarListings: viewModel.similarListings(for: listing),
-                        isFavorite: viewModel.isFavorite(listingID: listing.id),
-                        interestState: viewModel.interestState(for: listing.id),
-                        onFavoriteTapped: { viewModel.toggleFavorite(listingID: listing.id) },
-                        onInterestedTapped: { selectedListingForInterest = listing }
-                    )
-                } label: {
-                    listingCard(for: listing)
-                }
-                .buttonStyle(.plain)
-            }
-        }
-    }
-
-
-    private var mapPlaceholderView: some View {
-        BaseraCard(backgroundColor: AppTheme.Colors.backgroundPrimary) {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
-                Label("Map integration placeholder", systemImage: "map")
-                    .baseraTextStyle(AppTheme.Typography.titleMedium)
-
-                Text("Showing approximate pins only. Exact address remains hidden until owner approval.")
-                    .baseraTextStyle(AppTheme.Typography.bodySmall)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
-
-                ForEach(viewModel.filteredListings.prefix(5)) { listing in
-                    HStack {
-                        Image(systemName: "mappin.and.ellipse")
-                            .foregroundStyle(AppTheme.Colors.brandPrimary)
-                        Text("\(listing.approximateLocation) • Rs. \(listing.monthlyRent)")
-                            .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                            .foregroundStyle(AppTheme.Colors.textPrimary)
-                    }
-                }
-            }
-        }
-    }
-
     private var favoritesSection: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+        VStack(alignment: .leading, spacing: VdSpacing.sm) {
             Text("Favorites")
-                .baseraTextStyle(AppTheme.Typography.titleMedium)
+                .vdFont(VdFont.titleMedium)
 
             if viewModel.favoriteListings.isEmpty {
-                BaseraInlineMessageView(tone: .info, message: "You have no saved listings yet.")
+                VdAlert(tone: .info, message: "You have no saved listings yet.")
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: AppTheme.Spacing.small) {
+                    HStack(spacing: VdSpacing.sm) {
                         ForEach(viewModel.favoriteListings) { listing in
-                            BaseraCard(backgroundColor: AppTheme.Colors.backgroundPrimary) {
-                                VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+                            BaseraCard(backgroundColor: Color.vdBackgroundDefaultBase) {
+                                VStack(alignment: .leading, spacing: VdSpacing.sm) {
                                     Text(listing.title)
-                                        .baseraTextStyle(AppTheme.Typography.labelLarge)
+                                        .vdFont(VdFont.labelLarge)
                                     Text(listing.approximateLocation)
-                                        .baseraTextStyle(AppTheme.Typography.bodySmall)
-                                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                                        .vdFont(VdFont.bodySmall)
+                                        .foregroundStyle(Color.vdContentDefaultSecondary)
                                     Button {
                                         viewModel.toggleFavorite(listingID: listing.id)
                                     } label: {
                                         Text("Remove")
-                                            .baseraTextStyle(AppTheme.Typography.bodySmall)
-                                            .foregroundStyle(AppTheme.Colors.errorPrimary)
+                                            .vdFont(VdFont.bodySmall)
+                                            .foregroundStyle(Color.vdContentErrorBase)
                                     }
                                 }
                                 .frame(width: 220, alignment: .leading)
@@ -415,194 +211,22 @@ struct RenterDashboardView: View {
     }
 
 
-    private func listingCard(for listing: Listing) -> some View {
-        BaseraCard(backgroundColor: AppTheme.Colors.backgroundPrimary) {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
-                HStack {
-                    Text(listing.title)
-                        .baseraTextStyle(AppTheme.Typography.titleMedium)
-
-                    Spacer()
-
-                    Button {
-                        viewModel.toggleFavorite(listingID: listing.id)
-                    } label: {
-                        Image(systemName: viewModel.isFavorite(listingID: listing.id) ? "heart.fill" : "heart")
-                            .foregroundStyle(AppTheme.Colors.errorPrimary)
-                    }
-                }
-
-                Text(listing.approximateLocation)
-                    .baseraTextStyle(AppTheme.Typography.bodyMedium)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
-
-                HStack {
-                    BaseraChip(text: listing.propertyType.rawValue)
-                    BaseraChip(text: "Rs. \(listing.monthlyRent)/month")
-                }
-
-                Text("Approximate location only")
-                    .baseraTextStyle(AppTheme.Typography.bodySmall)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
-            }
-        }
-    }
-
-    private func filterChip(title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+    private func tenancyActionChip(title: String, systemImage: String) -> some View {
+        HStack(spacing: VdSpacing.xs) {
+            Image(systemName: systemImage)
             Text(title)
-                .baseraTextStyle(AppTheme.Typography.bodySmall)
-                .padding(.horizontal, AppTheme.Spacing.medium)
-                .padding(.vertical, AppTheme.Spacing.small)
-                .background(isSelected ? AppTheme.Colors.brandPrimary : AppTheme.Colors.backgroundPrimary)
-                .foregroundStyle(isSelected ? AppTheme.Colors.brandOnPrimary : AppTheme.Colors.textPrimary)
-                .clipShape(Capsule())
+                .lineLimit(1)
         }
-    }
-
-    private func controlLabel(_ title: String) -> some View {
-        Text(title)
-            .baseraTextStyle(AppTheme.Typography.labelLarge)
-            .foregroundStyle(AppTheme.Colors.textPrimary)
-    }
-
-    private func segmentedOption(_ title: String) -> some View {
-        Text(title)
-            .baseraTextStyle(AppTheme.Typography.labelMedium)
-    }
-
-    private func dashboardToggle(title: String, isOn: Binding<Bool>) -> some View {
-        Toggle(isOn: isOn) {
-            Text(title)
-                .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                .foregroundStyle(AppTheme.Colors.textPrimary)
-        }
-        .tint(AppTheme.Colors.brandPrimary)
-    }
-}
-
-private struct ListingDetailView: View {
-    let listing: Listing
-    let similarListings: [Listing]
-    let isFavorite: Bool
-    let interestState: Listing.InterestState
-    let onFavoriteTapped: () -> Void
-    let onInterestedTapped: () -> Void
-
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.large) {
-                gallerySection
-                summarySection
-                amenitiesSection
-                similarSection
-            }
-            .padding()
-        }
-        .navigationTitle("Listing Detail")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-
-    private var gallerySection: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: AppTheme.Spacing.medium) {
-                ForEach(listing.media) { media in
-                    BaseraCard {
-                        VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
-                            Image(systemName: media.systemImageName)
-                                .font(.system(size: 28))
-                                .foregroundStyle(AppTheme.Colors.brandPrimary)
-                            Text(media.title)
-                                .baseraTextStyle(AppTheme.Typography.titleMedium)
-                            Text(media.subtitle)
-                                .baseraTextStyle(AppTheme.Typography.bodySmall)
-                                .foregroundStyle(AppTheme.Colors.textSecondary)
-
-                            if media.kind == .videoPreview {
-                                BaseraChip(text: "Video Preview")
-                            }
-                        }
-                        .frame(width: 200, alignment: .leading)
-                    }
-                }
-            }
-        }
-    }
-
-    private var summarySection: some View {
-        BaseraCard {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
-                Text(listing.title)
-                    .baseraTextStyle(AppTheme.Typography.titleLarge)
-                Text(listing.description)
-                    .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                    .foregroundStyle(AppTheme.Colors.textPrimary)
-                Text("Approximate location: \(listing.approximateLocation)")
-                    .baseraTextStyle(AppTheme.Typography.bodyMedium)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
-                Text(listing.exactAddressMasked)
-                    .baseraTextStyle(AppTheme.Typography.bodySmall)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
-                Text("Rs. \(listing.monthlyRent)/month")
-                    .baseraTextStyle(AppTheme.Typography.titleMedium)
-
-                HStack {
-                    BaseraButton(title: isFavorite ? "Saved" : "Save", style: .secondary, action: onFavoriteTapped)
-                    BaseraButton(
-                        title: interestState.label,
-                        style: .primary,
-                        isDisabled: interestState != .none,
-                        action: onInterestedTapped
-                    )
-                }
-
-                if interestState != .none {
-                    BaseraInlineMessageView(tone: .info, message: "Interest already sent. We'll notify you when the owner responds.")
-                }
-            }
-        }
-    }
-
-    private var amenitiesSection: some View {
-        BaseraCard {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
-                Text("Amenities & Rules")
-                    .baseraTextStyle(AppTheme.Typography.titleMedium)
-                Text("• Furnishing: \(listing.furnishing.rawValue)")
-                    .baseraTextStyle(AppTheme.Typography.bodyMedium)
-                Text("• Parking: \(listing.parkingAvailable ? "Available" : "Not available")")
-                    .baseraTextStyle(AppTheme.Typography.bodyMedium)
-                Text("• Wi-Fi: \(listing.wifiAvailable ? "Available" : "Not available")")
-                    .baseraTextStyle(AppTheme.Typography.bodyMedium)
-                Text("• Pets: \(listing.petAllowed ? "Allowed" : "Not allowed")")
-                    .baseraTextStyle(AppTheme.Typography.bodyMedium)
-                Text("• Tenant preference: \(listing.tenantPreference.rawValue)")
-                    .baseraTextStyle(AppTheme.Typography.bodyMedium)
-            }
-        }
-    }
-
-    private var similarSection: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
-            Text("Similar Listings")
-                .baseraTextStyle(AppTheme.Typography.titleMedium)
-
-            if similarListings.isEmpty {
-                BaseraInlineMessageView(tone: .info, message: "No similar listings available yet.")
-            } else {
-                ForEach(similarListings) { similarListing in
-                    BaseraCard {
-                        VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
-                            Text(similarListing.title)
-                                .baseraTextStyle(AppTheme.Typography.titleSmall)
-                                .foregroundStyle(AppTheme.Colors.textPrimary)
-                            Text("\(similarListing.approximateLocation) • Rs. \(similarListing.monthlyRent)")
-                                .baseraTextStyle(AppTheme.Typography.bodySmall)
-                                .foregroundStyle(AppTheme.Colors.textSecondary)
-                        }
-                    }
-                }
-            }
+        .vdFont(VdFont.labelMedium)
+        .foregroundStyle(Color.vdContentPrimaryBase)
+        .padding(.horizontal, VdSpacing.smMd)
+        .padding(.vertical, VdSpacing.sm)
+        .frame(maxWidth: .infinity)
+        .background(Color.vdBackgroundDefaultBase)
+        .clipShape(RoundedRectangle(cornerRadius: VdRadius.md, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: VdRadius.md, style: .continuous)
+                .stroke(Color.vdBorderDefaultSecondary, lineWidth: 1)
         }
     }
 }

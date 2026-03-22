@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct NotificationDetailView: View {
     let notification: AppNotification
@@ -6,40 +7,43 @@ struct NotificationDetailView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.large) {
-                HStack(spacing: AppTheme.Spacing.small) {
-                    Image(systemName: notification.type.systemImageName)
-                        .foregroundStyle(AppTheme.Colors.brandPrimary)
-                    Text(notification.type.title)
-                        .baseraTextStyle(AppTheme.Typography.titleLarge)
-                }
+            BaseraPageContainer {
+                VStack(alignment: .leading, spacing: VdSpacing.md) {
+                    HStack(spacing: VdSpacing.sm) {
+                        Image(systemName: notification.type.systemImageName)
+                            .foregroundStyle(Color.vdContentPrimaryBase)
+                        Text(notification.type.title)
+                            .vdFont(VdFont.titleLarge)
+                    }
 
-                Text(notification.message)
-                    .baseraTextStyle(AppTheme.Typography.bodyMedium)
+                    Text(notification.message)
+                        .vdFont(VdFont.bodyMedium)
 
-                BaseraCard {
-                    VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
-                        Text("Notification metadata")
-                            .baseraTextStyle(AppTheme.Typography.titleSmall)
-                        Text("Created: \(notification.createdAt.formatted(date: .abbreviated, time: .shortened))")
-                            .baseraTextStyle(AppTheme.Typography.bodySmall)
-                            .foregroundStyle(AppTheme.Colors.textSecondary)
-                        if notification.metadata.isEmpty == false {
-                            ForEach(notification.metadata.keys.sorted(), id: \.self) { key in
-                                Text("\(key): \(notification.metadata[key] ?? "")")
-                                    .font(.caption)
-                                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    BaseraCard {
+                        VStack(alignment: .leading, spacing: VdSpacing.sm) {
+                            Text("Notification metadata")
+                                .vdFont(VdFont.titleSmall)
+                            Text("Created: \(notification.createdAt.formatted(date: .abbreviated, time: .shortened))")
+                                .vdFont(VdFont.bodySmall)
+                                .foregroundStyle(Color.vdContentDefaultSecondary)
+                            if notification.metadata.isEmpty == false {
+                                ForEach(notification.metadata.keys.sorted(), id: \.self) { key in
+                                    Text("\(key): \(notification.metadata[key] ?? "")")
+                                        .font(.caption)
+                                        .foregroundStyle(Color.vdContentDefaultSecondary)
+                                }
                             }
                         }
                     }
-                }
 
-                BaseraButton(title: notification.route.destinationLabel, style: .primary) {
-                    onOpenDestination()
+                    VdButton(title: notification.route.destinationLabel, style: .primary) {
+                        onOpenDestination()
+                    }
                 }
             }
-            .padding()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .baseraScreenBackground()
         .navigationTitle("Notification")
         .navigationBarTitleDisplayMode(.inline)
     }

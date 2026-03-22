@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct InterestSubmissionView: View {
     @EnvironmentObject private var environment: AppEnvironment
@@ -17,14 +18,14 @@ struct InterestSubmissionView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
+            VStack(alignment: .leading, spacing: VdSpacing.smMd) {
                 BaseraCard {
-                    VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+                    VStack(alignment: .leading, spacing: VdSpacing.sm) {
                         Text("Interest Request")
-                            .baseraTextStyle(AppTheme.Typography.titleLarge)
+                            .vdFont(VdFont.titleLarge)
                         Text("Profile snapshot shared with owner")
-                            .baseraTextStyle(AppTheme.Typography.bodySmall)
-                            .foregroundStyle(AppTheme.Colors.textSecondary)
+                            .vdFont(VdFont.bodySmall)
+                            .foregroundStyle(Color.vdContentDefaultSecondary)
                         Text(viewModel.renterSnapshot.fullName)
                         Text("Occupation: \(viewModel.renterSnapshot.occupation)")
                         Text("Family size: \(viewModel.renterSnapshot.familySize)")
@@ -33,19 +34,19 @@ struct InterestSubmissionView: View {
                     }
                 }
 
-                BaseraTextField(
+                VdTextField(
                     title: "Optional message",
                     prompt: "Share move-in timeline or requirements",
                     text: $viewModel.optionalMessage
                 )
 
-                BaseraInlineMessageView(tone: .info, message: "Exact property address stays hidden until owner accepts your interest.")
+                VdAlert(tone: .info, message: "Exact property address stays hidden until owner accepts your interest.")
 
                 if case .error(let message) = viewModel.state {
-                    BaseraInlineMessageView(tone: .error, message: message)
+                    VdAlert(tone: .error, message: message)
                 }
 
-                BaseraButton(
+                VdButton(
                     title: buttonTitle,
                     style: .primary,
                     isDisabled: viewModel.state == .submitting || viewModel.state == .submitted,

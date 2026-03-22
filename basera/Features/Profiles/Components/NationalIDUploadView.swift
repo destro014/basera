@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct NationalIDUploadView: View {
     @Binding var uploadState: DocumentUploadState
@@ -24,24 +25,24 @@ struct NationalIDUploadView: View {
             HStack {
                 VStack(alignment: .leading) {
                     Text(title)
-                        .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                        .foregroundStyle(AppTheme.Colors.textPrimary)
+                        .vdFont(VdFont.bodyLarge)
+                        .foregroundStyle(Color.vdContentDefaultBase)
                     Text(isUploaded ? "Uploaded" : "Tap to upload")
-                        .baseraTextStyle(AppTheme.Typography.bodySmall)
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                        .vdFont(VdFont.bodySmall)
+                        .foregroundStyle(Color.vdContentDefaultSecondary)
                 }
 
                 Spacer()
 
                 Image(systemName: isUploaded ? "checkmark.circle.fill" : "arrow.up.circle")
-                    .foregroundStyle(isUploaded ? AppTheme.Colors.successPrimary : AppTheme.Colors.brandPrimary)
+                    .foregroundStyle(isUploaded ? Color.vdContentSuccessBase : Color.vdBackgroundPrimaryBase)
             }
-            .padding(AppTheme.Spacing.medium)
-            .background(AppTheme.Colors.surfacePrimary)
-            .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.medium, style: .continuous))
+            .padding(VdSpacing.smMd)
+            .background(Color.vdBackgroundDefaultSecondary)
+            .clipShape(RoundedRectangle(cornerRadius: VdRadius.md, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: AppTheme.Radius.medium, style: .continuous)
-                    .stroke(AppTheme.Colors.borderSecondary, lineWidth: 1)
+                RoundedRectangle(cornerRadius: VdRadius.md, style: .continuous)
+                    .stroke(Color.vdBorderDefaultSecondary, lineWidth: 1)
             }
         }
         .buttonStyle(.plain)

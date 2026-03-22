@@ -37,33 +37,74 @@ private struct SupabaseConfiguration {
     let documentsTable: String
     let storageBucket: String
 
+    private enum CacheKey {
+        static let baseURL = "BASERA_CACHED_SUPABASE_URL"
+        static let anonKey = "BASERA_CACHED_SUPABASE_ANON_KEY"
+        static let documentsTable = "BASERA_CACHED_SUPABASE_DOCUMENTS_TABLE"
+        static let storageBucket = "BASERA_CACHED_SUPABASE_STORAGE_BUCKET"
+    }
+
     static func load() throws -> SupabaseConfiguration {
         let environment = ProcessInfo.processInfo.environment
         let info = Bundle.main.infoDictionary ?? [:]
 
-        func read(_ envKey: String, _ infoKey: String? = nil) -> String? {
-            if let envValue = environment[envKey], envValue.isEmpty == false {
+        func normalizedRuntimeValue(_ rawValue: String?) -> String? {
+            guard let rawValue else { return nil }
+            let trimmed = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard trimmed.isEmpty == false else { return nil }
+            // Ignore unresolved Info.plist placeholders such as "$(KEY_NAME)".
+            guard trimmed.hasPrefix("$(") == false || trimmed.hasSuffix(")") == false else {
+                return nil
+            }
+            return trimmed
+        }
+
+        func readFromRuntime(_ envKey: String, _ infoKey: String? = nil) -> String? {
+            if let envValue = normalizedRuntimeValue(environment[envKey]) {
                 return envValue
             }
             if let infoKey,
-               let value = info[infoKey] as? String,
-               value.isEmpty == false {
+               let value = normalizedRuntimeValue(info[infoKey] as? String) {
                 return value
             }
             return nil
         }
 
-        guard let baseURLString = read("BASERA_SUPABASE_URL", "BASERA_SUPABASE_URL"),
+        let cachedBaseURL = UserDefaults.standard.string(forKey: CacheKey.baseURL)
+        let cachedAnonKey = UserDefaults.standard.string(forKey: CacheKey.anonKey)
+        let cachedDocumentsTable = UserDefaults.standard.string(forKey: CacheKey.documentsTable)
+        let cachedStorageBucket = UserDefaults.standard.string(forKey: CacheKey.storageBucket)
+
+        let runtimeBaseURL = readFromRuntime("BASERA_SUPABASE_URL", "BASERA_SUPABASE_URL")
+        let runtimeAnonKey = readFromRuntime("BASERA_SUPABASE_ANON_KEY", "BASERA_SUPABASE_ANON_KEY")
+        let runtimeDocumentsTable = readFromRuntime("BASERA_SUPABASE_DOCUMENTS_TABLE", "BASERA_SUPABASE_DOCUMENTS_TABLE")
+        let runtimeStorageBucket = readFromRuntime("BASERA_SUPABASE_STORAGE_BUCKET", "BASERA_SUPABASE_STORAGE_BUCKET")
+
+        let resolvedBaseURLString = runtimeBaseURL ?? cachedBaseURL
+        let resolvedAnonKey = runtimeAnonKey ?? cachedAnonKey
+
+        guard let baseURLString = resolvedBaseURLString,
               let baseURL = URL(string: baseURLString) else {
             throw SupabaseServiceError.missingConfiguration("BASERA_SUPABASE_URL")
         }
 
-        guard let anonKey = read("BASERA_SUPABASE_ANON_KEY", "BASERA_SUPABASE_ANON_KEY") else {
+        guard let anonKey = resolvedAnonKey else {
             throw SupabaseServiceError.missingConfiguration("BASERA_SUPABASE_ANON_KEY")
         }
 
-        let documentsTable = read("BASERA_SUPABASE_DOCUMENTS_TABLE", "BASERA_SUPABASE_DOCUMENTS_TABLE") ?? "app_documents"
-        let storageBucket = read("BASERA_SUPABASE_STORAGE_BUCKET", "BASERA_SUPABASE_STORAGE_BUCKET") ?? "basera-media"
+        let documentsTable = runtimeDocumentsTable
+            ?? cachedDocumentsTable
+            ?? "app_documents"
+        let storageBucket = runtimeStorageBucket
+            ?? cachedStorageBucket
+            ?? "basera-media"
+
+        // Persist the last known good configuration so app launches continue to work
+        // even when Xcode run-scheme environment variables are unavailable.
+        UserDefaults.standard.set(baseURLString, forKey: CacheKey.baseURL)
+        UserDefaults.standard.set(anonKey, forKey: CacheKey.anonKey)
+        UserDefaults.standard.set(documentsTable, forKey: CacheKey.documentsTable)
+        UserDefaults.standard.set(storageBucket, forKey: CacheKey.storageBucket)
 
         return SupabaseConfiguration(
             baseURL: baseURL,
@@ -71,6 +112,12 @@ private struct SupabaseConfiguration {
             documentsTable: documentsTable,
             storageBucket: storageBucket
         )
+    }
+}
+
+enum SupabaseConfigurationWarmup {
+    static func seedCacheFromRuntimeIfAvailable() {
+        _ = try? SupabaseConfiguration.load()
     }
 }
 

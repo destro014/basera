@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct BaseraPageContainer<Content: View>: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -12,16 +13,19 @@ struct BaseraPageContainer<Content: View>: View {
         content()
             .frame(maxWidth: horizontalSizeClass == .regular ? 900 : .infinity)
             .frame(maxWidth: .infinity)
-            .padding(.horizontal, horizontalSizeClass == .regular ? AppTheme.Spacing.xLarge * 2 : AppTheme.Spacing.large)
-            .padding(.vertical, AppTheme.Spacing.large)
-        .baseraScreenBackground()
+            .padding(
+                .horizontal,
+                horizontalSizeClass == .regular
+                    ? VdSpacing.lg * 2 : VdSpacing.md
+            )
+            .padding(.vertical, VdSpacing.md)
     }
 }
 
 struct BaseraScreenBackgroundModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .background(AppTheme.Colors.backgroundPrimary)
+            .background(Color.vdBackgroundDefaultBase)
     }
 }
 
@@ -31,10 +35,10 @@ struct BaseraListBackgroundModifier: ViewModifier {
         if #available(iOS 16.0, *) {
             content
                 .scrollContentBackground(.hidden)
-                .background(AppTheme.Colors.backgroundPrimary)
+                .background(Color.vdBackgroundDefaultBase)
         } else {
             content
-                .background(AppTheme.Colors.backgroundPrimary)
+                .background(Color.vdBackgroundDefaultBase)
         }
     }
 }
@@ -53,7 +57,7 @@ extension View {
     BaseraPageContainer {
         BaseraCard {
             Text("Adaptive page container")
-                .baseraTextStyle(AppTheme.Typography.titleMedium)
+                .vdFont(.titleMedium)
         }
     }
     .frame(height: 200)
@@ -63,7 +67,7 @@ extension View {
     BaseraPageContainer {
         BaseraCard {
             Text("Adaptive page container")
-                .baseraTextStyle(AppTheme.Typography.titleMedium)
+                .vdFont(.titleMedium)
         }
     }
     .frame(width: 1024, height: 200)

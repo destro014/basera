@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct MyListingsView: View {
     @EnvironmentObject private var environment: AppEnvironment
@@ -15,9 +16,10 @@ struct MyListingsView: View {
             Group {
                 switch viewModel.state {
                 case .idle, .loading:
-                    BaseraLoadingView(message: "Loading your listings")
+                    VdLoadingState(title: "Loading your listings")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                 case .error(let message):
-                    BaseraErrorStateView(title: "My Listings", message: message) {
+                    VdAlert(title: "My Listings", message: message) {
                         Task { await reload() }
                     }
                 case .loaded:
@@ -76,7 +78,7 @@ struct MyListingsView: View {
     private var content: some View {
         Group {
             if viewModel.listings.isEmpty {
-                BaseraEmptyStateView(
+                VdEmptyState(
                     title: "No listings yet",
                     message: "Create your first room, flat, or apartment listing.",
                     systemImage: "building.2.crop.circle",
@@ -86,21 +88,21 @@ struct MyListingsView: View {
             } else {
                 List(viewModel.listings) { listing in
                     BaseraCard {
-                        VStack(alignment: .leading, spacing: AppTheme.Spacing.small) {
+                        VStack(alignment: .leading, spacing: VdSpacing.sm) {
                             HStack {
                                 Text(listing.title)
-                                    .baseraTextStyle(AppTheme.Typography.titleMedium)
+                                    .vdFont(VdFont.titleMedium)
                                 Spacer()
                                 statusBadge(for: listing.status)
                             }
                             Text("\(listing.propertyType.rawValue) • \(listing.listingScope.rawValue)")
-                                .baseraTextStyle(AppTheme.Typography.bodySmall)
-                                .foregroundStyle(AppTheme.Colors.textSecondary)
+                                .vdFont(VdFont.bodySmall)
+                                .foregroundStyle(Color.vdContentDefaultSecondary)
                             Text("Public area: \(listing.approximateLocation)")
-                                .baseraTextStyle(AppTheme.Typography.bodySmall)
-                                .foregroundStyle(AppTheme.Colors.textSecondary)
+                                .vdFont(VdFont.bodySmall)
+                                .foregroundStyle(Color.vdContentDefaultSecondary)
                             Text("NPR \(listing.monthlyRent)/month")
-                                .baseraTextStyle(AppTheme.Typography.labelLarge)
+                                .vdFont(VdFont.labelLarge)
 
                             HStack {
                                 actionButton("Preview") { previewListing = listing }
@@ -132,15 +134,15 @@ struct MyListingsView: View {
     }
 
     private func statusBadge(for status: Listing.Status) -> some View {
-        BaseraBadge(text: status.label, tone: statusTone(for: status))
+        VdBadge(status.label, color: statusTone(for: status), style: .subtle)
     }
 
-    private func statusTone(for status: Listing.Status) -> Color {
+    private func statusTone(for status: Listing.Status) -> VdBadgeColor {
         switch status {
-        case .draft, .agreementPending: AppTheme.Colors.warningPrimary
-        case .active, .occupied: AppTheme.Colors.successPrimary
-        case .paused: AppTheme.Colors.infoPrimary
-        case .assigned: AppTheme.Colors.brandPrimary
+        case .draft, .agreementPending: .warning
+        case .active, .occupied: .success
+        case .paused: .info
+        case .assigned: .primary
         }
     }
 

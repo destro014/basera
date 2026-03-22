@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct ProfileSectionView<Content: View>: View {
     let title: String
@@ -7,14 +8,14 @@ struct ProfileSectionView<Content: View>: View {
 
     var body: some View {
         BaseraCard {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.medium) {
-                VStack(alignment: .leading, spacing: AppTheme.Spacing.xSmall) {
+            VStack(alignment: .leading, spacing: VdSpacing.smMd) {
+                VStack(alignment: .leading, spacing: VdSpacing.xs) {
                     Text(title)
-                        .baseraTextStyle(AppTheme.Typography.titleMedium)
+                        .vdFont(VdFont.titleMedium)
                     if let subtitle {
                         Text(subtitle)
-                            .baseraTextStyle(AppTheme.Typography.bodySmall)
-                            .foregroundStyle(AppTheme.Colors.textSecondary)
+                            .vdFont(VdFont.bodySmall)
+                            .foregroundStyle(Color.vdContentDefaultSecondary)
                     }
                 }
 
@@ -27,8 +28,8 @@ struct ProfileSectionView<Content: View>: View {
 #Preview {
     ProfileSectionView(title: "Identity", subtitle: "Upload front and back") {
         Text("Section content")
-            .baseraTextStyle(AppTheme.Typography.bodyLarge)
-            .foregroundStyle(AppTheme.Colors.textPrimary)
+            .vdFont(VdFont.bodyLarge)
+            .foregroundStyle(Color.vdContentDefaultBase)
     }
     .padding()
 }

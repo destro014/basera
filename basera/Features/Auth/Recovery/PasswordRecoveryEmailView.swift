@@ -1,4 +1,5 @@
 import SwiftUI
+import VroxalDesign
 
 struct PasswordRecoveryEmailView: View {
     @Binding var email: String
@@ -14,29 +15,29 @@ struct PasswordRecoveryEmailView: View {
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 0) {
                     Spacer()
-                        .frame(height: AppTheme.Spacing.xxLarge)
+                        .frame(height: VdSpacing.xxl)
                     headerContainer
                     Spacer()
-                        .frame(height: AppTheme.Spacing.xxLarge)
+                        .frame(height: VdSpacing.xxl)
                     inputContainer
                     if let notice {
                         Spacer()
-                            .frame(height: AppTheme.Spacing.large)
+                            .frame(height: VdSpacing.md)
 
-                        BaseraInlineMessageView(
+                        VdAlert(
                             tone: tone(for: notice.style),
                             message: notice.message
                         )
 
                         Spacer()
-                            .frame(height: AppTheme.Spacing.large)
+                            .frame(height: VdSpacing.md)
                     } else {
                         Spacer()
-                            .frame(height: AppTheme.Spacing.xxLarge)
+                            .frame(height: VdSpacing.xxl)
                     }
                     buttonContainer
                     Spacer()
-                        .frame(height: AppTheme.Spacing.large)
+                        .frame(height: VdSpacing.md)
                     backToLoginContainer
                 }
                 .frame(maxWidth: 402, minHeight: max(proxy.size.height - 32, 0), alignment: .top)
@@ -44,7 +45,7 @@ struct PasswordRecoveryEmailView: View {
                 .padding(.bottom, 8)
                 .frame(maxWidth: .infinity)
             }
-            .background(AppTheme.Colors.backgroundPrimary.ignoresSafeArea())
+            .background(Color.vdBackgroundDefaultBase.ignoresSafeArea())
         }
     }
 
@@ -57,19 +58,19 @@ struct PasswordRecoveryEmailView: View {
     }
 
     private var headerContainer: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.xSmall) {
+        VStack(alignment: .leading, spacing: VdSpacing.xs) {
             Text("Recover password")
-                .baseraTextStyle(AppTheme.Typography.headlineLarge)
-                .foregroundStyle(AppTheme.Colors.textPrimary)
+                .vdFont(VdFont.headlineLarge)
+                .foregroundStyle(Color.vdContentDefaultBase)
 
             Text("Enter your account email to receive a verification code for password recovery.")
-                .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                .foregroundStyle(AppTheme.Colors.textSecondary)
+                .vdFont(VdFont.bodyLarge)
+                .foregroundStyle(Color.vdContentDefaultSecondary)
         }
     }
 
     private var inputContainer: some View {
-        BaseraTextField(
+        VdTextField(
             title: "Email",
             prompt: "you@example.com",
             text: $email,
@@ -81,7 +82,7 @@ struct PasswordRecoveryEmailView: View {
     }
 
     private var buttonContainer: some View {
-        BaseraButton(
+        VdButton(
             title: "Send code",
             style: .primary,
             isLoading: isLoading,
@@ -90,21 +91,21 @@ struct PasswordRecoveryEmailView: View {
     }
 
     private var backToLoginContainer: some View {
-        HStack(spacing: AppTheme.Spacing.xSmall) {
+        HStack(spacing: VdSpacing.xs) {
             Text("Remember your password?")
-                .baseraTextStyle(AppTheme.Typography.bodyLarge)
-                .foregroundStyle(AppTheme.Colors.textSecondary)
+                .vdFont(VdFont.bodyLarge)
+                .foregroundStyle(Color.vdContentDefaultSecondary)
 
             Button(action: onBackToLogin) {
                 Text("Login")
-                    .baseraTextStyle(AppTheme.Typography.labelLarge)
-                    .foregroundStyle(AppTheme.Colors.brandPrimary)
+                    .vdFont(VdFont.labelLarge)
+                    .foregroundStyle(Color.vdContentPrimaryBase)
             }
         }
         .frame(maxWidth: .infinity, alignment: .center)
     }
 
-    private func tone(for style: AuthStepNotice.Style) -> BaseraInlineMessageView.Tone {
+    private func tone(for style: AuthStepNotice.Style) -> BaseraVdAlertTone {
         switch style {
         case .info:
             .info
