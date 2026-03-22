@@ -15,66 +15,31 @@ struct RegistrationView: View {
     let onNavigateToLogin: () -> Void
 
     var body: some View {
-        GeometryReader { proxy in
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 0) {
-                    Spacer()
-                        .frame(height: VdSpacing.xxl)
-                    logoContainer
-                    Spacer()
-                        .frame(height: VdSpacing.lg)
-                    headerContainer
-                    Spacer()
-                        .frame(height: VdSpacing.lg)
-                    inputContainer
-                    if let notice {
-                        Spacer()
-                            .frame(height: VdSpacing.md)
-                        noticeContainer(notice)
-                        Spacer()
-                            .frame(height: VdSpacing.md)
-                    } else {
-                        Spacer()
-                            .frame(height: VdSpacing.xxl)
+        AuthFormScreenLayout(
+            headerContent: { headerContainer },
+            inputContent: { inputContainer },
+            noticeContent: { noticeSection },
+            actionContent: { buttonContainer },
+            footerContent: { loginSection }
+        )
+        .sheet(isPresented: existingAccountSheetBinding) {
+            accountAlreadyExistsSheet
+                .fixedSize(horizontal: false, vertical: true)
+                .background(
+                    GeometryReader { geometry in
+                        Color.clear
+                            .preference(
+                                key: SheetHeightPreferenceKey.self,
+                                value: geometry.size.height
+                            )
                     }
-                    buttonContainer
-                    Spacer()
-                        .frame(height: VdSpacing.md)
-                    loginContainer
+                )
+                .onPreferenceChange(SheetHeightPreferenceKey.self) { contentHeight in
+                    existingAccountSheetHeight = min(max(contentHeight + 1, 220), 520)
                 }
-                .frame(maxWidth: 402, minHeight: max(proxy.size.height - 32, 0), alignment: .top)
-                .padding(.horizontal, proxy.size.width >= 520 ? 24 : 16)
-                .padding(.bottom, 8)
-                .frame(maxWidth: .infinity)
-            }
-            .background(Color.vdBackgroundDefaultBase.ignoresSafeArea())
-            .sheet(isPresented: existingAccountSheetBinding) {
-                accountAlreadyExistsSheet
-                    .fixedSize(horizontal: false, vertical: true)
-                    .background(
-                        GeometryReader { geometry in
-                            Color.clear
-                                .preference(
-                                    key: SheetHeightPreferenceKey.self,
-                                    value: geometry.size.height
-                                )
-                        }
-                    )
-                    .onPreferenceChange(SheetHeightPreferenceKey.self) { contentHeight in
-                        existingAccountSheetHeight = min(max(contentHeight + 1, 220), 520)
-                    }
-                    .presentationDetents([.height(existingAccountSheetHeight)])
-                    .presentationDragIndicator(.visible)
-            }
+                .presentationDetents([.height(existingAccountSheetHeight)])
+                .presentationDragIndicator(.visible)
         }
-    }
-
-    private var logoContainer: some View {
-        Image("logo-horizontal")
-            .resizable()
-            .scaledToFit()
-            .frame(height: 40)
-            .accessibilityHidden(true)
     }
 
     private var headerContainer: some View {
@@ -110,49 +75,49 @@ struct RegistrationView: View {
         VdButton("Continue", fullWidth: true, isLoading: isLoading, action: onSubmit)
     }
 
-    private var loginContainer: some View {
-        HStack(spacing: VdSpacing.xs) {
-            Text("Already have an account?")
-                .vdFont(VdFont.bodyMedium)
-                .foregroundStyle(Color.vdContentDefaultSecondary)
+    @ViewBuilder
+    private var noticeSection: some View {
+        if let notice {
+            Spacer()
+                .frame(height: VdSpacing.md)
 
-            Button(action: onNavigateToLogin) {
-                Text("Login")
-                    .vdFont(VdFont.labelMedium)
-                    .foregroundStyle(Color.vdContentPrimaryBase)
-            }
+            noticeContainer(notice)
+
+            Spacer()
+                .frame(height: VdSpacing.md)
+        } else {
+            Spacer()
+                .frame(height: VdSpacing.xl)
         }
-        .frame(maxWidth: .infinity, alignment: .center)
+    }
+
+    private var loginSection: some View {
+        VStack(alignment: .leading, spacing: VdSpacing.none) {
+            Spacer()
+                .frame(height: VdSpacing.md)
+
+            HStack(spacing: VdSpacing.xs) {
+                Text("Already have an account?")
+                    .vdFont(VdFont.bodyMedium)
+                    .foregroundStyle(Color.vdContentDefaultSecondary)
+
+                Button(action: onNavigateToLogin) {
+                    Text("Login")
+                        .vdFont(VdFont.labelMedium)
+                        .foregroundStyle(Color.vdContentPrimaryBase)
+                }
+                .buttonStyle(.plain)
+            }
+            .frame(maxWidth: .infinity, alignment: .center)
+        }
     }
 
     private func noticeContainer(_ notice: AuthStepNotice) -> some View {
         VdAlert(
-            color: alertColor(for: notice.style),
-            title: alertTitle(for: notice.style),
+            color: notice.style.authAlertColor,
+            title: notice.style.authAlertTitle,
             description: notice.message
         )
-    }
-
-    private func alertColor(for style: AuthStepNotice.Style) -> VdAlertColor {
-        switch style {
-        case .info:
-            return .info
-        case .success:
-            return .success
-        case .error:
-            return .error
-        }
-    }
-
-    private func alertTitle(for style: AuthStepNotice.Style) -> String {
-        switch style {
-        case .info:
-            return "Info"
-        case .success:
-            return "Success"
-        case .error:
-            return "Please Check"
-        }
     }
 
     private func inputState(for validationMessage: String?) -> VdInputState {

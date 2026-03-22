@@ -4,6 +4,8 @@ import VroxalDesign
 struct PasswordResetView: View {
     @Binding var newPassword: String
     @Binding var confirmPassword: String
+    @State private var isNewPasswordSecure = true
+    @State private var isConfirmPasswordSecure = true
 
     let notice: AuthStepNotice?
     let newPasswordValidationMessage: String?
@@ -12,47 +14,13 @@ struct PasswordResetView: View {
     let onSubmit: () -> Void
 
     var body: some View {
-        GeometryReader { proxy in
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 0) {
-                    Spacer()
-                        .frame(height: VdSpacing.xxl)
-                    headerContainer
-                    Spacer()
-                        .frame(height: VdSpacing.xxl)
-                    inputContainer
-                    if let notice {
-                        Spacer()
-                            .frame(height: VdSpacing.md)
-
-                        VdAlert(
-                            tone: tone(for: notice.style),
-                            message: notice.message
-                        )
-
-                        Spacer()
-                            .frame(height: VdSpacing.md)
-                    } else {
-                        Spacer()
-                            .frame(height: VdSpacing.xxl)
-                    }
-                    buttonContainer
-                }
-                .frame(maxWidth: 402, minHeight: max(proxy.size.height - 32, 0), alignment: .top)
-                .padding(.horizontal, proxy.size.width >= 520 ? 24 : 16)
-                .padding(.bottom, 8)
-                .frame(maxWidth: .infinity)
-            }
-            .background(Color.vdBackgroundDefaultBase.ignoresSafeArea())
-        }
-    }
-
-    private var logoContainer: some View {
-        Image("logo-horizontal")
-            .resizable()
-            .scaledToFit()
-            .frame(height: 40)
-            .accessibilityHidden(true)
+        AuthFormScreenLayout(
+            headerContent: { headerContainer },
+            inputContent: { inputContainer },
+            noticeContent: { noticeSection },
+            actionContent: { buttonContainer },
+            footerContent: { EmptyView() }
+        )
     }
 
     private var headerContainer: some View {
@@ -70,47 +38,63 @@ struct PasswordResetView: View {
     private var inputContainer: some View {
         VStack(alignment: .leading, spacing: VdSpacing.md) {
             VdTextField(
-                title: "New Password",
-                prompt: "Minimum 8 characters",
+                "New Password",
                 text: $newPassword,
-                textContentType: .newPassword,
-                textInputAutocapitalization: .never,
-                isSecure: true,
-                allowsSecureTextToggle: true,
-                errorMessage: newPasswordValidationMessage
+                placeholder: "Minimum 8 characters",
+                state: inputState(for: newPasswordValidationMessage),
+                isSecure: isNewPasswordSecure,
+                leadingIcon: "lock",
+                helperText: newPasswordValidationMessage,
+                trailingIcon: isNewPasswordSecure ? "eye" : "eye.slash",
+                onTrailingAction: { isNewPasswordSecure.toggle() }
             )
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled(true)
+            .textContentType(.newPassword)
 
             VdTextField(
-                title: "Confirm Password",
-                prompt: "Re-enter password",
+                "Confirm Password",
                 text: $confirmPassword,
-                textContentType: .newPassword,
-                textInputAutocapitalization: .never,
-                isSecure: true,
-                allowsSecureTextToggle: true,
-                errorMessage: confirmPasswordValidationMessage
+                placeholder: "Re-enter password",
+                state: inputState(for: confirmPasswordValidationMessage),
+                isSecure: isConfirmPasswordSecure,
+                leadingIcon: "lock",
+                helperText: confirmPasswordValidationMessage,
+                trailingIcon: isConfirmPasswordSecure ? "eye" : "eye.slash",
+                onTrailingAction: { isConfirmPasswordSecure.toggle() }
             )
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled(true)
+            .textContentType(.newPassword)
         }
     }
 
     private var buttonContainer: some View {
-        VdButton(
-            title: "Update Password",
-            style: .primary,
-            isLoading: isLoading,
-            action: onSubmit
-        )
+        VdButton("Update Password", fullWidth: true, isLoading: isLoading, action: onSubmit)
     }
 
-    private func tone(for style: AuthStepNotice.Style) -> BaseraVdAlertTone {
-        switch style {
-        case .info:
-            .info
-        case .success:
-            .success
-        case .error:
-            .error
+    @ViewBuilder
+    private var noticeSection: some View {
+        if let notice {
+            Spacer()
+                .frame(height: VdSpacing.md)
+
+            VdAlert(
+                color: notice.style.authAlertColor,
+                title: notice.style.authAlertTitle,
+                description: notice.message
+            )
+
+            Spacer()
+                .frame(height: VdSpacing.md)
+        } else {
+            Spacer()
+                .frame(height: VdSpacing.xl)
         }
+    }
+
+    private func inputState(for validationMessage: String?) -> VdInputState {
+        validationMessage == nil ? .default : .error
     }
 }
 

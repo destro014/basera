@@ -11,50 +11,13 @@ struct PasswordRecoveryEmailView: View {
     let onBackToLogin: () -> Void
 
     var body: some View {
-        GeometryReader { proxy in
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 0) {
-                    Spacer()
-                        .frame(height: VdSpacing.xxl)
-                    headerContainer
-                    Spacer()
-                        .frame(height: VdSpacing.xxl)
-                    inputContainer
-                    if let notice {
-                        Spacer()
-                            .frame(height: VdSpacing.md)
-
-                        VdAlert(
-                            tone: tone(for: notice.style),
-                            message: notice.message
-                        )
-
-                        Spacer()
-                            .frame(height: VdSpacing.md)
-                    } else {
-                        Spacer()
-                            .frame(height: VdSpacing.xxl)
-                    }
-                    buttonContainer
-                    Spacer()
-                        .frame(height: VdSpacing.md)
-                    backToLoginContainer
-                }
-                .frame(maxWidth: 402, minHeight: max(proxy.size.height - 32, 0), alignment: .top)
-                .padding(.horizontal, proxy.size.width >= 520 ? 24 : 16)
-                .padding(.bottom, 8)
-                .frame(maxWidth: .infinity)
-            }
-            .background(Color.vdBackgroundDefaultBase.ignoresSafeArea())
-        }
-    }
-
-    private var logoContainer: some View {
-        Image("logo-horizontal")
-            .resizable()
-            .scaledToFit()
-            .frame(height: 40)
-            .accessibilityHidden(true)
+        AuthFormScreenLayout(
+            headerContent: { headerContainer },
+            inputContent: { inputContainer },
+            noticeContent: { noticeSection },
+            actionContent: { buttonContainer },
+            footerContent: { backToLoginSection }
+        )
     }
 
     private var headerContainer: some View {
@@ -70,50 +33,69 @@ struct PasswordRecoveryEmailView: View {
     }
 
     private var inputContainer: some View {
-        VdTextField(
-            title: "Email",
-            prompt: "you@example.com",
-            text: $email,
-            keyboardType: .emailAddress,
-            textContentType: .emailAddress,
-            textInputAutocapitalization: .never,
-            errorMessage: emailValidationMessage
-        )
+        VStack(alignment: .leading, spacing: VdSpacing.md) {
+            VdTextField(
+                "Email",
+                text: $email,
+                placeholder: "you@example.com",
+                state: inputState(for: emailValidationMessage),
+                leadingIcon: "envelope",
+                helperText: emailValidationMessage
+            )
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled(true)
+            .keyboardType(.emailAddress)
+            .textContentType(.emailAddress)
+        }
     }
 
     private var buttonContainer: some View {
-        VdButton(
-            title: "Send code",
-            style: .primary,
-            isLoading: isLoading,
-            action: onSubmit
-        )
+        VdButton("Send code", fullWidth: true, isLoading: isLoading, action: onSubmit)
     }
 
-    private var backToLoginContainer: some View {
-        HStack(spacing: VdSpacing.xs) {
-            Text("Remember your password?")
-                .vdFont(VdFont.bodyLarge)
-                .foregroundStyle(Color.vdContentDefaultSecondary)
+    @ViewBuilder
+    private var noticeSection: some View {
+        if let notice {
+            Spacer()
+                .frame(height: VdSpacing.md)
 
-            Button(action: onBackToLogin) {
-                Text("Login")
-                    .vdFont(VdFont.labelLarge)
-                    .foregroundStyle(Color.vdContentPrimaryBase)
+            VdAlert(
+                color: notice.style.authAlertColor,
+                title: notice.style.authAlertTitle,
+                description: notice.message
+            )
+
+            Spacer()
+                .frame(height: VdSpacing.md)
+        } else {
+            Spacer()
+                .frame(height: VdSpacing.xl)
+        }
+    }
+
+    private var backToLoginSection: some View {
+        VStack(alignment: .leading, spacing: VdSpacing.none) {
+            Spacer()
+                .frame(height: VdSpacing.md)
+
+            HStack(spacing: VdSpacing.xs) {
+                Text("Remember your password?")
+                    .vdFont(VdFont.bodyMedium)
+                    .foregroundStyle(Color.vdContentDefaultSecondary)
+
+                Button(action: onBackToLogin) {
+                    Text("Login")
+                        .vdFont(VdFont.labelMedium)
+                        .foregroundStyle(Color.vdContentPrimaryBase)
+                }
+                .buttonStyle(.plain)
             }
+            .frame(maxWidth: .infinity, alignment: .center)
         }
-        .frame(maxWidth: .infinity, alignment: .center)
     }
 
-    private func tone(for style: AuthStepNotice.Style) -> BaseraVdAlertTone {
-        switch style {
-        case .info:
-            .info
-        case .success:
-            .success
-        case .error:
-            .error
-        }
+    private func inputState(for validationMessage: String?) -> VdInputState {
+        validationMessage == nil ? .default : .error
     }
 }
 
