@@ -155,6 +155,7 @@ private struct SignedOutAuthFlowView: View {
                 isLoading: viewModel.isLoading,
                 canUseBiometricLogin: viewModel.canUseBiometricLogin,
                 biometricButtonTitle: viewModel.biometricLoginTitle,
+                biometricSystemImageName: viewModel.biometricLoginSystemImageName,
                 passwordUpdatedEmail: viewModel.passwordUpdatedEmailForSheet,
                 onSubmit: {
                     Task {
@@ -257,6 +258,7 @@ private struct SignedOutAuthFlowView: View {
                     get: { viewModel.phoneNumber },
                     set: { viewModel.updatePhoneNumber($0) }
                 ),
+                selectedRole: viewModel.selectedRole,
                 notice: notice,
                 fullNameValidationMessage: viewModel.fullNameError,
                 phoneNumberValidationMessage: viewModel.phoneNumberError,

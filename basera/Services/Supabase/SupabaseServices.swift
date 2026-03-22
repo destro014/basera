@@ -506,6 +506,49 @@ actor SupabaseAuthService: AuthServiceProtocol {
         }
     }
 
+    private struct RegistrationProfileDocuments {
+        let renterProfile: RenterProfile?
+        let ownerProfile: OwnerProfile?
+
+        static func make(
+            email: String,
+            fullName: String,
+            phoneNumber: String,
+            role: UserRole,
+            profilePhotoURL: URL?
+        ) -> RegistrationProfileDocuments {
+            switch role {
+            case .renter:
+                return RegistrationProfileDocuments(
+                    renterProfile: RenterProfile(
+                        fullName: fullName,
+                        phoneNumber: phoneNumber,
+                        email: email,
+                        profilePhotoURL: profilePhotoURL,
+                        occupation: "",
+                        familySize: 1,
+                        hasPets: false,
+                        smokingStatus: .nonSmoker
+                    ),
+                    ownerProfile: nil
+                )
+            case .owner:
+                return RegistrationProfileDocuments(
+                    renterProfile: nil,
+                    ownerProfile: OwnerProfile(
+                        fullName: fullName,
+                        phoneNumber: phoneNumber,
+                        email: email,
+                        profilePhotoURL: profilePhotoURL,
+                        address: "",
+                        idDocumentState: .empty,
+                        paymentDetails: .empty
+                    )
+                )
+            }
+        }
+    }
+
     // MARK: - Properties
 
     private let databaseService: DatabaseServiceProtocol
@@ -708,6 +751,14 @@ actor SupabaseAuthService: AuthServiceProtocol {
             profilePhotoURL: profilePhotoURL
         )
         try await databaseService.setDocument(path: "user_profiles/\(profile.id)", data: profile.payload)
+        try await writeRoleProfileDocuments(
+            for: session.userID,
+            email: session.email,
+            fullName: fullName,
+            phoneNumber: phoneNumber,
+            role: submission.selectedRole,
+            profilePhotoURL: profilePhotoURL
+        )
 
         // Write user_roles, user_consents, registration_sessions in one DB call
         try await callCompleteRegistration(
@@ -874,6 +925,37 @@ actor SupabaseAuthService: AuthServiceProtocol {
             ]
         )
         _ = try await performAuthRequest(request)
+    }
+
+    private func writeRoleProfileDocuments(
+        for userID: String,
+        email: String,
+        fullName: String,
+        phoneNumber: String,
+        role: UserRole,
+        profilePhotoURL: URL?
+    ) async throws {
+        let documents = RegistrationProfileDocuments.make(
+            email: email,
+            fullName: fullName,
+            phoneNumber: phoneNumber,
+            role: role,
+            profilePhotoURL: profilePhotoURL
+        )
+
+        if let renterProfile = documents.renterProfile {
+            try await databaseService.setDocument(
+                path: "renter_profiles/\(userID)",
+                data: SupabaseProfileMapper.payload(from: renterProfile)
+            )
+        }
+
+        if let ownerProfile = documents.ownerProfile {
+            try await databaseService.setDocument(
+                path: "owner_profiles/\(userID)",
+                data: SupabaseProfileMapper.payload(from: ownerProfile)
+            )
+        }
     }
 
     private func makeDatabaseRPCRequest(function: String, body: [String: Any]) throws -> URLRequest {

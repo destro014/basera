@@ -33,27 +33,28 @@ final class AppRootViewModel: ObservableObject {
 
     func handleAuthenticatedUser(_ user: AppUser, credentials: AuthCredentials?, environment: AppEnvironment) {
         environment.currentUser = user
-        route = .signedIn(user)
+        biometricPrompt = nil
+        pendingBiometricCredentials = nil
 
-        guard let credentials else { return }
+        if let credentials {
+            let biometricManager = environment.biometricLoginManager
 
-        let biometricManager = environment.biometricLoginManager
-        guard biometricManager.isBiometryAvailable else { return }
-
-        let normalizedEmail = normalized(email: credentials.email)
-        if biometricManager.enrolledBiometricEmail == normalizedEmail {
-            do {
-                try biometricManager.enableBiometricLogin(with: credentials)
-            } catch {
-                biometricManager.disableBiometricLogin()
+            if biometricManager.isBiometryAvailable {
+                let normalizedEmail = normalized(email: credentials.email)
+                if biometricManager.enrolledBiometricEmail == normalizedEmail {
+                    do {
+                        try biometricManager.enableBiometricLogin(with: credentials)
+                    } catch {
+                        biometricManager.disableBiometricLogin()
+                    }
+                } else if biometricManager.hasPromptedForEnrollment(for: normalizedEmail) == false {
+                    pendingBiometricCredentials = credentials
+                    biometricPrompt = BiometricPrompt(biometryDisplayName: biometricManager.biometryDisplayName)
+                }
             }
-            return
         }
 
-        guard biometricManager.hasPromptedForEnrollment(for: normalizedEmail) == false else { return }
-
-        pendingBiometricCredentials = credentials
-        biometricPrompt = BiometricPrompt(biometryDisplayName: biometricManager.biometryDisplayName)
+        route = .signedIn(user)
     }
 
     func enableBiometricLogin(environment: AppEnvironment) async {

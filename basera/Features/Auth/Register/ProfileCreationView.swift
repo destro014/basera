@@ -4,6 +4,7 @@ import VroxalDesign
 struct ProfileCreationView: View {
     @Binding var fullName: String
     @Binding var phoneNumber: String
+    let selectedRole: UserRole
 
     let notice: AuthStepNotice?
     let fullNameValidationMessage: String?
@@ -27,7 +28,7 @@ struct ProfileCreationView: View {
                 .vdFont(VdFont.headlineLarge)
                 .foregroundStyle(Color.vdContentDefaultBase)
 
-            Text("Tell us your full name and phone number so owners and renters can trust account records.")
+            Text(roleDescription)
                 .vdFont(VdFont.bodyLarge)
                 .foregroundStyle(Color.vdContentDefaultSecondary)
         }
@@ -87,12 +88,22 @@ struct ProfileCreationView: View {
     private func inputState(for validationMessage: String?) -> VdInputState {
         validationMessage?.isEmpty == false ? .error : .default
     }
+
+    private var roleDescription: String {
+        switch selectedRole {
+        case .renter:
+            return "Tell us your full name and phone number so owners can trust account records. You can add occupation, family details, and preferences later."
+        case .owner:
+            return "Tell us your full name and phone number so renters can trust account records. You can add address, ID documents, and payment details later."
+        }
+    }
 }
 
 #Preview {
     ProfileCreationView(
         fullName: .constant(""),
         phoneNumber: .constant(""),
+        selectedRole: .renter,
         notice: AuthStepNotice(style: .error, message: "Enter your full name to continue."),
         fullNameValidationMessage: nil,
         phoneNumberValidationMessage: nil,

@@ -97,6 +97,10 @@ final class AuthFlowViewModel: ObservableObject {
         "Login with \(biometricLoginManager.biometryDisplayName)"
     }
 
+    var biometricLoginSystemImageName: String {
+        biometricLoginManager.biometrySystemImageName
+    }
+
     var loginEmailError: String? {
         fieldErrors[.loginEmail]
     }
