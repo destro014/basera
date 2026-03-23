@@ -1,4 +1,5 @@
 import Foundation
+import VroxalDesign
 
 enum AuthFlowStep: Int, CaseIterable, Identifiable {
     case login
@@ -71,6 +72,30 @@ struct AuthStepNotice: Equatable, Identifiable {
 
     var id: String {
         "\(style)-\(message)"
+    }
+}
+
+extension AuthStepNotice.Style {
+    var authAlertColor: VdAlertColor {
+        switch self {
+        case .info:
+            return .info
+        case .success:
+            return .success
+        case .error:
+            return .error
+        }
+    }
+
+    var authAlertTitle: String {
+        switch self {
+        case .info:
+            return "Notice"
+        case .success:
+            return "Success"
+        case .error:
+            return "Error"
+        }
     }
 }
 

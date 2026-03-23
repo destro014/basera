@@ -13,13 +13,54 @@ struct RegistrationPasswordView: View {
     let onSubmit: () -> Void
 
     var body: some View {
-        AuthFormScreenLayout(
-            headerContent: { headerContainer },
-            inputContent: { inputContainer },
-            noticeContent: { noticeSection },
-            actionContent: { buttonContainer },
-            footerContent: { EmptyView() }
-        )
+        GeometryReader { proxy in
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: VdSpacing.none) {
+                    Spacer()
+                        .frame(height: VdSpacing.xxl)
+
+                    
+                    headerContainer
+
+                    Spacer()
+                        .frame(height: VdSpacing.xl)
+
+                    inputContainer
+
+                    if let notice {
+                        Spacer()
+                            .frame(height: VdSpacing.md)
+
+                        noticeContainer(notice)
+
+                        Spacer()
+                            .frame(height: VdSpacing.md)
+                    } else {
+                        Spacer()
+                            .frame(height: VdSpacing.xl)
+                    }
+
+                    buttonContainer
+                }
+                .frame(
+                    maxWidth: 420,
+                    minHeight: max(proxy.size.height - 32, 0),
+                    alignment: .top
+                )
+                .padding(.horizontal, proxy.size.width >= 520 ? VdSpacing.lg : VdSpacing.md)
+                .padding(.bottom, VdSpacing.sm)
+                .frame(maxWidth: .infinity)
+            }
+            .baseraScreenBackground()
+        }
+    }
+
+    private var logoContainer: some View {
+        Image("logo-horizontal")
+            .resizable()
+            .scaledToFit()
+            .frame(height: 44)
+            .accessibilityHidden(true)
     }
 
     private var headerContainer: some View {
@@ -78,22 +119,6 @@ struct RegistrationPasswordView: View {
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .tint(Color.vdContentPrimaryBase)
-        }
-    }
-
-    @ViewBuilder
-    private var noticeSection: some View {
-        if let notice {
-            Spacer()
-                .frame(height: VdSpacing.md)
-
-            noticeContainer(notice)
-
-            Spacer()
-                .frame(height: VdSpacing.md)
-        } else {
-            Spacer()
-                .frame(height: VdSpacing.xl)
         }
     }
 

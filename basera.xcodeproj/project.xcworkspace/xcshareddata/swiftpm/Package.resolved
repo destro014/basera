@@ -1,13 +1,13 @@
 {
-  "originHash" : "eb79c69c5c38d3cadbfb45a947e3688b8ffa9977953eae3bcf0794b431c60e7d",
+  "originHash" : "83b445b06225835c1c45b8026cce95a761ff62a0d808df18b8bf16cfcba26218",
   "pins" : [
     {
       "identity" : "vd-swift",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/destro014/vd-swift",
+      "location" : "https://github.com/vroxal/vd-swift",
       "state" : {
-        "revision" : "4654204c8e29f47ad721d1e8cc62a2485aa849b0",
-        "version" : "1.2.0"
+        "revision" : "61cf988bd164d7df916bbf2b2fcac48804983140",
+        "version" : "1.0.1"
       }
     }
   ],

@@ -11,13 +11,58 @@ struct PasswordRecoveryEmailView: View {
     let onBackToLogin: () -> Void
 
     var body: some View {
-        AuthFormScreenLayout(
-            headerContent: { headerContainer },
-            inputContent: { inputContainer },
-            noticeContent: { noticeSection },
-            actionContent: { buttonContainer },
-            footerContent: { backToLoginSection }
-        )
+        GeometryReader { proxy in
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: VdSpacing.none) {
+                    Spacer()
+                        .frame(height: VdSpacing.xxl)
+
+                    headerContainer
+
+                    Spacer()
+                        .frame(height: VdSpacing.xl)
+
+                    inputContainer
+
+                    if let notice {
+                        Spacer()
+                            .frame(height: VdSpacing.md)
+
+                        noticeContainer(notice)
+
+                        Spacer()
+                            .frame(height: VdSpacing.md)
+                    } else {
+                        Spacer()
+                            .frame(height: VdSpacing.xl)
+                    }
+
+                    buttonContainer
+
+                    Spacer()
+                        .frame(height: VdSpacing.md)
+
+                    backToLoginSection
+                }
+                .frame(
+                    maxWidth: 420,
+                    minHeight: max(proxy.size.height - 32, 0),
+                    alignment: .top
+                )
+                .padding(.horizontal, proxy.size.width >= 520 ? VdSpacing.lg : VdSpacing.md)
+                .padding(.bottom, VdSpacing.sm)
+                .frame(maxWidth: .infinity)
+            }
+            .baseraScreenBackground()
+        }
+    }
+
+    private var logoContainer: some View {
+        Image("logo-horizontal")
+            .resizable()
+            .scaledToFit()
+            .frame(height: 44)
+            .accessibilityHidden(true)
     }
 
     private var headerContainer: some View {
@@ -58,41 +103,20 @@ struct PasswordRecoveryEmailView: View {
         VdButton("Continue", fullWidth: true, isLoading: isLoading, action: onSubmit)
     }
 
-    @ViewBuilder
-    private var noticeSection: some View {
-        if let notice {
-            Spacer()
-                .frame(height: VdSpacing.md)
-
-            noticeContainer(notice)
-
-            Spacer()
-                .frame(height: VdSpacing.md)
-        } else {
-            Spacer()
-                .frame(height: VdSpacing.xl)
-        }
-    }
-
     private var backToLoginSection: some View {
-        VStack(alignment: .leading, spacing: VdSpacing.none) {
-            Spacer()
-                .frame(height: VdSpacing.md)
+        HStack(spacing: VdSpacing.xs) {
+            Text("Remember your password?")
+                .vdFont(VdFont.bodyMedium)
+                .foregroundStyle(Color.vdContentDefaultSecondary)
 
-            HStack(spacing: VdSpacing.xs) {
-                Text("Remember your password?")
-                    .vdFont(VdFont.bodyMedium)
-                    .foregroundStyle(Color.vdContentDefaultSecondary)
-
-                Button(action: onBackToLogin) {
-                    Text("Login")
-                        .vdFont(VdFont.labelMedium)
-                        .foregroundStyle(Color.vdContentPrimaryBase)
-                }
-                .buttonStyle(.plain)
+            Button(action: onBackToLogin) {
+                Text("Login")
+                    .vdFont(VdFont.labelMedium)
+                    .foregroundStyle(Color.vdContentPrimaryBase)
             }
-            .frame(maxWidth: .infinity, alignment: .center)
+            .buttonStyle(.plain)
         }
+        .frame(maxWidth: .infinity, alignment: .center)
     }
 
     private func noticeContainer(_ notice: AuthStepNotice) -> some View {

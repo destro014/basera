@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		EF08C26B2F6711F700DE04A2 /* VroxalDesign in Frameworks */ = {isa = PBXBuildFile; productRef = EF08C26A2F6711F700DE04A2 /* VroxalDesign */; };
+		EF9FCD242F71778A0081FF18 /* VroxalDesign in Frameworks */ = {isa = PBXBuildFile; productRef = EF9FCD232F71778A0081FF18 /* VroxalDesign */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -23,7 +23,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EF08C26B2F6711F700DE04A2 /* VroxalDesign in Frameworks */,
+				EF9FCD242F71778A0081FF18 /* VroxalDesign in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -66,7 +66,7 @@
 			);
 			name = basera;
 			packageProductDependencies = (
-				EF08C26A2F6711F700DE04A2 /* VroxalDesign */,
+				EF9FCD232F71778A0081FF18 /* VroxalDesign */,
 			);
 			productName = Basera;
 			productReference = EFB584182F60579300530531 /* Basera.app */;
@@ -98,7 +98,7 @@
 			mainGroup = EFB5840F2F60579300530531;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				EF08C2692F6711F700DE04A2 /* XCRemoteSwiftPackageReference "vd-swift" */,
+				EF9FCD222F71778A0081FF18 /* XCRemoteSwiftPackageReference "vd-swift" */,
 			);
 			productRefGroup = EFB584192F60579300530531 /* Products */;
 			projectDirPath = "";
@@ -369,9 +369,9 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		EF08C2692F6711F700DE04A2 /* XCRemoteSwiftPackageReference "vd-swift" */ = {
+		EF9FCD222F71778A0081FF18 /* XCRemoteSwiftPackageReference "vd-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/destro014/vd-swift";
+			repositoryURL = "https://github.com/vroxal/vd-swift";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 1.0.0;
@@ -380,9 +380,9 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		EF08C26A2F6711F700DE04A2 /* VroxalDesign */ = {
+		EF9FCD232F71778A0081FF18 /* VroxalDesign */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = EF08C2692F6711F700DE04A2 /* XCRemoteSwiftPackageReference "vd-swift" */;
+			package = EF9FCD222F71778A0081FF18 /* XCRemoteSwiftPackageReference "vd-swift" */;
 			productName = VroxalDesign;
 		};
 /* End XCSwiftPackageProductDependency section */
