@@ -6,6 +6,7 @@ struct PasswordResetView: View {
     @Binding var confirmPassword: String
     @State private var isNewPasswordSecure = true
     @State private var isConfirmPasswordSecure = true
+    @State private var previousPasswordValue = ""
 
     let notice: AuthStepNotice?
     let newPasswordValidationMessage: String?
@@ -29,7 +30,7 @@ struct PasswordResetView: View {
                 .vdFont(VdFont.headlineLarge)
                 .foregroundStyle(Color.vdContentDefaultBase)
 
-            Text("Set a new password for your account. Use at least 8 characters.")
+            Text("Create a secure password for your account before you return to login.")
                 .vdFont(VdFont.bodyLarge)
                 .foregroundStyle(Color.vdContentDefaultSecondary)
         }
@@ -51,6 +52,9 @@ struct PasswordResetView: View {
             .textInputAutocapitalization(.never)
             .autocorrectionDisabled(true)
             .textContentType(.newPassword)
+            .onChange(of: newPassword) { newValue in
+                syncConfirmPasswordIfNeeded(with: newValue)
+            }
 
             VdTextField(
                 "Confirm Password",
@@ -79,11 +83,7 @@ struct PasswordResetView: View {
             Spacer()
                 .frame(height: VdSpacing.md)
 
-            VdAlert(
-                color: notice.style.authAlertColor,
-                title: notice.style.authAlertTitle,
-                description: notice.message
-            )
+            noticeContainer(notice)
 
             Spacer()
                 .frame(height: VdSpacing.md)
@@ -93,8 +93,30 @@ struct PasswordResetView: View {
         }
     }
 
+    private func noticeContainer(_ notice: AuthStepNotice) -> some View {
+        VdAlert(
+            color: notice.style.authAlertColor,
+            title: notice.style.authAlertTitle,
+            description: notice.message
+        )
+    }
+
     private func inputState(for validationMessage: String?) -> VdInputState {
-        validationMessage == nil ? .default : .error
+        validationMessage?.isEmpty == false ? .error : .default
+    }
+
+    private func syncConfirmPasswordIfNeeded(with newValue: String) {
+        defer { previousPasswordValue = newValue }
+
+        guard newValue.isEmpty == false else { return }
+        guard confirmPassword.isEmpty || confirmPassword == previousPasswordValue else { return }
+
+        let grewBy = newValue.count - previousPasswordValue.count
+        let appearsToBeAutoFill = grewBy > 1 || (previousPasswordValue.isEmpty && newValue.count >= 8)
+
+        if appearsToBeAutoFill {
+            confirmPassword = newValue
+        }
     }
 }
 
