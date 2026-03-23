@@ -4,6 +4,7 @@ import VroxalDesign
 struct PasswordRecoveryOTPView: View {
     @Binding var code: String
 
+    let maskedEmail: String?
     let notice: AuthStepNotice?
     let validationMessage: String?
     let isLoading: Bool
@@ -29,7 +30,7 @@ struct PasswordRecoveryOTPView: View {
                 .vdFont(VdFont.headlineLarge)
                 .foregroundStyle(Color.vdContentDefaultBase)
 
-            Text("Enter the code we sent to your email address to continue.")
+            Text(descriptionText)
                 .vdFont(VdFont.bodyLarge)
                 .foregroundStyle(Color.vdContentDefaultSecondary)
         }
@@ -53,7 +54,8 @@ struct PasswordRecoveryOTPView: View {
 
     private var buttonContainer: some View {
         VStack(alignment: .leading, spacing: VdSpacing.smMd) {
-            VdButton("Verify code", fullWidth: true, isLoading: isLoading, action: onVerify)
+            VdButton("Verify email", fullWidth: true, isLoading: isLoading, action: onVerify)
+                .frame(maxWidth: .infinity)
 
             HStack(spacing: 4) {
                 Text("Didn't receive the code?")
@@ -75,7 +77,7 @@ struct PasswordRecoveryOTPView: View {
 
             Button(action: onEditEmail) {
                 Text("Use a different email")
-                    .vdFont(VdFont.labelLarge)
+                    .vdFont(.labelLarge)
                     .foregroundStyle(Color.vdContentPrimaryBase)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -88,11 +90,7 @@ struct PasswordRecoveryOTPView: View {
             Spacer()
                 .frame(height: VdSpacing.md)
 
-            VdAlert(
-                color: notice.style.authAlertColor,
-                title: notice.style.authAlertTitle,
-                description: notice.message
-            )
+            noticeContainer(notice)
 
             Spacer()
                 .frame(height: VdSpacing.md)
@@ -102,11 +100,27 @@ struct PasswordRecoveryOTPView: View {
         }
     }
 
+    private var descriptionText: String {
+        if let maskedEmail, maskedEmail.isEmpty == false {
+            return "Enter the 6-digit code we sent to \(maskedEmail) to continue."
+        }
+
+        return "Enter the 6-digit code we sent to your email address to continue."
+    }
+
+    private func noticeContainer(_ notice: AuthStepNotice) -> some View {
+        VdAlert(
+            color: notice.style.authAlertColor,
+            title: notice.style.authAlertTitle,
+            description: notice.message
+        )
+    }
 }
 
 #Preview {
     PasswordRecoveryOTPView(
         code: .constant(""),
+        maskedEmail: "pr*****@example.com",
         notice: AuthStepNotice(style: .info, message: "A new code was sent to your email."),
         validationMessage: nil,
         isLoading: false,

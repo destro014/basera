@@ -141,6 +141,10 @@ final class AuthFlowViewModel: ObservableObject {
         fieldErrors[.passwordRecoveryCode]
     }
 
+    var passwordRecoveryMaskedEmail: String? {
+        passwordRecoveryChallenge?.maskedEmail
+    }
+
     var newPasswordError: String? {
         fieldErrors[.newPassword]
     }

@@ -26,7 +26,7 @@ struct PasswordRecoveryEmailView: View {
                 .vdFont(VdFont.headlineLarge)
                 .foregroundStyle(Color.vdContentDefaultBase)
 
-            Text("Enter your account email to receive a verification code for password recovery.")
+            Text("Enter your email to receive an OTP and continue password recovery.")
                 .vdFont(VdFont.bodyLarge)
                 .foregroundStyle(Color.vdContentDefaultSecondary)
         }
@@ -46,11 +46,16 @@ struct PasswordRecoveryEmailView: View {
             .autocorrectionDisabled(true)
             .keyboardType(.emailAddress)
             .textContentType(.emailAddress)
+
+            Text("We’ll send a 6-digit code to your email so you can create a new password.")
+                .vdFont(VdFont.bodyMedium)
+                .foregroundStyle(Color.vdContentDefaultSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
     private var buttonContainer: some View {
-        VdButton("Send code", fullWidth: true, isLoading: isLoading, action: onSubmit)
+        VdButton("Continue", fullWidth: true, isLoading: isLoading, action: onSubmit)
     }
 
     @ViewBuilder
@@ -59,11 +64,7 @@ struct PasswordRecoveryEmailView: View {
             Spacer()
                 .frame(height: VdSpacing.md)
 
-            VdAlert(
-                color: notice.style.authAlertColor,
-                title: notice.style.authAlertTitle,
-                description: notice.message
-            )
+            noticeContainer(notice)
 
             Spacer()
                 .frame(height: VdSpacing.md)
@@ -94,8 +95,16 @@ struct PasswordRecoveryEmailView: View {
         }
     }
 
+    private func noticeContainer(_ notice: AuthStepNotice) -> some View {
+        VdAlert(
+            color: notice.style.authAlertColor,
+            title: notice.style.authAlertTitle,
+            description: notice.message
+        )
+    }
+
     private func inputState(for validationMessage: String?) -> VdInputState {
-        validationMessage == nil ? .default : .error
+        validationMessage?.isEmpty == false ? .error : .default
     }
 }
 
