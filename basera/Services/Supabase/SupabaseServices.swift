@@ -884,7 +884,7 @@ actor SupabaseAuthService: AuthServiceProtocol {
 
     private func issuePasswordRecoveryChallenge(for email: String) async throws -> AuthPasswordRecoveryChallenge {
         do {
-            try await sendEmailOTP(email: email, createUser: false)
+            try await sendPasswordRecoveryEmail(email: email)
         } catch {
             throw mappedAuthError(for: error, fallback: .accountNotFound)
         }
@@ -1036,6 +1036,17 @@ actor SupabaseAuthService: AuthServiceProtocol {
             body: [
                 "email": email,
                 "create_user": createUser
+            ]
+        )
+        _ = try await performAuthRequest(request)
+    }
+
+    private func sendPasswordRecoveryEmail(email: String) async throws {
+        let request = try makeAuthRequest(
+            path: "recover",
+            method: "POST",
+            body: [
+                "email": email
             ]
         )
         _ = try await performAuthRequest(request)
