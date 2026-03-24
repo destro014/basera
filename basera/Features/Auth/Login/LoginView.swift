@@ -130,7 +130,7 @@ struct LoginView: View {
             .textInputAutocapitalization(.never)
             .autocorrectionDisabled(true)
             .keyboardType(.emailAddress)
-            .textContentType(.emailAddress)
+            .textContentType(.username)
             
             VdTextField(
                 "Password",
@@ -145,6 +145,7 @@ struct LoginView: View {
             )
             .textInputAutocapitalization(.never)
             .autocorrectionDisabled(true)
+            .textContentType(.password)
             Button(action: onForgotPassword) {
                 Text("Forgot Password")
                     .vdFont(VdFont.labelMedium)
@@ -163,7 +164,7 @@ struct LoginView: View {
                 "Login",
                 color: .primary,
                 style: .solid,
-                size: .large,
+                size: .medium,
                 fullWidth: true, isLoading: isLoading,
                 action: onSubmit
             )
@@ -173,7 +174,7 @@ struct LoginView: View {
                     biometricButtonTitle,
                     color: .primary,
                     style: .outlined,
-                    size: .large,
+                    size: .medium,
                     rounded: true,
                     fullWidth: true, isLoading: isLoading, leftIcon: biometricSystemImageName,
                     action: onBiometricLogin
@@ -258,8 +259,9 @@ struct LoginView: View {
                 "Continue to Login",
                 color: .primary,
                 style: .solid,
-                size: .large,
+                size: .medium,
                 rounded: true,
+                fullWidth: true,
                 action: onContinueToLoginFromPasswordUpdatedSheet
             )
         }

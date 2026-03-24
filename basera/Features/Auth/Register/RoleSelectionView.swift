@@ -77,7 +77,7 @@ struct RoleSelectionView: View {
     }
 
     private var buttonContainer: some View {
-        VdButton("Continue", fullWidth: true, isLoading: isLoading, action: onContinue)
+        VdButton("Continue", size: .medium, fullWidth: true, isLoading: isLoading, action: onContinue)
             .frame(maxWidth: .infinity)
     }
 

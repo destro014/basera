@@ -84,6 +84,7 @@ struct PasswordRecoveryOTPView: View {
                 length: 6,
                 state: validationMessage?.isEmpty == false ? .error : .default
             )
+            .textContentType(.oneTimeCode)
 
             if let validationMessage, validationMessage.isEmpty == false {
                 Text(validationMessage)
@@ -95,7 +96,7 @@ struct PasswordRecoveryOTPView: View {
 
     private var buttonContainer: some View {
         VStack(alignment: .leading, spacing: VdSpacing.smMd) {
-            VdButton("Verify email", fullWidth: true, isLoading: isLoading, action: onVerify)
+            VdButton("Verify email", size: .medium, fullWidth: true, isLoading: isLoading, action: onVerify)
                 .frame(maxWidth: .infinity)
 
             HStack(spacing: 4) {
