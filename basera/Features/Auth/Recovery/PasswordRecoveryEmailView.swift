@@ -90,7 +90,7 @@ struct PasswordRecoveryEmailView: View {
             .textInputAutocapitalization(.never)
             .autocorrectionDisabled(true)
             .keyboardType(.emailAddress)
-            .textContentType(.emailAddress)
+            .textContentType(.username)
 
             Text("We’ll send a 6-digit code to your email so you can create a new password.")
                 .vdFont(VdFont.bodyMedium)
@@ -100,7 +100,7 @@ struct PasswordRecoveryEmailView: View {
     }
 
     private var buttonContainer: some View {
-        VdButton("Continue", fullWidth: true, isLoading: isLoading, action: onSubmit)
+        VdButton("Continue", size: .medium, fullWidth: true, isLoading: isLoading, action: onSubmit)
     }
 
     private var backToLoginSection: some View {

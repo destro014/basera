@@ -85,6 +85,9 @@ struct ProfileCreationView: View {
                 leadingIcon: "person.fill",
                 helperText: fullNameValidationMessage
             )
+            .textInputAutocapitalization(.words)
+            .autocorrectionDisabled(true)
+            .textContentType(.name)
 
             VdTextField(
                 "Phone Number",
@@ -94,11 +97,15 @@ struct ProfileCreationView: View {
                 leadingIcon: "phone.fill",
                 helperText: phoneNumberValidationMessage
             )
+            .keyboardType(.phonePad)
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled(true)
+            .textContentType(.telephoneNumber)
         }
     }
 
     private var buttonContainer: some View {
-        VdButton("Complete Profile",fullWidth:true, isLoading: isLoading, action: onSubmit)
+        VdButton("Complete Profile", size: .medium, fullWidth: true, isLoading: isLoading, action: onSubmit)
             .frame(maxWidth: .infinity)
     }
 

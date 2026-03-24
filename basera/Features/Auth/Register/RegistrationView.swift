@@ -117,12 +117,12 @@ struct RegistrationView: View {
             .textInputAutocapitalization(.never)
             .autocorrectionDisabled(true)
             .keyboardType(.emailAddress)
-            .textContentType(.emailAddress)
+            .textContentType(.username)
         }
     }
 
     private var buttonContainer: some View {
-        VdButton("Continue", fullWidth: true, isLoading: isLoading, action: onSubmit)
+        VdButton("Continue", size: .medium, fullWidth: true, isLoading: isLoading, action: onSubmit)
     }
 
     private var loginSection: some View {
@@ -178,7 +178,7 @@ struct RegistrationView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             Spacer()
                 .frame(height: VdSpacing.lg)
-            VdButton("Go to Login", action: onContinueToLoginFromExistingAccount)
+            VdButton("Go to Login", size: .medium, fullWidth: true, action: onContinueToLoginFromExistingAccount)
         }
         .padding(.horizontal, VdSpacing.md)
         .padding(.vertical, VdSpacing.lg)

@@ -115,7 +115,7 @@ struct PasswordResetView: View {
     }
 
     private var buttonContainer: some View {
-        VdButton("Update Password", fullWidth: true, isLoading: isLoading, action: onSubmit)
+        VdButton("Update Password", size: .medium, fullWidth: true, isLoading: isLoading, action: onSubmit)
     }
 
     private func noticeContainer(_ notice: AuthStepNotice) -> some View {

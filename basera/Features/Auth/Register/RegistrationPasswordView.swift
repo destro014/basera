@@ -110,7 +110,7 @@ struct RegistrationPasswordView: View {
 
     private var buttonContainer: some View {
         VStack(alignment: .leading, spacing: VdSpacing.sm) {
-            VdButton("Create Password", fullWidth: true, isLoading: isLoading, action: onSubmit)
+            VdButton("Create Password", size: .medium, fullWidth: true, isLoading: isLoading, action: onSubmit)
                 .frame(maxWidth: .infinity)
 
             Text("By continuing, you agree to [Terms and Conditions](https://pramodpoudel.com.np/) and [Privacy Policy](https://pramodpoudel.com.np/).")
