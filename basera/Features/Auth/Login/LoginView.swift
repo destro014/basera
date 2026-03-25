@@ -24,56 +24,53 @@ struct LoginView: View {
     
     var body: some View {
         GeometryReader { proxy in
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: VdSpacing.none) {
-                    Spacer()
-                        .frame(height: VdSpacing.xxl)
-                    
-                    logoContainer
-                    
-                    Spacer()
-                        .frame(height: VdSpacing.lg)
-                    
-                    headerContainer
-                    
-                    Spacer()
-                        .frame(height: VdSpacing.xl)
-                    
-                    inputContainer
-                    
-                    if let notice {
-                        Spacer()
-                            .frame(height: VdSpacing.md)
-                        
-                        VdAlert(
-                            color: alertColor(for: notice.style),
-                            title: alertTitle(for: notice.style),
-                            description: notice.message
-                        )
-                        
-                        Spacer()
-                            .frame(height: VdSpacing.md)
-                    } else {
-                        Spacer()
-                            .frame(height: VdSpacing.xl)
-                    }
-                    
-                    buttonContainer
-                    
+            VStack(alignment: .leading, spacing: VdSpacing.none) {
+                Spacer()
+                    .frame(height: VdSpacing.xxl)
+
+                logoContainer
+
+                Spacer()
+                    .frame(height: VdSpacing.lg)
+
+                headerContainer
+
+                Spacer()
+                    .frame(height: VdSpacing.xl)
+
+                inputContainer
+
+                if let notice {
                     Spacer()
                         .frame(height: VdSpacing.md)
-                    
-                    registerContainer
+
+                    VdAlert(
+                        color: alertColor(for: notice.style),
+                        title: alertTitle(for: notice.style),
+                        description: notice.message
+                    )
+
+                    Spacer()
+                        .frame(height: VdSpacing.md)
+                } else {
+                    Spacer()
+                        .frame(height: VdSpacing.xl)
                 }
-                .frame(
-                    maxWidth: 420,
-                    minHeight: max(proxy.size.height - 32, 0),
-                    alignment: .top
-                )
-                .padding(.horizontal, proxy.size.width >= 520 ? VdSpacing.lg : VdSpacing.md)
-                .padding(.bottom, VdSpacing.sm)
-                .frame(maxWidth: .infinity)
+
+                buttonContainer
+
+                Spacer(minLength: VdSpacing.xl)
+
+                registerContainer
             }
+            .frame(
+                maxWidth: 420,
+                minHeight: max(proxy.size.height - 32, 0),
+                alignment: .top
+            )
+            .padding(.horizontal, proxy.size.width >= 520 ? VdSpacing.lg : VdSpacing.md)
+            .padding(.bottom, VdSpacing.sm)
+            .frame(maxWidth: .infinity)
             .baseraScreenBackground()
 
             .sheet(isPresented: passwordUpdatedSheetBinding) {
@@ -186,19 +183,23 @@ struct LoginView: View {
     }
     
     private var registerContainer: some View {
-        HStack(spacing: VdSpacing.xs) {
+        HStack(alignment: .center, spacing: VdSpacing.sm) {
             Text("Don't have an account?")
                 .vdFont(VdFont.bodyMedium)
                 .foregroundStyle(Color.vdContentDefaultSecondary)
-            Button(action: onNavigateToRegistration) {
-                Text("Register")
-                    .vdFont(VdFont.labelMedium)
-                    .foregroundStyle(Color.vdContentPrimaryBase)
-            }
-            .buttonStyle(.plain)
-            
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            VdButton(
+                title: "Register",
+                style: .subtle,
+                isDisabled: isLoading,
+                action: onNavigateToRegistration
+            )
+            .frame(width: 107)
         }
-        .frame(maxWidth: .infinity, alignment: .center)
+        .padding(.horizontal, VdSpacing.md)
+        .padding(.vertical, VdSpacing.md)
+        .background(Color.vdBackgroundDefaultSecondary)
     }
     
     private func inputState(for validationMessage: String?) -> VdInputState {

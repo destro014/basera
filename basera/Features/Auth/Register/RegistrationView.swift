@@ -16,52 +16,49 @@ struct RegistrationView: View {
 
     var body: some View {
         GeometryReader { proxy in
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: VdSpacing.none) {
-                    Spacer()
-                        .frame(height: VdSpacing.xxl)
+            VStack(alignment: .leading, spacing: VdSpacing.none) {
+                Spacer()
+                    .frame(height: VdSpacing.xxl)
 
-                    logoContainer
+                logoContainer
 
-                    Spacer()
-                        .frame(height: VdSpacing.lg)
+                Spacer()
+                    .frame(height: VdSpacing.lg)
 
-                    headerContainer
+                headerContainer
 
-                    Spacer()
-                        .frame(height: VdSpacing.xl)
+                Spacer()
+                    .frame(height: VdSpacing.xl)
 
-                    inputContainer
+                inputContainer
 
-                    if let notice {
-                        Spacer()
-                            .frame(height: VdSpacing.md)
-
-                        noticeContainer(notice)
-
-                        Spacer()
-                            .frame(height: VdSpacing.md)
-                    } else {
-                        Spacer()
-                            .frame(height: VdSpacing.xl)
-                    }
-
-                    buttonContainer
-
+                if let notice {
                     Spacer()
                         .frame(height: VdSpacing.md)
 
-                    loginSection
+                    noticeContainer(notice)
+
+                    Spacer()
+                        .frame(height: VdSpacing.md)
+                } else {
+                    Spacer()
+                        .frame(height: VdSpacing.xl)
                 }
-                .frame(
-                    maxWidth: 420,
-                    minHeight: max(proxy.size.height - 32, 0),
-                    alignment: .top
-                )
-                .padding(.horizontal, proxy.size.width >= 520 ? VdSpacing.lg : VdSpacing.md)
-                .padding(.bottom, VdSpacing.sm)
-                .frame(maxWidth: .infinity)
+
+                buttonContainer
+
+                Spacer(minLength: VdSpacing.xl)
+
+                loginSection
             }
+            .frame(
+                maxWidth: 420,
+                minHeight: max(proxy.size.height - 32, 0),
+                alignment: .top
+            )
+            .padding(.horizontal, proxy.size.width >= 520 ? VdSpacing.lg : VdSpacing.md)
+            .padding(.bottom, VdSpacing.sm)
+            .frame(maxWidth: .infinity)
             .baseraScreenBackground()
             .sheet(isPresented: existingAccountSheetBinding) {
                 accountAlreadyExistsSheet
@@ -122,23 +119,34 @@ struct RegistrationView: View {
     }
 
     private var buttonContainer: some View {
-        VdButton("Continue", size: .medium, fullWidth: true, isLoading: isLoading, action: onSubmit)
+        VStack(alignment: .leading, spacing: VdSpacing.md) {
+            VdButton("Continue", size: .medium, fullWidth: true, isLoading: isLoading, action: onSubmit)
+
+            Text("By tapping continue, you agree to Terms and Conditions and Privacy Policy")
+                .vdFont(VdFont.bodyMedium)
+                .foregroundStyle(Color.vdContentDefaultSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
     }
 
     private var loginSection: some View {
-        HStack(spacing: VdSpacing.xs) {
+        HStack(alignment: .center, spacing: VdSpacing.sm) {
             Text("Already have an account?")
                 .vdFont(VdFont.bodyMedium)
                 .foregroundStyle(Color.vdContentDefaultSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-            Button(action: onNavigateToLogin) {
-                Text("Login")
-                    .vdFont(VdFont.labelMedium)
-                    .foregroundStyle(Color.vdContentPrimaryBase)
-            }
-            .buttonStyle(.plain)
+            VdButton(
+                title: "Login",
+                style: .subtle,
+                isDisabled: isLoading,
+                action: onNavigateToLogin
+            )
+            .frame(width: 87)
         }
-        .frame(maxWidth: .infinity, alignment: .center)
+        .padding(.horizontal, VdSpacing.md)
+        .padding(.vertical, VdSpacing.md)
+        .background(Color.vdBackgroundDefaultSecondary)
     }
 
     private func noticeContainer(_ notice: AuthStepNotice) -> some View {

@@ -25,7 +25,7 @@ struct BaseraPageContainer<Content: View>: View {
 struct BaseraScreenBackgroundModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .background(Color.vdBackgroundDefaultBase)
+            .background(Color.vdBackgroundDefaultBase.ignoresSafeArea())
     }
 }
 
