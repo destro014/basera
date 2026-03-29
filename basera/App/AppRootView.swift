@@ -202,6 +202,7 @@ private struct SignedOutAuthFlowView: View {
                     get: { viewModel.verificationCode },
                     set: { viewModel.updateVerificationCode($0) }
                 ),
+                maskedEmail: viewModel.registrationMaskedEmail,
                 notice: notice,
                 validationMessage: viewModel.verificationCodeError,
                 isLoading: viewModel.isLoading,
@@ -258,7 +259,6 @@ private struct SignedOutAuthFlowView: View {
                     get: { viewModel.phoneNumber },
                     set: { viewModel.updatePhoneNumber($0) }
                 ),
-                selectedRole: viewModel.selectedRole,
                 notice: notice,
                 fullNameValidationMessage: viewModel.fullNameError,
                 phoneNumberValidationMessage: viewModel.phoneNumberError,

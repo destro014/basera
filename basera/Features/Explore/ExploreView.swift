@@ -1,333 +1,317 @@
+import MapKit
 import SwiftUI
 import VroxalDesign
 
 struct ExploreView: View {
     @EnvironmentObject private var environment: AppEnvironment
     @StateObject private var viewModel = ExploreViewModel()
-    @State private var isFilterSheetPresented = false
 
     var body: some View {
         Group {
             switch viewModel.state {
             case .idle, .loading:
                 VdLoadingState(title: "Loading explore feed")
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                    .frame(
+                        maxWidth: .infinity,
+                        maxHeight: .infinity,
+                        alignment: .center
+                    )
             case .error(let message):
                 VdAlert(title: "Explore unavailable", message: message) {
                     Task {
-                        await viewModel.retry(using: environment.listingsRepository)
+                        await viewModel.retry(
+                            using: environment.listingsRepository
+                        )
                     }
                 }
             case .loaded:
-                content
+                exploreContent
             }
         }
-        .navigationTitle("Explore")
-        .navigationBarTitleDisplayMode(.large)
+        .toolbar(.hidden, for: .navigationBar)
         .task {
             guard viewModel.state == .idle else { return }
             await viewModel.load(using: environment.listingsRepository)
         }
         .baseraScreenBackground()
-        .sheet(isPresented: $isFilterSheetPresented) {
-            NavigationStack {
-                ScrollView {
-                    filterControls
-                        .padding()
-                }
-                .navigationTitle("Filters")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button("Reset") {
-                            viewModel.resetFilters()
-                        }
-                    }
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button("Done") {
-                            isFilterSheetPresented = false
-                        }
-                    }
-                }
-            }
-            .presentationDetents([.medium, .large])
-            .presentationDragIndicator(.visible)
-        }
     }
-    
 
-    private var content: some View {
-        ScrollView {
-            BaseraPageContainer {
-                VStack(alignment: .leading, spacing: VdSpacing.md) {
-                    titleCard
-                    searchAndFiltersRow
-                    categorySection
-                    listingsSection(
-                        title: "Recently Posted",
-                        subtitle: "Fresh listings with upcoming availability.",
-                        listings: viewModel.recentListings
-                    )
-                    listingsSection(
-                        title: "Popular Listings",
-                        subtitle: "Homes with strong amenities and value.",
-                        listings: viewModel.popularListings
-                    )
-                    listingsSection(
-                        title: "Listings Near You",
-                        subtitle: "Options prioritized by nearby coverage radius.",
-                        listings: viewModel.nearbyListings
-                    )
-                    discoveryModePicker
-                    browseResultsSection
-                }
+    private var exploreContent: some View {
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(alignment: .leading, spacing: VdSpacing.md) {
+                searchSection
+                listingSection(
+                    title: "Recent listings",
+                    listings: viewModel.recentListings,
+                    favoriteStyle: .subtle
+                )
+                listingSection(
+                    title: "Your favourites",
+                    listings: viewModel.favoriteListings,
+                    favoriteStyle: .prominent
+                )
+                listingSection(
+                    title: "Nearby listings",
+                    listings: viewModel.nearbyListings,
+                    favoriteStyle: .subtle
+                )
+                mapSection
             }
+            .padding(.horizontal, VdSpacing.md)
+            .padding(.top, VdSpacing.md)
+            .padding(.bottom, VdSpacing.lg)
+        }
+        .safeAreaInset(edge: .top, spacing: VdSpacing.none) {
+            topToolbar
         }
     }
 
-    private var titleCard: some View {
-        BaseraCard(backgroundColor: Color.vdBackgroundDefaultSecondary) {
-            VStack(alignment: .leading, spacing: VdSpacing.sm) {
-                Text("Find Your Next Rental")
-                    .vdFont(VdFont.titleLarge)
-                    .foregroundStyle(Color.vdContentDefaultBase)
-                Text("Search smarter with curated listings by recency, popularity, and nearby location.")
-                    .vdFont(VdFont.bodySmall)
-                    .foregroundStyle(Color.vdContentDefaultSecondary)
-            }
-        }
-    }
+    private var topToolbar: some View {
+        HStack(spacing: VdSpacing.xs) {
+            Text("Explore")
+                .vdFont(VdFont.headlineLarge)
+                .foregroundStyle(Color.vdContentDefaultBase)
 
-    private var searchAndFiltersRow: some View {
-        HStack(spacing: VdSpacing.sm) {
-            VdTextField(
-                "Search Listings",
-                text: $viewModel.searchText,
-                placeholder: "Search by area, title, or keywords",
-                leadingIcon: "magnifyingglass"
+            Spacer()
+
+            toolbarButton(
+                systemImage: "map",
+                isPrimary: false,
+                action: {}
             )
-            .textInputAutocapitalization(.never)
-            .autocorrectionDisabled(true)
 
-            Button {
-                isFilterSheetPresented = true
-            } label: {
-                VStack(spacing: VdSpacing.xs) {
-                    Image(systemName: "line.3.horizontal.decrease.circle")
-                        .font(.system(size: 20, weight: .semibold))
-                    Text("Filter")
-                        .vdFont(VdFont.labelSmall)
-                }
-                .foregroundStyle(Color.vdContentPrimaryBase)
-                .frame(width: 64, height: 56)
-                .background(Color.vdBackgroundDefaultSecondary)
-                .clipShape(RoundedRectangle(cornerRadius: VdRadius.md, style: .continuous))
-                .overlay {
-                    RoundedRectangle(cornerRadius: VdRadius.md, style: .continuous)
-                        .stroke(Color.vdBorderDefaultSecondary, lineWidth: 1)
-                }
-            }
-            .buttonStyle(.plain)
+            toolbarButton(
+                systemImage: "slider.horizontal.3",
+                isPrimary: true,
+                action: {}
+            )
         }
+        .padding(.horizontal, VdSpacing.md)
+        .padding(.top, VdSpacing.xs)
+        .padding(.bottom, VdSpacing.sm)
+        .background(Color.vdBackgroundDefaultBase)
     }
 
-    private var filterControls: some View {
-        VStack(alignment: .leading, spacing: VdSpacing.smMd) {
-            VStack(alignment: .leading, spacing: VdSpacing.sm) {
-                Text("Price Range (NPR \(Int(viewModel.filters.minPrice)) - \(Int(viewModel.filters.maxPrice)))")
-                    .vdFont(VdFont.bodySmall)
+    private var searchSection: some View {
+        VStack(alignment: .leading, spacing: VdSpacing.md) {
+            HStack(spacing: VdSpacing.sm) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 16, weight: .medium))
                     .foregroundStyle(Color.vdContentDefaultSecondary)
 
-                HStack {
-                    Slider(value: $viewModel.filters.minPrice, in: 8_000...50_000, step: 1_000)
-                        .tint(Color.vdContentPrimaryBase)
-                    Slider(value: $viewModel.filters.maxPrice, in: 8_000...50_000, step: 1_000)
-                        .tint(Color.vdContentPrimaryBase)
-                }
-            }
-
-            Toggle(isOn: $viewModel.filters.parkingRequired) {
-                Text("Parking required")
-                    .vdFont(VdFont.bodyLarge)
-            }
-            .tint(Color.vdContentPrimaryBase)
-
-            Toggle(isOn: $viewModel.filters.wifiRequired) {
-                Text("Wi-Fi required")
-                    .vdFont(VdFont.bodyLarge)
-            }
-            .tint(Color.vdContentPrimaryBase)
-
-            Toggle(isOn: $viewModel.filters.petsAllowedOnly) {
-                Text("Pet friendly only")
-                    .vdFont(VdFont.bodyLarge)
-            }
-            .tint(Color.vdContentPrimaryBase)
-
-            Picker(selection: $viewModel.filters.tenantPreference) {
-                Text("Any").tag(Optional<Listing.TenantPreference>.none)
-                ForEach(Listing.TenantPreference.allCases) { preference in
-                    Text(preference.rawValue).tag(Optional(preference))
-                }
-            } label: {
-                Text("Tenant Preference")
-                    .vdFont(VdFont.labelLarge)
-            }
-            .pickerStyle(.segmented)
-            .tint(Color.vdContentPrimaryBase)
-
-            Stepper(value: $viewModel.filters.maximumRadiusInKM, in: 1...12) {
-                Text("Location radius: \(viewModel.filters.maximumRadiusInKM) KM")
-                    .vdFont(VdFont.bodyLarge)
-            }
-            .tint(Color.vdContentPrimaryBase)
-
-            DatePicker(selection: $viewModel.filters.availableFrom, displayedComponents: .date) {
-                Text("Available by")
-                    .vdFont(VdFont.labelLarge)
-            }
-            .tint(Color.vdContentPrimaryBase)
-        }
-    }
-
-    private var discoveryModePicker: some View {
-        Picker(selection: $viewModel.discoveryMode) {
-            ForEach(ExploreViewModel.DiscoveryMode.allCases) { mode in
-                Text(mode.rawValue)
-                    .vdFont(VdFont.labelMedium)
-                    .tag(mode)
-            }
-        } label: {
-            Text("Browse Mode")
-                .vdFont(VdFont.titleMedium)
-        }
-        .pickerStyle(.segmented)
-        .tint(Color.vdContentPrimaryBase)
-    }
-
-    @ViewBuilder
-    private var browseResultsSection: some View {
-        VStack(alignment: .leading, spacing: VdSpacing.sm) {
-            Text("Browse Results")
-                .vdFont(VdFont.titleMedium)
+                TextField(
+                    "Search by location, type, features",
+                    text: $viewModel.searchText
+                )
+                .vdFont(VdFont.bodyMedium)
                 .foregroundStyle(Color.vdContentDefaultBase)
-
-            if viewModel.filteredListings.isEmpty {
-                if viewModel.hasAppliedFilters || !viewModel.searchText.isEmpty {
-                    VdEmptyState(
-                        title: "No results",
-                        message: "Try broadening your search or filters.",
-                        systemImage: "magnifyingglass"
-                    )
-                } else {
-                    VdEmptyState(
-                        title: "No listings",
-                        message: "No listings available right now.",
-                        systemImage: "house"
-                    )
-                }
-            } else {
-                switch viewModel.discoveryMode {
-                case .list:
-                    LazyVStack(spacing: VdSpacing.smMd) {
-                        ForEach(viewModel.filteredListings) { listing in
-                            ExploreListingRowCard(listing: listing)
-                        }
-                    }
-                case .map:
-                    mapPlaceholder
-                }
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled(true)
             }
-        }
-    }
-
-    private var categorySection: some View {
-        VStack(alignment: .leading, spacing: VdSpacing.sm) {
-            Text("Categories")
-                .vdFont(VdFont.titleMedium)
-                .foregroundStyle(Color.vdContentDefaultBase)
+            .padding(.horizontal, VdSpacing.md - VdSpacing.xs)
+            .frame(height: 48)
+            .background(Color.vdBackgroundDefaultSecondary)
+            .clipShape(
+                RoundedRectangle(cornerRadius: VdRadius.md, style: .continuous)
+            )
+            .overlay {
+                RoundedRectangle(
+                    cornerRadius: VdRadius.md,
+                    style: .continuous
+                )
+                .stroke(Color.vdBorderDefaultSecondary, lineWidth: 1)
+            }
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: VdSpacing.sm) {
-                    categoryPill(
-                        title: "All",
-                        isSelected: viewModel.selectedCategory == nil
-                    ) {
-                        viewModel.selectedCategory = nil
-                    }
-
-                    ForEach(ExploreViewModel.Category.allCases) { category in
-                        categoryPill(
-                            title: category.rawValue,
-                            isSelected: viewModel.selectedCategory == category
-                        ) {
-                            viewModel.toggleCategory(category)
-                        }
+                    ForEach(ExploreViewModel.AmenityFilter.allCases) { filter in
+                        amenityChip(for: filter)
                     }
                 }
-                .padding(.vertical, VdSpacing.xs)
+                .padding(.trailing, VdSpacing.md)
             }
         }
     }
 
     @ViewBuilder
-    private func listingsSection(
+    private func listingSection(
         title: String,
-        subtitle: String,
-        listings: [Listing]
+        listings: [Listing],
+        favoriteStyle: ListingCard.FavoriteStyle
     ) -> some View {
         VStack(alignment: .leading, spacing: VdSpacing.sm) {
             Text(title)
-                .vdFont(VdFont.titleMedium)
-                .foregroundStyle(Color.vdContentDefaultBase)
-            Text(subtitle)
-                .vdFont(VdFont.bodySmall)
+                .vdFont(VdFont.titleLarge)
                 .foregroundStyle(Color.vdContentDefaultSecondary)
 
             if listings.isEmpty {
-                VdEmptyState(
-                    title: "No matching listings",
-                    message: "Try another category or a different search term.",
-                    systemImage: "magnifyingglass"
+                VStack(alignment: .leading, spacing: VdSpacing.xs) {
+                    Text("No listings available")
+                        .vdFont(VdFont.labelMedium)
+                        .foregroundStyle(Color.vdContentDefaultBase)
+                    Text("Try adjusting search or filter selections.")
+                        .vdFont(VdFont.bodySmall)
+                        .foregroundStyle(Color.vdContentDefaultSecondary)
+                }
+                .padding(VdSpacing.md)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.vdBackgroundDefaultSecondary)
+                .clipShape(
+                    RoundedRectangle(
+                        cornerRadius: VdRadius.md,
+                        style: .continuous
+                    )
                 )
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: VdSpacing.smMd) {
+                    HStack(spacing: VdSpacing.md) {
                         ForEach(listings) { listing in
-                            ExploreListingCard(listing: listing)
+                            ListingCard(
+                                listing: listing,
+                                isFavorite: viewModel.isFavorite(
+                                    listingID: listing.id
+                                ),
+                                favoriteStyle: favoriteStyle,
+                                onFavoriteTap: {
+                                    viewModel.toggleFavorite(
+                                        listingID: listing.id
+                                    )
+                                }
+                            )
                         }
                     }
-                    .padding(.vertical, VdSpacing.xs)
+                    .padding(.trailing, VdSpacing.md)
                 }
             }
         }
     }
 
-    private func categoryPill(
-        title: String,
-        isSelected: Bool,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            Text(title)
-                .vdFont(VdFont.bodySmall)
+    private var mapSection: some View {
+        VStack(alignment: .leading, spacing: VdSpacing.sm) {
+            Text("Explore by map")
+                .vdFont(VdFont.titleLarge)
+                .foregroundStyle(Color.vdContentDefaultSecondary)
+
+            ZStack(alignment: .topTrailing) {
+                Map(
+                    coordinateRegion: .constant(mapRegion),
+                    interactionModes: []
+                )
+                .frame(height: 250)
+                .clipShape(
+                    RoundedRectangle(
+                        cornerRadius: VdRadius.md,
+                        style: .continuous
+                    )
+                )
+
+                Button(action: {}) {
+                    Image(systemName: "arrow.up.left.and.arrow.down.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(Color.vdContentPrimaryBase)
+                        .frame(width: 24, height: 24)
+                        .padding(4)
+                        .background(Color.vdBackgroundPrimarySecondary)
+                        .clipShape(
+                            RoundedRectangle(
+                                cornerRadius: VdRadius.md,
+                                style: .continuous
+                            )
+                        )
+                }
+                .buttonStyle(.plain)
+                .padding(VdSpacing.sm)
+            }
+        }
+    }
+
+    private var mapRegion: MKCoordinateRegion {
+        let fallback = MKCoordinateRegion(
+            center: CLLocationCoordinate2D(latitude: 27.7172, longitude: 85.3240),
+            span: MKCoordinateSpan(latitudeDelta: 0.22, longitudeDelta: 0.22)
+        )
+
+        guard let firstListing = viewModel.nearbyListings.first
+            ?? viewModel.filteredListings.first
+        else {
+            return fallback
+        }
+
+        return MKCoordinateRegion(
+            center: CLLocationCoordinate2D(
+                latitude: firstListing.location.latitude,
+                longitude: firstListing.location.longitude
+            ),
+            span: MKCoordinateSpan(latitudeDelta: 0.22, longitudeDelta: 0.22)
+        )
+    }
+
+    private func amenityChip(for filter: ExploreViewModel.AmenityFilter) -> some View {
+        let isSelected = viewModel.isFilterSelected(filter)
+
+        return Button {
+            viewModel.toggle(filter: filter)
+        } label: {
+            Text(filter.rawValue)
+                .vdFont(VdFont.labelMedium)
                 .foregroundStyle(
                     isSelected
                         ? Color.vdContentPrimaryOnBase
-                        : Color.vdContentDefaultBase
+                        : Color.vdContentDefaultSecondary
                 )
-                .padding(.horizontal, VdSpacing.smMd)
-                .padding(.vertical, VdSpacing.sm)
+                .padding(.horizontal, VdSpacing.md)
+                .padding(.vertical, VdSpacing.xs)
                 .background(
                     isSelected
                         ? Color.vdBackgroundPrimaryBase
                         : Color.vdBackgroundDefaultSecondary
                 )
-                .clipShape(Capsule())
+                .clipShape(
+                    RoundedRectangle(
+                        cornerRadius: VdRadius.md,
+                        style: .continuous
+                    )
+                )
                 .overlay {
-                    Capsule()
+                    RoundedRectangle(
+                        cornerRadius: VdRadius.md,
+                        style: .continuous
+                    )
+                    .stroke(
+                        isSelected
+                            ? Color.clear
+                            : Color.vdBorderDefaultSecondary,
+                        lineWidth: 1
+                    )
+                }
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func toolbarButton(
+        systemImage: String,
+        isPrimary: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: systemImage)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(
+                    isPrimary
+                        ? Color.white
+                        : Color.vdContentDefaultBase
+                )
+                .frame(width: 44, height: 44)
+                .background(
+                    isPrimary
+                        ? Color.vdBackgroundPrimaryBase
+                        : Color.vdBackgroundDefaultSecondary
+                )
+                .clipShape(Circle())
+                .overlay {
+                    Circle()
                         .stroke(
-                            isSelected
+                            isPrimary
                                 ? Color.clear
                                 : Color.vdBorderDefaultSecondary,
                             lineWidth: 1
@@ -335,145 +319,6 @@ struct ExploreView: View {
                 }
         }
         .buttonStyle(.plain)
-    }
-
-    private var mapPlaceholder: some View {
-        BaseraCard(backgroundColor: Color.vdBackgroundDefaultSecondary) {
-            VStack(alignment: .leading, spacing: VdSpacing.sm) {
-                Label("Map Preview", systemImage: "map")
-                    .vdFont(VdFont.titleMedium)
-                Text("Exact addresses stay hidden until owner approval. These are approximate pins.")
-                    .vdFont(VdFont.bodySmall)
-                    .foregroundStyle(Color.vdContentDefaultSecondary)
-
-                ForEach(viewModel.filteredListings.prefix(6)) { listing in
-                    HStack(spacing: VdSpacing.xs) {
-                        Image(systemName: "mappin.and.ellipse")
-                            .foregroundStyle(Color.vdContentPrimaryBase)
-                        Text("\(listing.approximateLocation) • NPR \(listing.monthlyRent.formatted(.number))")
-                            .vdFont(VdFont.bodyMedium)
-                            .foregroundStyle(Color.vdContentDefaultBase)
-                    }
-                }
-            }
-        }
-    }
-}
-
-private struct ExploreListingCard: View {
-    let listing: Listing
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: VdSpacing.sm) {
-            HStack {
-                Text(listing.propertyType.rawValue)
-                    .vdFont(VdFont.labelSmall)
-                    .foregroundStyle(accentColor)
-                    .padding(.horizontal, VdSpacing.sm)
-                    .padding(.vertical, VdSpacing.xs)
-                    .background(accentColor.opacity(0.14))
-                    .clipShape(Capsule())
-
-                Spacer()
-
-                Image(systemName: "sparkles")
-                    .foregroundStyle(accentColor)
-            }
-
-            Text(listing.title)
-                .vdFont(VdFont.titleMedium)
-                .foregroundStyle(Color.vdContentDefaultBase)
-                .lineLimit(2)
-
-            HStack(spacing: VdSpacing.xs) {
-                Image(systemName: "mappin.and.ellipse")
-                    .foregroundStyle(Color.vdContentPrimaryBase)
-                Text(listing.approximateLocation)
-                    .vdFont(VdFont.bodySmall)
-                    .foregroundStyle(Color.vdContentDefaultSecondary)
-                    .lineLimit(1)
-            }
-
-            HStack(spacing: VdSpacing.xs) {
-                metadataPill(text: "NPR \(formattedRent)", tone: Color.vdContentPrimaryBase)
-                metadataPill(text: "\(listing.bedroomCount) room", tone: Color.vdContentSuccessBase)
-                metadataPill(text: "\(listing.locationRadiusInKM) KM", tone: Color.vdContentInfoBase)
-            }
-        }
-        .padding(VdSpacing.md)
-        .frame(width: 286, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: VdRadius.lg, style: .continuous)
-                .fill(Color.vdBackgroundDefaultSecondary)
-                .overlay {
-                    LinearGradient(
-                        colors: [
-                            accentColor.opacity(0.18),
-                            Color.clear
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                    .clipShape(
-                        RoundedRectangle(cornerRadius: VdRadius.lg, style: .continuous)
-                    )
-                }
-        )
-        .overlay {
-            RoundedRectangle(cornerRadius: VdRadius.lg, style: .continuous)
-                .stroke(accentColor.opacity(0.30), lineWidth: 1)
-        }
-    }
-
-    private var accentColor: Color {
-        switch listing.propertyType {
-        case .room: return Color.vdContentInfoBase
-        case .flat: return Color.vdContentPrimaryBase
-        case .apartment: return Color.vdContentSuccessBase
-        }
-    }
-
-    private var formattedRent: String {
-        listing.monthlyRent.formatted(.number)
-    }
-
-    private func metadataPill(text: String, tone: Color) -> some View {
-        Text(text)
-            .vdFont(VdFont.labelSmall)
-            .foregroundStyle(tone)
-            .padding(.horizontal, VdSpacing.sm)
-            .padding(.vertical, VdSpacing.xs)
-            .background(tone.opacity(0.14))
-            .clipShape(Capsule())
-    }
-}
-
-private struct ExploreListingRowCard: View {
-    let listing: Listing
-
-    var body: some View {
-        BaseraCard(backgroundColor: Color.vdBackgroundDefaultSecondary) {
-            VStack(alignment: .leading, spacing: VdSpacing.sm) {
-                HStack {
-                    Text(listing.title)
-                        .vdFont(VdFont.titleMedium)
-                    Spacer()
-                    Text("NPR \(listing.monthlyRent.formatted(.number))/month")
-                        .vdFont(VdFont.labelLarge)
-                        .foregroundStyle(Color.vdContentPrimaryBase)
-                }
-
-                Text(listing.approximateLocation)
-                    .vdFont(VdFont.bodySmall)
-                    .foregroundStyle(Color.vdContentDefaultSecondary)
-
-                HStack(spacing: VdSpacing.xs) {
-                    BaseraChip(text: listing.propertyType.rawValue)
-                    BaseraChip(text: "\(listing.bedroomCount) room")
-                    BaseraChip(text: "\(listing.locationRadiusInKM) KM")
-                }
-            }
-        }
     }
 }
 

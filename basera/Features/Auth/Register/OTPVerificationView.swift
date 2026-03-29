@@ -4,6 +4,7 @@ import VroxalDesign
 struct OTPVerificationView: View {
     @Binding var code: String
 
+    let maskedEmail: String?
     let notice: AuthStepNotice?
     let validationMessage: String?
     let isLoading: Bool
@@ -70,7 +71,7 @@ struct OTPVerificationView: View {
                 .vdFont(VdFont.headlineLarge)
                 .foregroundStyle(Color.vdContentDefaultBase)
 
-            Text("Enter the code we sent to your email address to continue.")
+            Text(descriptionText)
                 .vdFont(VdFont.bodyLarge)
                 .foregroundStyle(Color.vdContentDefaultSecondary)
         }
@@ -94,7 +95,13 @@ struct OTPVerificationView: View {
 
     private var buttonContainer: some View {
         VStack(alignment: .leading, spacing: VdSpacing.smMd) {
-            VdButton("Verify email", size: .medium, fullWidth: true, isLoading: isLoading, action: onVerify)
+            VdButton(
+                "Verify email",
+                size: .large,
+                fullWidth: true,
+                isLoading: isLoading,
+                action: onVerify
+            )
                 .frame(maxWidth: .infinity)
 
             HStack(spacing: 4) {
@@ -124,18 +131,21 @@ struct OTPVerificationView: View {
         }
     }
 
+    private var descriptionText: String {
+        let email = (maskedEmail?.isEmpty == false ? maskedEmail : nil)
+            ?? "a******@pramodpoudel.com.np"
+        return "Enter the code we sent to \(email) to continue"
+    }
+
     private func noticeContainer(_ notice: AuthStepNotice) -> some View {
-        VdAlert(
-            color: notice.style.authAlertColor,
-            title: notice.style.authAlertTitle,
-            description: notice.message
-        )
+        AuthNoticeBanner(notice: notice)
     }
 }
 
 #Preview {
     OTPVerificationView(
         code: .constant(""),
+        maskedEmail: "a******@pramodpoudel.com.np",
         notice: AuthStepNotice(style: .info, message: "A new code was sent to your email."),
         validationMessage: nil,
         isLoading: false,

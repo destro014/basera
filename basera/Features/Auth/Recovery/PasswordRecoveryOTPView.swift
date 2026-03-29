@@ -96,7 +96,13 @@ struct PasswordRecoveryOTPView: View {
 
     private var buttonContainer: some View {
         VStack(alignment: .leading, spacing: VdSpacing.smMd) {
-            VdButton("Verify email", size: .medium, fullWidth: true, isLoading: isLoading, action: onVerify)
+            VdButton(
+                "Verify email",
+                size: .large,
+                fullWidth: true,
+                isLoading: isLoading,
+                action: onVerify
+            )
                 .frame(maxWidth: .infinity)
 
             HStack(spacing: 4) {
@@ -135,11 +141,7 @@ struct PasswordRecoveryOTPView: View {
     }
 
     private func noticeContainer(_ notice: AuthStepNotice) -> some View {
-        VdAlert(
-            color: notice.style.authAlertColor,
-            title: notice.style.authAlertTitle,
-            description: notice.message
-        )
+        AuthNoticeBanner(notice: notice)
     }
 }
 

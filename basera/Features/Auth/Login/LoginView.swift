@@ -6,7 +6,7 @@ struct LoginView: View {
     @Binding var password: String
     @State private var isPasswordSecure = true
     @State private var passwordUpdatedSheetHeight: CGFloat = 280
-    
+
     let notice: AuthStepNotice?
     let emailValidationMessage: String?
     let passwordValidationMessage: String?
@@ -21,9 +21,12 @@ struct LoginView: View {
     let onContinueToLoginFromPasswordUpdatedSheet: () -> Void
     let onForgotPassword: () -> Void
     let onNavigateToRegistration: () -> Void
-    
+
     var body: some View {
         GeometryReader { proxy in
+            let contentHorizontalPadding =
+                proxy.size.width >= 520 ? VdSpacing.lg : VdSpacing.md
+
             VStack(alignment: .leading, spacing: VdSpacing.none) {
                 Spacer()
                     .frame(height: VdSpacing.xxl)
@@ -44,11 +47,7 @@ struct LoginView: View {
                     Spacer()
                         .frame(height: VdSpacing.md)
 
-                    VdAlert(
-                        color: alertColor(for: notice.style),
-                        title: alertTitle(for: notice.style),
-                        description: notice.message
-                    )
+                    AuthNoticeBanner(notice: notice)
 
                     Spacer()
                         .frame(height: VdSpacing.md)
@@ -60,17 +59,20 @@ struct LoginView: View {
                 buttonContainer
 
                 Spacer(minLength: VdSpacing.xl)
-
-                registerContainer
             }
             .frame(
                 maxWidth: 420,
                 minHeight: max(proxy.size.height - 32, 0),
                 alignment: .top
             )
-            .padding(.horizontal, proxy.size.width >= 520 ? VdSpacing.lg : VdSpacing.md)
-            .padding(.bottom, VdSpacing.sm)
-            .frame(maxWidth: .infinity)
+            .padding(.horizontal, contentHorizontalPadding)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .safeAreaInset(edge: .bottom, spacing: VdSpacing.none) {
+                registerContainer(
+                    horizontalPadding: contentHorizontalPadding,
+                    bottomSafeAreaInset: proxy.safeAreaInsets.bottom
+                )
+            }
             .baseraScreenBackground()
 
             .sheet(isPresented: passwordUpdatedSheetBinding) {
@@ -80,20 +82,26 @@ struct LoginView: View {
                         GeometryReader { geometry in
                             Color.clear
                                 .preference(
-                                    key: PasswordUpdatedSheetHeightPreferenceKey.self,
+                                    key: PasswordUpdatedSheetHeightPreferenceKey
+                                        .self,
                                     value: geometry.size.height
                                 )
                         }
                     )
-                    .onPreferenceChange(PasswordUpdatedSheetHeightPreferenceKey.self) { contentHeight in
-                        passwordUpdatedSheetHeight = min(max(contentHeight + 1, 220), 520)
+                    .onPreferenceChange(
+                        PasswordUpdatedSheetHeightPreferenceKey.self
+                    ) { contentHeight in
+                        passwordUpdatedSheetHeight = min(
+                            max(contentHeight + 1, 220),
+                            520
+                        )
                     }
                     .presentationDetents([.height(passwordUpdatedSheetHeight)])
                     .presentationDragIndicator(.visible)
             }
         }
     }
-    
+
     private var logoContainer: some View {
         Image("logo-horizontal")
             .resizable()
@@ -101,19 +109,19 @@ struct LoginView: View {
             .frame(height: 44)
             .accessibilityHidden(true)
     }
-    
+
     private var headerContainer: some View {
         VStack(alignment: .leading, spacing: VdSpacing.xs) {
-            Text("Login to your account" )
+            Text("Login to your account")
                 .vdFont(VdFont.headlineLarge)
                 .foregroundStyle(Color.vdContentDefaultBase)
-            
+
             Text("Enter email and password to login")
                 .vdFont(VdFont.bodyLarge)
                 .foregroundStyle(Color.vdContentDefaultSecondary)
         }
     }
-    
+
     private var inputContainer: some View {
         VStack(alignment: .leading, spacing: VdSpacing.md) {
             VdTextField(
@@ -128,7 +136,7 @@ struct LoginView: View {
             .autocorrectionDisabled(true)
             .keyboardType(.emailAddress)
             .textContentType(.username)
-            
+
             VdTextField(
                 "Password",
                 text: $password,
@@ -144,45 +152,50 @@ struct LoginView: View {
             .autocorrectionDisabled(true)
             .textContentType(.password)
             Button(action: onForgotPassword) {
-                Text("Forgot Password")
+                Text("Forgot Password?")
                     .vdFont(VdFont.labelMedium)
                     .foregroundStyle(Color.vdContentPrimaryBase)
             }
             .buttonStyle(.plain)
-            
+
             .disabled(isLoading)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
-    
+
     private var buttonContainer: some View {
         VStack(alignment: .leading, spacing: VdSpacing.sm) {
             VdButton(
                 "Login",
                 color: .primary,
                 style: .solid,
-                size: .medium,
-                fullWidth: true, isLoading: isLoading,
+                size: .large,
+                fullWidth: true,
+                isLoading: isLoading,
                 action: onSubmit
             )
-            
+
             if canUseBiometricLogin {
                 VdButton(
                     biometricButtonTitle,
                     color: .primary,
                     style: .outlined,
-                    size: .medium,
-                    rounded: true,
-                    fullWidth: true, isLoading: isLoading, leftIcon: biometricSystemImageName,
+                    size: .large,
+                    fullWidth: true,
+                    isLoading: isLoading,
+                    leftIcon: biometricSystemImageName,
                     action: onBiometricLogin
                 )
                 .disabled(isLoading)
             }
         }
-        
+
     }
-    
-    private var registerContainer: some View {
+
+    private func registerContainer(
+        horizontalPadding: CGFloat,
+        bottomSafeAreaInset: CGFloat
+    ) -> some View {
         HStack(alignment: .center, spacing: VdSpacing.sm) {
             Text("Don't have an account?")
                 .vdFont(VdFont.bodyMedium)
@@ -197,37 +210,25 @@ struct LoginView: View {
             )
             .frame(width: 107)
         }
-        .padding(.horizontal, VdSpacing.md)
-        .padding(.vertical, VdSpacing.md)
-        .background(Color.vdBackgroundDefaultSecondary)
+        .frame(maxWidth: 420, alignment: .leading)
+        .frame(maxWidth: .infinity, alignment: .center)
+        .padding(.horizontal, horizontalPadding)
+        .padding(.top, VdSpacing.md)
+        .padding(
+            .bottom,
+            max(bottomSafeAreaInset + VdSpacing.xs, VdSpacing.lg)
+        )
+        .background(
+            TopRoundedRectangle(radius: VdRadius.xl)
+                .fill(Color.vdBackgroundDefaultSecondary)
+                .ignoresSafeArea(edges: .bottom)
+        )
     }
-    
+
     private func inputState(for validationMessage: String?) -> VdInputState {
         validationMessage == nil ? .default : .error
     }
-    
-    private func alertColor(for style: AuthStepNotice.Style) -> VdAlertColor {
-        switch style {
-        case .info:
-            return .info
-        case .success:
-            return .success
-        case .error:
-            return .error
-        }
-    }
-    
-    private func alertTitle(for style: AuthStepNotice.Style) -> String {
-        switch style {
-        case .info:
-            return "Notice"
-        case .success:
-            return "Success"
-        case .error:
-            return "Error"
-        }
-    }
-    
+
     private var passwordUpdatedSheetBinding: Binding<Bool> {
         Binding(
             get: { passwordUpdatedEmail != nil },
@@ -238,24 +239,26 @@ struct LoginView: View {
             }
         )
     }
-    
+
     private var passwordUpdatedSheet: some View {
         VStack(alignment: .leading, spacing: VdSpacing.md) {
             Spacer()
                 .frame(height: VdSpacing.lg)
-            
+
             Text("Password updated")
                 .vdFont(VdFont.headlineMedium)
                 .foregroundStyle(Color.vdContentDefaultBase)
-            
-            Text("Your password has been updated successfully. Now you can login to your account.")
-                .vdFont(VdFont.bodyLarge)
-                .foregroundStyle(Color.vdContentDefaultSecondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            
+
+            Text(
+                "Your password has been updated successfully. Now you can login to your account."
+            )
+            .vdFont(VdFont.bodyLarge)
+            .foregroundStyle(Color.vdContentDefaultSecondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+
             Spacer()
                 .frame(height: VdSpacing.lg)
-            
+
             VdButton(
                 "Continue to Login",
                 color: .primary,
@@ -273,7 +276,7 @@ struct LoginView: View {
 
 private struct PasswordUpdatedSheetHeightPreferenceKey: PreferenceKey {
     static let defaultValue: CGFloat = 0
-    
+
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
         value = max(value, nextValue())
     }

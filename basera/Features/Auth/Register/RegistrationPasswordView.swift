@@ -4,6 +4,8 @@ import VroxalDesign
 struct RegistrationPasswordView: View {
     @Binding var password: String
     @Binding var confirmPassword: String
+    @State private var isPasswordSecure = true
+    @State private var isConfirmPasswordSecure = true
     @State private var previousPasswordValue = ""
 
     let notice: AuthStepNotice?
@@ -69,7 +71,7 @@ struct RegistrationPasswordView: View {
                 .vdFont(VdFont.headlineLarge)
                 .foregroundStyle(Color.vdContentDefaultBase)
 
-            Text("Create a secure password before you complete your profile.")
+            Text("Please enter the password for you account.")
                 .vdFont(VdFont.bodyLarge)
                 .foregroundStyle(Color.vdContentDefaultSecondary)
         }
@@ -80,11 +82,13 @@ struct RegistrationPasswordView: View {
             VdTextField(
                 "Password",
                 text: $password,
-                placeholder: "Minimum 8 characters",
+                placeholder: "Password",
                 state: inputState(for: passwordValidationMessage),
-                isSecure: true,
+                isSecure: isPasswordSecure,
                 leadingIcon: "lock",
-                helperText: passwordValidationMessage
+                helperText: passwordValidationMessage,
+                trailingIcon: isPasswordSecure ? "eye" : "eye.slash",
+                onTrailingAction: { isPasswordSecure.toggle() }
             )
             .textInputAutocapitalization(.never)
             .autocorrectionDisabled(true)
@@ -94,13 +98,15 @@ struct RegistrationPasswordView: View {
             }
 
             VdTextField(
-                "Confirm Password",
+                "Confirm password",
                 text: $confirmPassword,
-                placeholder: "Re-enter password",
+                placeholder: "Confirm password",
                 state: inputState(for: confirmPasswordValidationMessage),
-                isSecure: true,
+                isSecure: isConfirmPasswordSecure,
                 leadingIcon: "lock",
-                helperText: confirmPasswordValidationMessage
+                helperText: confirmPasswordValidationMessage,
+                trailingIcon: isConfirmPasswordSecure ? "eye" : "eye.slash",
+                onTrailingAction: { isConfirmPasswordSecure.toggle() }
             )
             .textInputAutocapitalization(.never)
             .autocorrectionDisabled(true)
@@ -109,25 +115,18 @@ struct RegistrationPasswordView: View {
     }
 
     private var buttonContainer: some View {
-        VStack(alignment: .leading, spacing: VdSpacing.sm) {
-            VdButton("Create Password", size: .medium, fullWidth: true, isLoading: isLoading, action: onSubmit)
-                .frame(maxWidth: .infinity)
-
-            Text("By continuing, you agree to [Terms and Conditions](https://pramodpoudel.com.np/) and [Privacy Policy](https://pramodpoudel.com.np/).")
-                .vdFont(VdFont.bodyMedium)
-                .foregroundStyle(Color.vdContentDefaultSecondary)
-                .multilineTextAlignment(.leading)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .tint(Color.vdContentPrimaryBase)
-        }
+        VdButton(
+            "Create password",
+            size: .large,
+            fullWidth: true,
+            isLoading: isLoading,
+            action: onSubmit
+        )
+        .frame(maxWidth: .infinity)
     }
 
     private func noticeContainer(_ notice: AuthStepNotice) -> some View {
-        VdAlert(
-            color: notice.style.authAlertColor,
-            title: notice.style.authAlertTitle,
-            description: notice.message
-        )
+        AuthNoticeBanner(notice: notice)
     }
 
     private func inputState(for validationMessage: String?) -> VdInputState {

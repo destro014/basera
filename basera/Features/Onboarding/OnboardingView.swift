@@ -9,14 +9,33 @@ struct OnboardingView: View {
     let notice: AuthStepNotice?
     let onLogin: () -> Void
     let onRegister: () -> Void
+    let isPreviewMode: Bool
 
     private let progressBarHeight: CGFloat = 4
     private let progressSpacing: CGFloat = 8
+    private let slideInsertionDuration: TimeInterval = 1
+    private let slideRemovalDuration: TimeInterval = 2
     private let autoplayTimer = Timer.publish(
         every: OnboardingViewModel.timerStep,
         on: .main,
         in: .common
     ).autoconnect()
+
+    init(
+        notice: AuthStepNotice?,
+        onLogin: @escaping () -> Void,
+        onRegister: @escaping () -> Void,
+        isPreviewMode: Bool = false
+    ) {
+        self.notice = notice
+        self.onLogin = onLogin
+        self.onRegister = onRegister
+        self.isPreviewMode = isPreviewMode
+    }
+
+    private var shouldUseStaticPreviewMode: Bool {
+        isPreviewMode || ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+    }
 
     var body: some View {
         GeometryReader { proxy in
@@ -28,21 +47,22 @@ struct OnboardingView: View {
                 storyPager(horizontalPadding: horizontalPadding)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                footer(horizontalPadding: horizontalPadding, bottomInset: proxy.safeAreaInsets.bottom)
+                footer(horizontalPadding: horizontalPadding, bottomInset: 0)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(OnboardingPalette.screenBackground.ignoresSafeArea())
         }
         .onAppear {
-            viewModel.setPlaybackActive(true)
+            viewModel.setPlaybackActive(shouldUseStaticPreviewMode == false)
         }
         .onDisappear {
             viewModel.setPlaybackActive(false)
         }
         .onChange(of: scenePhase) { newValue in
-            viewModel.setPlaybackActive(newValue == .active)
+            viewModel.setPlaybackActive(shouldUseStaticPreviewMode == false && newValue == .active)
         }
         .onReceive(autoplayTimer) { _ in
+            guard shouldUseStaticPreviewMode == false else { return }
             viewModel.tick()
         }
     }
@@ -72,7 +92,7 @@ struct OnboardingView: View {
                             .fill(OnboardingPalette.progressTrack)
 
                         Capsule()
-                            .fill(index <= viewModel.currentIndex ? OnboardingPalette.progressFill : .clear)
+                            .fill(index == viewModel.currentIndex ? OnboardingPalette.progressFill : .clear)
                             .frame(width: proxy.size.width * progress)
                     }
                 }
@@ -82,24 +102,32 @@ struct OnboardingView: View {
         .frame(height: progressBarHeight)
     }
 
+    @ViewBuilder
     private func storyPager(horizontalPadding: CGFloat) -> some View {
-        TabView(
-            selection: Binding(
-                get: { viewModel.currentIndex },
-                set: { newValue in
-                    viewModel.selectSlide(newValue)
+        if shouldUseStaticPreviewMode {
+            OnboardingSlidePage(slide: viewModel.slides[viewModel.currentIndex])
+                .padding(.top, 24)
+                .padding(.horizontal, horizontalPadding)
+        } else {
+            ZStack {
+                ForEach(Array(viewModel.slides.enumerated()), id: \.element.id) { index, slide in
+                    if index == viewModel.currentIndex {
+                        OnboardingSlidePage(slide: slide)
+                            .padding(.top, 24)
+                            .padding(.horizontal, horizontalPadding)
+                            .transition(slideTransition)
+                            .id(slide.id)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                viewModel.selectSlide(nextIndex(after: index))
+                            }
+                    }
                 }
-            )
-        ) {
-            ForEach(Array(viewModel.slides.enumerated()), id: \.element.id) { index, slide in
-                OnboardingSlidePage(slide: slide)
-                    .padding(.top, 24)
-                    .padding(.horizontal, horizontalPadding)
-                    .tag(index)
             }
+            .clipped()
+            .animation(.none, value: viewModel.currentProgress)
+            .animation(.easeInOut(duration: slideRemovalDuration), value: viewModel.currentIndex)
         }
-        .tabViewStyle(.page(indexDisplayMode: .never))
-        .animation(.easeInOut(duration: 0.26), value: viewModel.currentIndex)
     }
 
     private func footer(horizontalPadding: CGFloat, bottomInset: CGFloat) -> some View {
@@ -109,12 +137,11 @@ struct OnboardingView: View {
             }
 
             HStack(spacing: 16) {
-                VdButton(title: "Login", style: .subtle, action: onLogin)
+                VdButton("Login",  style: .subtle, size: .large, action: onLogin)
                     .fixedSize(horizontal: false, vertical: true)
-                    .frame(width: 87)
+//                    .frame(width: 87)
 
-                VdButton(title: "Create account", style: .primary, action: onRegister)
-                    .frame(maxWidth: .infinity)
+                VdButton("Create account", style: .solid, size: .large, fullWidth: true, action: onRegister)
             }
         }
         .frame(maxWidth: 402, alignment: .leading)
@@ -134,6 +161,22 @@ struct OnboardingView: View {
             .error
         }
     }
+
+    private var slideTransition: AnyTransition {
+        .asymmetric(
+            insertion: .move(edge: .trailing)
+                .combined(with: .opacity)
+                .animation(.easeInOut(duration: slideInsertionDuration)),
+            removal: .move(edge: .leading)
+                .combined(with: .opacity)
+                .animation(.easeInOut(duration: slideRemovalDuration))
+        )
+    }
+
+    private func nextIndex(after index: Int) -> Int {
+        let nextIndex = index + 1
+        return nextIndex < viewModel.slides.count ? nextIndex : 0
+    }
 }
 
 private struct OnboardingSlidePage: View {
@@ -141,11 +184,10 @@ private struct OnboardingSlidePage: View {
 
     var body: some View {
         GeometryReader { proxy in
-            let imageHeight = min(320, max(160, proxy.size.height * 0.52))
+//            let imageHeight = min(320, max(160, proxy.size.height * 0.52))
 
             VStack(alignment: .leading, spacing: 24) {
                 OnboardingIllustrationCard(slide: slide)
-                    .frame(height: imageHeight)
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text(slide.title)
@@ -173,10 +215,8 @@ private struct OnboardingIllustrationCard: View {
     var body: some View {
         Image(slide.imageAssetName)
             .resizable()
-            .scaledToFill()
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .scaledToFit()
             .clipped()
-            .background(OnboardingPalette.illustrationBackground)
             .accessibilityHidden(true)
     }
 }
@@ -194,6 +234,7 @@ private enum OnboardingPalette {
     OnboardingView(
         notice: nil,
         onLogin: {},
-        onRegister: {}
+        onRegister: {},
+        isPreviewMode: true
     )
 }

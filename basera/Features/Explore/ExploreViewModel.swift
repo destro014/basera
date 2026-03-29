@@ -10,52 +10,23 @@ final class ExploreViewModel: ObservableObject {
         case error(String)
     }
 
-    enum Category: String, CaseIterable, Identifiable {
-        case room = "Room"
-        case flat = "Flat"
-        case apartment = "Apartment"
+    enum AmenityFilter: String, CaseIterable, Identifiable, Hashable {
+        case freeWifi = "Free wifi"
+        case parking = "Parking"
+        case petsAllowed = "Pets allowed"
 
         var id: String { rawValue }
-
-        var propertyType: Listing.PropertyType {
-            switch self {
-            case .room: return .room
-            case .flat: return .flat
-            case .apartment: return .apartment
-            }
-        }
-    }
-
-    enum DiscoveryMode: String, CaseIterable, Identifiable {
-        case list = "List"
-        case map = "Map"
-
-        var id: String { rawValue }
-    }
-
-    struct ListingFilters: Equatable {
-        static let defaultAvailableByDate = Calendar.current.date(
-            byAdding: .day,
-            value: 365,
-            to: .now
-        ) ?? .now
-
-        var minPrice: Double = 8_000
-        var maxPrice: Double = 50_000
-        var parkingRequired = false
-        var wifiRequired = false
-        var petsAllowedOnly = false
-        var tenantPreference: Listing.TenantPreference?
-        var maximumRadiusInKM = 10
-        var availableFrom: Date = defaultAvailableByDate
     }
 
     @Published private(set) var state: LoadState = .idle
     @Published private(set) var listings: [Listing] = []
     @Published var searchText = ""
-    @Published var selectedCategory: Category?
-    @Published var discoveryMode: DiscoveryMode = .list
-    @Published var filters = ListingFilters()
+    @Published private(set) var selectedFilters: Set<AmenityFilter> = []
+    @Published private(set) var favoriteListingIDs: Set<String> = [
+        "L-100",
+        "L-102",
+        "L-104"
+    ]
 
     var filteredListings: [Listing] {
         let query = searchText
@@ -63,36 +34,20 @@ final class ExploreViewModel: ObservableObject {
             .lowercased()
 
         return listings.filter { listing in
-            let matchesCategory = selectedCategory == nil || listing.propertyType == selectedCategory?.propertyType
             let matchesQuery = query.isEmpty
                 || listing.title.lowercased().contains(query)
                 || listing.approximateLocation.lowercased().contains(query)
                 || listing.description.lowercased().contains(query)
-            let matchesPrice = listing.monthlyRent >= Int(filters.minPrice)
-                && listing.monthlyRent <= Int(filters.maxPrice)
-            let matchesParking = !filters.parkingRequired || listing.parkingAvailable
-            let matchesWifi = !filters.wifiRequired || listing.wifiAvailable
-            let matchesPet = !filters.petsAllowedOnly || listing.petAllowed
-            let matchesPreference = filters.tenantPreference == nil
-                || filters.tenantPreference == listing.tenantPreference
-                || listing.tenantPreference == .both
-            let matchesRadius = listing.locationRadiusInKM <= filters.maximumRadiusInKM
-            let matchesAvailableFrom = listing.availableFrom <= filters.availableFrom
+            let matchesAmenities = selectedFilters.allSatisfy { filter in
+                switch filter {
+                case .freeWifi: return listing.wifiAvailable
+                case .parking: return listing.parkingAvailable
+                case .petsAllowed: return listing.petAllowed
+                }
+            }
 
-            return matchesCategory
-                && matchesQuery
-                && matchesPrice
-                && matchesParking
-                && matchesWifi
-                && matchesPet
-                && matchesPreference
-                && matchesRadius
-                && matchesAvailableFrom
+            return matchesQuery && matchesAmenities
         }
-    }
-
-    var hasAppliedFilters: Bool {
-        filters != ListingFilters()
     }
 
     var recentListings: [Listing] {
@@ -103,10 +58,10 @@ final class ExploreViewModel: ObservableObject {
         )
     }
 
-    var popularListings: [Listing] {
+    var favoriteListings: [Listing] {
         Array(
             filteredListings
-                .sorted { popularityScore(for: $0) > popularityScore(for: $1) }
+                .filter { favoriteListingIDs.contains($0.id) }
                 .prefix(6)
         )
     }
@@ -129,6 +84,7 @@ final class ExploreViewModel: ObservableObject {
 
         do {
             listings = try await repository.fetchExploreListings()
+            synchronizeFavoritesWithAvailableListings()
             state = .loaded
         } catch {
             state = .error("Could not load listings right now.")
@@ -139,26 +95,36 @@ final class ExploreViewModel: ObservableObject {
         await load(using: repository)
     }
 
-    func toggleCategory(_ category: Category) {
-        if selectedCategory == category {
-            selectedCategory = nil
+    func toggle(filter: AmenityFilter) {
+        if selectedFilters.contains(filter) {
+            selectedFilters.remove(filter)
         } else {
-            selectedCategory = category
+            selectedFilters.insert(filter)
         }
     }
 
-    func resetFilters() {
-        filters = ListingFilters()
+    func isFilterSelected(_ filter: AmenityFilter) -> Bool {
+        selectedFilters.contains(filter)
     }
 
-    private func popularityScore(for listing: Listing) -> Int {
-        let amenitiesScore = (listing.parkingAvailable ? 1 : 0)
-            + (listing.wifiAvailable ? 1 : 0)
-            + (listing.petAllowed ? 1 : 0)
+    func toggleFavorite(listingID: String) {
+        if favoriteListingIDs.contains(listingID) {
+            favoriteListingIDs.remove(listingID)
+        } else {
+            favoriteListingIDs.insert(listingID)
+        }
+    }
 
-        let affordabilityScore = max(0, 60_000 - listing.monthlyRent) / 1_000
-        let spaceScore = listing.bedroomCount * 3
+    func isFavorite(listingID: String) -> Bool {
+        favoriteListingIDs.contains(listingID)
+    }
 
-        return (amenitiesScore * 10) + affordabilityScore + spaceScore
+    private func synchronizeFavoritesWithAvailableListings() {
+        let availableIDs = Set(listings.map(\.id))
+        favoriteListingIDs = favoriteListingIDs.intersection(availableIDs)
+
+        if favoriteListingIDs.isEmpty {
+            favoriteListingIDs = Set(listings.prefix(2).map(\.id))
+        }
     }
 }

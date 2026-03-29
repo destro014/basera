@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 
 @MainActor
@@ -9,7 +10,7 @@ final class OnboardingViewModel: ObservableObject {
         let imageAssetName: String
     }
 
-    static let slideDuration: TimeInterval = 4
+    static let slideDuration: TimeInterval = 5
     static let timerStep: TimeInterval = 0.05
 
     @Published private(set) var slides: [Slide] = [
@@ -21,13 +22,13 @@ final class OnboardingViewModel: ObservableObject {
         ),
         Slide(
             id: "list-fast",
-            title: "List in a Few Minutes",
+            title: "List Your Property in Minutes",
             message: "Publish your property quickly. Set availability, price, and house rules to attract serious renters.",
             imageAssetName: "onboarding-slide-2"
         ),
         Slide(
             id: "connect-direct",
-            title: "Connect Without Agents",
+            title: "Express Interest, No Middlemen",
             message: "Send interest requests directly to owners. No middlemen, no commissions, just straightforward renting.",
             imageAssetName: "onboarding-slide-3"
         ),
@@ -47,10 +48,6 @@ final class OnboardingViewModel: ObservableObject {
 
     var progressValues: [Double] {
         slides.indices.map { index in
-            if index < currentIndex {
-                return 1
-            }
-
             if index == currentIndex {
                 return currentProgress
             }
@@ -63,21 +60,10 @@ final class OnboardingViewModel: ObservableObject {
         guard isPlaybackActive else { return }
         guard slides.isEmpty == false else { return }
 
-        if currentIndex == slides.count - 1, currentProgress >= 1 {
-            return
-        }
-
         elapsed += Self.timerStep
 
         if elapsed >= Self.slideDuration {
-            if currentIndex < slides.count - 1 {
-                currentIndex += 1
-                elapsed = 0
-                currentProgress = 0
-            } else {
-                elapsed = Self.slideDuration
-                currentProgress = 1
-            }
+            advanceToNextSlide()
             return
         }
 
@@ -95,5 +81,16 @@ final class OnboardingViewModel: ObservableObject {
 
     func setPlaybackActive(_ isActive: Bool) {
         isPlaybackActive = isActive
+    }
+
+    private func advanceToNextSlide() {
+        elapsed = 0
+        currentProgress = 0
+
+        if currentIndex < slides.count - 1 {
+            currentIndex += 1
+        } else {
+            currentIndex = 0
+        }
     }
 }

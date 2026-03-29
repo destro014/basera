@@ -4,7 +4,6 @@ import VroxalDesign
 struct ProfileCreationView: View {
     @Binding var fullName: String
     @Binding var phoneNumber: String
-    let selectedRole: UserRole
 
     let notice: AuthStepNotice?
     let fullNameValidationMessage: String?
@@ -69,7 +68,7 @@ struct ProfileCreationView: View {
                 .vdFont(VdFont.headlineLarge)
                 .foregroundStyle(Color.vdContentDefaultBase)
 
-            Text(roleDescription)
+            Text("Please enter your full name and mobile number")
                 .vdFont(VdFont.bodyLarge)
                 .foregroundStyle(Color.vdContentDefaultSecondary)
         }
@@ -78,9 +77,9 @@ struct ProfileCreationView: View {
     private var inputContainer: some View {
         VStack(spacing: VdSpacing.md) {
             VdTextField(
-                "Full Name",
+                "Full name",
                 text: $fullName,
-                placeholder: "Full Name",
+                placeholder: "John Doe",
                 state: inputState(for: fullNameValidationMessage),
                 leadingIcon: "person.fill",
                 helperText: fullNameValidationMessage
@@ -90,9 +89,9 @@ struct ProfileCreationView: View {
             .textContentType(.name)
 
             VdTextField(
-                "Phone Number",
+                "Mobile number",
                 text: $phoneNumber,
-                placeholder: "+97798XXXXXXXX",
+                placeholder: "98XXXXXXXX",
                 state: inputState(for: phoneNumberValidationMessage),
                 leadingIcon: "phone.fill",
                 helperText: phoneNumberValidationMessage
@@ -105,29 +104,22 @@ struct ProfileCreationView: View {
     }
 
     private var buttonContainer: some View {
-        VdButton("Complete Profile", size: .medium, fullWidth: true, isLoading: isLoading, action: onSubmit)
+        VdButton(
+            "Continue",
+            size: .large,
+            fullWidth: true,
+            isLoading: isLoading,
+            action: onSubmit
+        )
             .frame(maxWidth: .infinity)
     }
 
     private func noticeContainer(_ notice: AuthStepNotice) -> some View {
-        VdAlert(
-            color: notice.style.authAlertColor,
-            title: notice.style.authAlertTitle,
-            description: notice.message
-        )
+        AuthNoticeBanner(notice: notice)
     }
 
     private func inputState(for validationMessage: String?) -> VdInputState {
         validationMessage?.isEmpty == false ? .error : .default
-    }
-
-    private var roleDescription: String {
-        switch selectedRole {
-        case .renter:
-            return "Tell us your full name and phone number so owners can trust account records. You can add occupation, family details, and preferences later."
-        case .owner:
-            return "Tell us your full name and phone number so renters can trust account records. You can add address, ID documents, and payment details later."
-        }
     }
 }
 
@@ -135,7 +127,6 @@ struct ProfileCreationView: View {
     ProfileCreationView(
         fullName: .constant(""),
         phoneNumber: .constant(""),
-        selectedRole: .renter,
         notice: AuthStepNotice(style: .error, message: "Enter your full name to continue."),
         fullNameValidationMessage: nil,
         phoneNumberValidationMessage: nil,

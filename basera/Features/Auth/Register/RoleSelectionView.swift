@@ -50,9 +50,13 @@ struct RoleSelectionView: View {
 
     private var headerContainer: some View {
         VStack(alignment: .leading, spacing: VdSpacing.xs) {
-            Text("How will you use Basera?")
+            Text("How would you like to use Basera")
                 .vdFont(VdFont.headlineLarge)
                 .foregroundStyle(Color.vdContentDefaultBase)
+
+            Text("Please select how would you like to use basera.")
+                .vdFont(VdFont.bodyLarge)
+                .foregroundStyle(Color.vdContentDefaultSecondary)
         }
     }
 
@@ -62,22 +66,28 @@ struct RoleSelectionView: View {
                 selectionStyle: .radio,
                 isSelected: roleBinding(for: .renter),
                 icon: "house.fill",
-                title: "Find a place to rent",
-                description: "I am looking for properties."
+                title: "I am a renter",
+                description: "Description for the control group goes here"
             )
 
             VdSelectionCard(
                 selectionStyle: .radio,
                 isSelected: roleBinding(for: .owner),
                 icon: "building.2.fill",
-                title: "List my property",
-                description: "I want to rent out my property."
+                title: "I am a owner",
+                description: "Description for the control group goes here"
             )
         }
     }
 
     private var buttonContainer: some View {
-        VdButton("Continue", size: .medium, fullWidth: true, isLoading: isLoading, action: onContinue)
+        VdButton(
+            "Continue",
+            size: .large,
+            fullWidth: true,
+            isLoading: isLoading,
+            action: onContinue
+        )
             .frame(maxWidth: .infinity)
     }
 

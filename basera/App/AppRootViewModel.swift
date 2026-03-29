@@ -11,7 +11,6 @@ final class AppRootViewModel: ObservableObject {
 
     @Published private(set) var route: AppRoute = .loading
     @Published private(set) var biometricPrompt: BiometricPrompt?
-    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
 
     private var pendingBiometricCredentials: AuthCredentials?
 
@@ -24,10 +23,10 @@ final class AppRootViewModel: ObservableObject {
             if let user {
                 route = .signedIn(user)
             } else {
-                route = hasSeenOnboarding ? .signedOut(.login) : .onboarding
+                route = .onboarding
             }
         } catch {
-            route = hasSeenOnboarding ? .signedOut(.login) : .onboarding
+            route = .onboarding
         }
     }
 
@@ -86,11 +85,10 @@ final class AppRootViewModel: ObservableObject {
     func signOut(environment: AppEnvironment) async {
         try? await environment.authRepository.signOut()
         environment.currentUser = nil
-        route = hasSeenOnboarding ? .signedOut(.login) : .onboarding
+        route = .onboarding
     }
 
     func continueFromOnboarding(to entryPoint: AuthEntryPoint) {
-        hasSeenOnboarding = true
         route = .signedOut(entryPoint)
     }
 

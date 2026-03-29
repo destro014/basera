@@ -16,6 +16,9 @@ struct RegistrationView: View {
 
     var body: some View {
         GeometryReader { proxy in
+            let contentHorizontalPadding =
+                proxy.size.width >= 520 ? VdSpacing.lg : VdSpacing.md
+
             VStack(alignment: .leading, spacing: VdSpacing.none) {
                 Spacer()
                     .frame(height: VdSpacing.xxl)
@@ -48,17 +51,20 @@ struct RegistrationView: View {
                 buttonContainer
 
                 Spacer(minLength: VdSpacing.xl)
-
-                loginSection
             }
             .frame(
                 maxWidth: 420,
                 minHeight: max(proxy.size.height - 32, 0),
                 alignment: .top
             )
-            .padding(.horizontal, proxy.size.width >= 520 ? VdSpacing.lg : VdSpacing.md)
-            .padding(.bottom, VdSpacing.sm)
-            .frame(maxWidth: .infinity)
+            .padding(.horizontal, contentHorizontalPadding)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .safeAreaInset(edge: .bottom, spacing: VdSpacing.none) {
+                loginSection(
+                    horizontalPadding: contentHorizontalPadding,
+                    bottomSafeAreaInset: proxy.safeAreaInsets.bottom
+                )
+            }
             .baseraScreenBackground()
             .sheet(isPresented: existingAccountSheetBinding) {
                 accountAlreadyExistsSheet
@@ -95,7 +101,7 @@ struct RegistrationView: View {
                 .vdFont(VdFont.headlineLarge)
                 .foregroundStyle(Color.vdContentDefaultBase)
 
-            Text("Enter your email to receive an OTP and continue registration.")
+            Text("Enter your email to receive a code and continue registration.")
                 .vdFont(VdFont.bodyLarge)
                 .foregroundStyle(Color.vdContentDefaultSecondary)
         }
@@ -120,7 +126,13 @@ struct RegistrationView: View {
 
     private var buttonContainer: some View {
         VStack(alignment: .leading, spacing: VdSpacing.md) {
-            VdButton("Continue", size: .medium, fullWidth: true, isLoading: isLoading, action: onSubmit)
+            VdButton(
+                "Continue",
+                size: .large,
+                fullWidth: true,
+                isLoading: isLoading,
+                action: onSubmit
+            )
 
             Text("By tapping continue, you agree to Terms and Conditions and Privacy Policy")
                 .vdFont(VdFont.bodyMedium)
@@ -129,7 +141,10 @@ struct RegistrationView: View {
         }
     }
 
-    private var loginSection: some View {
+    private func loginSection(
+        horizontalPadding: CGFloat,
+        bottomSafeAreaInset: CGFloat
+    ) -> some View {
         HStack(alignment: .center, spacing: VdSpacing.sm) {
             Text("Already have an account?")
                 .vdFont(VdFont.bodyMedium)
@@ -144,17 +159,23 @@ struct RegistrationView: View {
             )
             .frame(width: 87)
         }
-        .padding(.horizontal, VdSpacing.md)
-        .padding(.vertical, VdSpacing.md)
-        .background(Color.vdBackgroundDefaultSecondary)
+        .frame(maxWidth: 420, alignment: .leading)
+        .frame(maxWidth: .infinity, alignment: .center)
+        .padding(.horizontal, horizontalPadding)
+        .padding(.top, VdSpacing.md)
+        .padding(
+            .bottom,
+            max(bottomSafeAreaInset + VdSpacing.xs, VdSpacing.lg)
+        )
+        .background(
+            TopRoundedRectangle(radius: VdRadius.xl)
+                .fill(Color.vdBackgroundDefaultSecondary)
+                .ignoresSafeArea(edges: .bottom)
+        )
     }
 
     private func noticeContainer(_ notice: AuthStepNotice) -> some View {
-        VdAlert(
-            color: notice.style.authAlertColor,
-            title: notice.style.authAlertTitle,
-            description: notice.message
-        )
+        AuthNoticeBanner(notice: notice)
     }
 
     private func inputState(for validationMessage: String?) -> VdInputState {
