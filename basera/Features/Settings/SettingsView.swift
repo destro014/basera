@@ -71,24 +71,6 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    NavigationLink {
-                        VdPreviewGallery()
-                    } label: {
-                        HStack {
-                            Label("Vroxal Preview Gallery", systemImage: "square.grid.3x2")
-                                .vdFont(VdFont.bodyLarge)
-                                .foregroundStyle(Color.vdContentDefaultBase)
-                            Spacer()
-                        }
-                    }
-                    .listRowBackground(Color.vdBackgroundDefaultSecondary)
-                } header: {
-                    Text("Design System")
-                        .vdFont(VdFont.labelLarge)
-                        .foregroundStyle(Color.vdContentDefaultSecondary)
-                }
-
-                Section {
                     Button(action: onSignOut) {
                         Text("Sign Out")
                             .vdFont(VdFont.bodyLarge)

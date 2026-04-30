@@ -37,6 +37,12 @@ final class OnboardingViewModel: ObservableObject {
             title: "Track Rent and Payments",
             message: "Sign agreements digitally and monitor every payment — all your rental records in one place.",
             imageAssetName: "onboarding-slide-4"
+        ),
+        Slide(
+            id: "safe-secure",
+            title: "Safe and Secure Renting",
+            message: "Verified listings, digital agreements, and secure payments — rent with confidence every time.",
+            imageAssetName: "onboarding-slide-5"
         )
     ]
 
@@ -48,10 +54,8 @@ final class OnboardingViewModel: ObservableObject {
 
     var progressValues: [Double] {
         slides.indices.map { index in
-            if index == currentIndex {
-                return currentProgress
-            }
-
+            if index < currentIndex { return 1.0 }
+            if index == currentIndex { return currentProgress }
             return 0
         }
     }

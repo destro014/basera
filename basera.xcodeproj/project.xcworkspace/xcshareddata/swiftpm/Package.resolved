@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/vroxal/vd-swift",
       "state" : {
-        "revision" : "61cf988bd164d7df916bbf2b2fcac48804983140",
-        "version" : "1.0.1"
+        "revision" : "bab5afd262c95dbbd7dfaa7bdaa8541d10e1d2ca",
+        "version" : "1.3.0"
       }
     }
   ],

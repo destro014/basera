@@ -6,15 +6,18 @@ struct OnboardingView: View {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var viewModel = OnboardingViewModel()
 
+    // Fractional slide position: 0.0 = first slide, 1.0 = second, etc.
+    // Animates smoothly between values — avoids the integer-snap discontinuity.
+    @State private var slidePosition: CGFloat = 0
+    @State private var safeAreaTop: CGFloat = 0
+    @State private var safeAreaBottom: CGFloat = 0
+
     let notice: AuthStepNotice?
     let onLogin: () -> Void
     let onRegister: () -> Void
     let isPreviewMode: Bool
 
     private let progressBarHeight: CGFloat = 4
-    private let progressSpacing: CGFloat = 8
-    private let slideInsertionDuration: TimeInterval = 1
-    private let slideRemovalDuration: TimeInterval = 2
     private let autoplayTimer = Timer.publish(
         every: OnboardingViewModel.timerStep,
         on: .main,
@@ -34,65 +37,119 @@ struct OnboardingView: View {
     }
 
     private var shouldUseStaticPreviewMode: Bool {
-        isPreviewMode || ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+        isPreviewMode
     }
 
     var body: some View {
         GeometryReader { proxy in
-            let horizontalPadding = proxy.size.width >= 520 ? 24.0 : 16.0
+            ZStack(alignment: .bottom) {
+                slideImageLayer(width: proxy.size.width)
 
-            VStack(spacing: 0) {
-                header(horizontalPadding: horizontalPadding)
+                VStack(spacing: 0) {
+                    topBar(safeAreaTop: safeAreaTop)
+                    Spacer()
+                }
+                .frame(width: proxy.size.width, height: proxy.size.height, alignment: .top)
 
-                storyPager(horizontalPadding: horizontalPadding)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                footer(horizontalPadding: horizontalPadding, bottomInset: 0)
+                bottomCard(bottomInset: safeAreaBottom, screenWidth: proxy.size.width)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(OnboardingPalette.screenBackground.ignoresSafeArea())
+            .frame(width: proxy.size.width, height: proxy.size.height)
+            .gesture(swipeGesture(width: proxy.size.width))
         }
+        .ignoresSafeArea()
         .onAppear {
-            viewModel.setPlaybackActive(shouldUseStaticPreviewMode == false)
+            let insets = UIApplication.shared.connectedScenes
+                .compactMap { $0 as? UIWindowScene }
+                .flatMap { $0.windows }
+                .first { $0.isKeyWindow }?
+                .safeAreaInsets
+            safeAreaTop = insets?.top ?? 0
+            safeAreaBottom = insets?.bottom ?? 0
+            slidePosition = CGFloat(viewModel.currentIndex)
+            viewModel.setPlaybackActive(!shouldUseStaticPreviewMode)
         }
         .onDisappear {
             viewModel.setPlaybackActive(false)
         }
         .onChange(of: scenePhase) { newValue in
-            viewModel.setPlaybackActive(shouldUseStaticPreviewMode == false && newValue == .active)
+            viewModel.setPlaybackActive(!shouldUseStaticPreviewMode && newValue == .active)
+        }
+        .onChange(of: viewModel.currentIndex) { newIndex in
+            withAnimation(.easeInOut(duration: 0.45)) {
+                slidePosition = CGFloat(newIndex)
+            }
         }
         .onReceive(autoplayTimer) { _ in
-            guard shouldUseStaticPreviewMode == false else { return }
+            guard !shouldUseStaticPreviewMode else { return }
             viewModel.tick()
         }
     }
 
-    private func header(horizontalPadding: CGFloat) -> some View {
-        VStack(alignment: .leading, spacing: 24) {
-            Image("logo-horizontal")
-                .resizable()
-                .scaledToFit()
-                .frame(height: 40)
-                .accessibilityHidden(true)
+    // MARK: - Image layer
 
-            progressIndicator
+    private func slideImageLayer(width: CGFloat) -> some View {
+        ZStack {
+            ForEach(Array(viewModel.slides.enumerated()), id: \.element.id) { index, slide in
+                Image(slide.imageAssetName)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: width)
+                    .clipped()
+                    .offset(x: (CGFloat(index) - slidePosition) * width)
+            }
         }
-        .frame(maxWidth: 402, alignment: .leading)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, horizontalPadding)
-        .padding(.top, 16)
+        .clipped()
+    }
+
+    // MARK: - Swipe gesture
+
+    private func swipeGesture(width: CGFloat) -> some Gesture {
+        DragGesture(minimumDistance: 15)
+            .onChanged { value in
+                guard abs(value.translation.width) > abs(value.translation.height) else { return }
+                let raw = CGFloat(viewModel.currentIndex) - value.translation.width / width
+                slidePosition = raw.clamped(to: 0...CGFloat(viewModel.slides.count - 1))
+            }
+            .onEnded { value in
+                let dragFraction = value.translation.width / width
+                let velocityFraction = value.predictedEndTranslation.width / width
+                let threshold: CGFloat = 0.25
+
+                let targetIndex: Int
+                if dragFraction < -threshold || velocityFraction < -threshold {
+                    targetIndex = min(viewModel.currentIndex + 1, viewModel.slides.count - 1)
+                } else if dragFraction > threshold || velocityFraction > threshold {
+                    targetIndex = max(viewModel.currentIndex - 1, 0)
+                } else {
+                    targetIndex = viewModel.currentIndex
+                }
+
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    slidePosition = CGFloat(targetIndex)
+                }
+                viewModel.selectSlide(targetIndex)
+            }
+    }
+
+    // MARK: - Top bar
+
+    private func topBar(safeAreaTop: CGFloat) -> some View {
+        progressIndicator
+            .padding(.horizontal, VdSpacing.s400)
+            .padding(.top, safeAreaTop + VdSpacing.s400)
+            .padding(.bottom, VdSpacing.s300)
     }
 
     private var progressIndicator: some View {
-        HStack(spacing: progressSpacing) {
+        HStack(spacing: 3) {
             ForEach(Array(viewModel.progressValues.enumerated()), id: \.offset) { index, progress in
                 GeometryReader { proxy in
                     ZStack(alignment: .leading) {
                         Capsule()
-                            .fill(OnboardingPalette.progressTrack)
+                            .fill(Color.white.opacity(0.4))
 
                         Capsule()
-                            .fill(index == viewModel.currentIndex ? OnboardingPalette.progressFill : .clear)
+                            .fill(Color.white)
                             .frame(width: proxy.size.width * progress)
                     }
                 }
@@ -100,141 +157,101 @@ struct OnboardingView: View {
             }
         }
         .frame(height: progressBarHeight)
+        .animation(.easeInOut(duration: 0.3), value: viewModel.currentIndex)
     }
 
-    @ViewBuilder
-    private func storyPager(horizontalPadding: CGFloat) -> some View {
-        if shouldUseStaticPreviewMode {
-            OnboardingSlidePage(slide: viewModel.slides[viewModel.currentIndex])
-                .padding(.top, 24)
-                .padding(.horizontal, horizontalPadding)
-        } else {
-            ZStack {
-                ForEach(Array(viewModel.slides.enumerated()), id: \.element.id) { index, slide in
-                    if index == viewModel.currentIndex {
-                        OnboardingSlidePage(slide: slide)
-                            .padding(.top, 24)
-                            .padding(.horizontal, horizontalPadding)
-                            .transition(slideTransition)
-                            .id(slide.id)
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                viewModel.selectSlide(nextIndex(after: index))
-                            }
+    // MARK: - Bottom card
+
+    private func bottomCard(bottomInset: CGFloat, screenWidth: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: VdSpacing.s1000) {
+            slideTextContent
+            
+
+            footer(bottomInset: bottomInset)
+        }
+        .padding(.horizontal, VdSpacing.s600)
+
+        .padding(.top, VdSpacing.s1000)
+        .padding(.bottom, max(bottomInset, VdSpacing.s800))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.thinMaterial)
+        .foregroundStyle(Color.vdBackgroundDefaultBase)
+        .clipShape(RoundedRectangle(cornerRadius: VdSpacing.s1000, style: .continuous))
+        .padding(.horizontal, VdSpacing.s200)
+        .padding(.bottom, VdSpacing.s200)
+    }
+
+    private var slideTextContent: some View {
+        ZStack(alignment: .topLeading) {
+            ForEach(Array(viewModel.slides.enumerated()), id: \.element.id) { index, slide in
+                if index == viewModel.currentIndex {
+                    VStack(alignment: .leading, spacing: VdSpacing.s100) {
+                        Text(slide.title)
+                            .vdFont(VdFont.headlineLarge)
+                            .foregroundStyle(Color.vdContentDefaultBase)
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        Text(slide.message)
+                            .vdFont(VdFont.bodyLarge)
+                            .foregroundStyle(Color.vdContentDefaultBase)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .transition(.opacity)
+                    .id(slide.id)
                 }
             }
-            .clipped()
-            .animation(.none, value: viewModel.currentProgress)
-            .animation(.easeInOut(duration: slideRemovalDuration), value: viewModel.currentIndex)
         }
+        .animation(.easeInOut(duration: 0.25), value: viewModel.currentIndex)
     }
 
-    private func footer(horizontalPadding: CGFloat, bottomInset: CGFloat) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
+    // MARK: - Footer buttons
+
+    private func footer(bottomInset: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: VdSpacing.s400) {
             if let notice {
                 VdAlert(tone: tone(for: notice.style), message: notice.message)
             }
 
-            HStack(spacing: 16) {
-                VdButton("Login",  style: .subtle, size: .large, action: onLogin)
+            HStack(spacing: VdSpacing.s400) {
+                VdButton("Login", style: .subtle, size: .large, action: onLogin)
                     .fixedSize(horizontal: false, vertical: true)
-//                    .frame(width: 87)
 
                 VdButton("Create account", style: .solid, size: .large, fullWidth: true, action: onRegister)
             }
         }
-        .frame(maxWidth: 402, alignment: .leading)
-        .frame(maxWidth: .infinity, alignment: .center)
-        .padding(.horizontal, horizontalPadding)
-        .padding(.bottom, max(bottomInset, 8))
-        .padding(.top, 16)
     }
 
     private func tone(for style: AuthStepNotice.Style) -> BaseraVdAlertTone {
         switch style {
-        case .info:
-            .info
-        case .success:
-            .success
-        case .error:
-            .error
-        }
-    }
-
-    private var slideTransition: AnyTransition {
-        .asymmetric(
-            insertion: .move(edge: .trailing)
-                .combined(with: .opacity)
-                .animation(.easeInOut(duration: slideInsertionDuration)),
-            removal: .move(edge: .leading)
-                .combined(with: .opacity)
-                .animation(.easeInOut(duration: slideRemovalDuration))
-        )
-    }
-
-    private func nextIndex(after index: Int) -> Int {
-        let nextIndex = index + 1
-        return nextIndex < viewModel.slides.count ? nextIndex : 0
-    }
-}
-
-private struct OnboardingSlidePage: View {
-    let slide: OnboardingViewModel.Slide
-
-    var body: some View {
-        GeometryReader { proxy in
-//            let imageHeight = min(320, max(160, proxy.size.height * 0.52))
-
-            VStack(alignment: .leading, spacing: 24) {
-                OnboardingIllustrationCard(slide: slide)
-
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(slide.title)
-                        .vdFont(VdFont.headlineLarge)
-                        .foregroundStyle(OnboardingPalette.title)
-                        .fixedSize(horizontal: false, vertical: true)
-
-                    Text(slide.message)
-                        .vdFont(VdFont.bodyLarge)
-                        .foregroundStyle(OnboardingPalette.body)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                Spacer(minLength: 0)
-            }
-            .frame(maxWidth: 402, maxHeight: .infinity, alignment: .top)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        case .info: .info
+        case .success: .success
+        case .error: .error
         }
     }
 }
 
-private struct OnboardingIllustrationCard: View {
-    let slide: OnboardingViewModel.Slide
+// MARK: - Helpers
 
-    var body: some View {
-        Image(slide.imageAssetName)
-            .resizable()
-            .scaledToFit()
-            .clipped()
-            .accessibilityHidden(true)
+private extension Comparable {
+    func clamped(to range: ClosedRange<Self>) -> Self {
+        min(max(self, range.lowerBound), range.upperBound)
     }
 }
+
+// MARK: - Palette
 
 private enum OnboardingPalette {
-    static let screenBackground = Color(red: 231 / 255, green: 230 / 255, blue: 245 / 255)
-    static let illustrationBackground = Color(red: 215 / 255, green: 213 / 255, blue: 229 / 255)
-    static let progressTrack = Color(red: 159 / 255, green: 156 / 255, blue: 186 / 255)
-    static let progressFill = Color(red: 90 / 255, green: 74 / 255, blue: 244 / 255)
+    static let cardBackground = Color(red: 231 / 255, green: 230 / 255, blue: 245 / 255).opacity(0.7)
     static let title = Color(red: 4 / 255, green: 2 / 255, blue: 26 / 255)
     static let body = Color(red: 72 / 255, green: 70 / 255, blue: 92 / 255)
 }
-        
+
 #Preview {
     OnboardingView(
         notice: nil,
         onLogin: {},
         onRegister: {},
-        isPreviewMode: true
+        isPreviewMode: false
     )
 }
