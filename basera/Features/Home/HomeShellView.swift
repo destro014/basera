@@ -1,4 +1,6 @@
 import SwiftUI
+import VroxalIcons
+
 
 struct HomeShellView: View {
     @EnvironmentObject private var environment: AppEnvironment
@@ -24,7 +26,7 @@ struct HomeShellView: View {
 
             exploreTab
                 .tabItem {
-                    Label("Explore", systemImage: "safari")
+                    Label("Explore", image: "vd:magnifyingglass")
                 }
                 .tag(HomeShellViewModel.Tab.explore)
 
@@ -36,7 +38,7 @@ struct HomeShellView: View {
 
             notificationsTab
                 .tabItem {
-                    Label("Notifications", systemImage: "bell")
+                    Label("Notifications", image: "vd:bell-filled")
                 }
                 .badge(viewModel.notificationBadge.unreadCount)
                 .tag(HomeShellViewModel.Tab.notifications)
@@ -56,13 +58,13 @@ struct HomeShellView: View {
     }
 
     private var primaryTab: some View {
-        NavigationStack {
-            rolePrimaryTab
-                .navigationDestination(isPresented: routedNotificationIsActive)
-            {
-                routedNotificationDestination
+            NavigationStack {
+                rolePrimaryTab
+                    .navigationDestination(isPresented: routedNotificationIsActive)
+                {
+                    routedNotificationDestination
+                }
             }
-        }
     }
 
     private var notificationsTab: some View {

@@ -7,6 +7,7 @@ struct AppRootView: View {
 
     var body: some View {
         Group {
+            
             switch viewModel.route {
             case .loading:
                 AppStartupLoadingView()
